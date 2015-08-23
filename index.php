@@ -1,29 +1,41 @@
-<html>
-
+<!doctype html>
+<html lang="en">
 <head>
+	<meta charset="UTF-8" />
+	<title>Da Casino</title>
+	<script type="text/javascript" src="js/phaser.js"></script>
 
-<style>
-	#container {
-		width:800px;
-		height:700px;
-		border: 15px solid grey;
-		margin: auto;
-	}
-</style>
+	<style type="text/css">
+		body {
+			margin: 0;
+		}
+		input {
+			text-align: center;
+			width: 50px;
+		}
+	</style>
 </head>
 
 <body>
-<a href="classic-playing-cards.png">imap</a>
-<div id="container">
 
-<object type="application/x-shockwave-flash" data="Main.swf" 
-width="800" height="700" class="ad">
-  <param name="movie" value="Main.swf" />
-  <param value="high" name="quality">
-  <param value="#FFFFFF" name="bgcolor">
-  <param value="always" name="allowScriptAccess">
-  <param value="clickTAG=http://www.google.com/" name="FlashVars">
-</object>
-</div>
+<script>
+	var game = new Phaser.Game(1000,600,Phaser.CANVAS, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
+
+	function preload() {
+
+	}
+
+	function create() {
+
+	}
+
+	function update() {
+
+	}
+
+	function render() {
+
+	}
+</script>
 </body>
 </html>
