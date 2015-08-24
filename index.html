@@ -4,6 +4,9 @@
 	<meta charset="UTF-8" />
 	<title>Da Casino</title>
 	<script type="text/javascript" src="js/phaser.js"></script>
+	<script type="text/javascript" src="js/Card.js"></script>
+	<script type="text/javascript" src="js/Deck.js"></script>
+	
 
 	<style type="text/css">
 		body {
@@ -20,25 +23,18 @@
 <body>
 
 <script>
+
 	var game = new Phaser.Game(1700,1000,Phaser.CANVAS, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
+
+	// object containing cards
+	var deck;
 
 	function preload() {
 		game.load.atlas('cards', 'assets/full-deck-with-joker.png','assets/full-deck-with-joker.json');
 	}
 
 	function create() {
-		var suits = ['diamond','club','heart','spade'];
-		var cards = ['2','3','4','5','6','7','8','9','10','jack','queen','king','ace'];
-		for (var i=0; i<suits.length; i++) {
-			for (var k=0; k<cards.length;k++) {
-				var name = cards[k]+'_'+suits[i];
-				game.add.sprite(5+(130*k),10+(180*i),'cards',name);
-			}
-		}
-		game.add.sprite(5,730,'cards','1_joker');
-		game.add.sprite(135,730,'cards','2_joker');
-		game.add.sprite(270,730,'cards','0_back');
-
+		deck = Deck.spawn();
 	}
 
 	function update() {
