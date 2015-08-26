@@ -7,6 +7,7 @@
 	<script type="text/javascript" src="js/Card.js"></script>
 	<script type="text/javascript" src="js/Deck.js"></script>
 	<script type="text/javascript" src="js/Poker.js"></script>
+	<script type="text/javascript" src="js/Houseway.js"></script>
 	<script type="text/javascript" src="js/Hand.js"></script>
 	
 
@@ -50,6 +51,7 @@
 		}
 		*/
 
+		/*
 		// set a hand
 		var set = ["ace_spade", "three_spade", "three_diamond","five_heart", "six_diamond", "seven_heart", "jack_heart" ];
 		var hand = Hand.create(set);
@@ -66,16 +68,17 @@
 				card.y = 5;
 			}
 			// add some information for debugging yeah baby!
-			var style = { font: '12pt Arial', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 550 };
+			var style = { font: '12pt Arial', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
 			var str = hand.poker.debug;
 			var text = game.add.text(950, 5, str, style);			
 		}
-		// create a hand
-		/*
+		*/
+		// create some hands
 		for (var n=0;n<7;n++) {
 			var hand = Hand.create(deck.splice(0,7));
 			hand.poker = Poker.solve(hand.sorted);
-			console.log('hand:',n,hand);
+			hand.houseway = Houseway.solve(hand.poker);
+//console.log('hand:',n,hand);
 			for (var i=0;i<hand.original.length;i++) {
 				var sorted = hand.sorted;
 				var card = Card.create({card:sorted[i],clickable:true});
@@ -85,11 +88,10 @@
 				}
 			}
 			// add some information for debugging yeah baby!
-			var style = { font: '12pt Arial', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 550 };
-			var str = hand.poker.debug;
+			var style = { font: '12pt Arial', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
+			var str = hand.poker.debug+'\n'+hand.houseway.debug;
 			var text = game.add.text(950, 5+(200*n), str, style);			
 		}
-		*/
 
 
 /*		

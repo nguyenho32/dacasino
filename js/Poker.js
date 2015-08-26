@@ -1,11 +1,12 @@
 Poker = {
 	solve:function(cards) {
 		var poker = {};
+		poker.cards = cards;
+		poker.joker = (cards.indexOf('joker_one') > 0 ) ? true : false;
 		var debug = '';
 		
 		// find matches
 		var matches = this.findMatches(cards);
-		console.log('matches:',matches);
 		if (matches.pairs.length != 0) {
 			poker.pairs = matches.pairs;
 			
@@ -43,12 +44,14 @@ Poker = {
 			debug += 'straight: ';
 			debug += straight.toString()+'\n';
 		}
+		
+		// debug text
 		if (debug != '') {
 			poker.debug = debug;
 		} else {
 			poker.debug = 'no poker hands found';
+			poker.nothing = true;
 		}
-		console.log('poker final:',poker);
 		return poker;
 	},
 	
@@ -58,9 +61,8 @@ Poker = {
 	findStraight:function(cards) {
 		var straight = [];
 
-		// first card (for ace checks)
-		var first = cards[0].split('_');
-		
+		// first card
+		var first = cards[0];
 		// straight qualifies (5 or more cards)
 		var qualified = false;
 		
@@ -84,20 +86,18 @@ Poker = {
 					straight.push(cards[k]);
 				} else {
 					var card = cards[i];
-					var this_card = card.split('_');
-					var this_rank = this_card[0] != 'joker' ? Card.names.indexOf(this_card[0])+2 : 0;
+					var this_rank = Card.getRank(card);
 
 					var last = straight[straight.length-1];
-					var last_card = last.split('_');
-					var last_rank = Card.names.indexOf(last_card[0])+2;
+					var last_rank = Card.getRank(last);
 
 					// this rank is one less than last rank
 					if (this_rank == last_rank-1) {
 						straight.push(card);
 						// nothing below two (wheel straights)
-						if (this_card[0] == 'two') {
+						if (Card.getName(card) == 'two') {
 							// ace present so add it to the end of the wheel
-							if (first[0] == 'ace') {
+							if (Card.getName(first) == 'ace') {
 								straight.push(cards[0]);
 							}
 							// joker present and available add to front of straight
@@ -115,7 +115,7 @@ Poker = {
 							straight.push('joker_one');
 							available = false;
 							// if this card is a three, check for ace to complete the wheel
-							if (last_card[0] == 'three' && first[0] == 'ace') {
+							if (Card.getName(last) == 'three' && Card.getName(first) == 'ace') {
 								straight.push(cards[0]);
 								break;
 							}
@@ -142,8 +142,8 @@ Poker = {
 		}
 		// if the joker is the last item and the first item is not an ace
 		if (straight.length > 0) {
-			var top = straight[0].split('_');
-			if (straight[straight.length-1] == 'joker_one' && top[0] != 'ace') {
+			var top = Card.getName(straight[0]);
+			if (straight[straight.length-1] == 'joker_one' && top != 'ace') {
 				straight.unshift(straight.pop());
 			}
 		}
@@ -207,12 +207,11 @@ Poker = {
 				var this_rank = Card.names.indexOf(this_card[0])+2;
 
 				var last = flush[i-1];
-				var last_card = last.split('_');
-				var last_rank = Card.names.indexOf(last_card[0])+2;
+				var last_name = last.split('_');
+				var last_rank = Card.names.indexOf(last_name[0])+2;
 
 				// top card not an ace, put joker on top
-				if (last_card[0] != 'ace') {
-					console.log(last_card[0]);
+				if (last_name[0] != 'ace') {
 					flush.unshift('joker_one');
 					break;
 				}
@@ -260,7 +259,20 @@ Poker = {
 					match.push(cards[i]);
 				}
 			}
-			console.log('match:',match.length,match);
+			// if its the last card, lets not lose our heads
+			if (i == cards.length-1) {
+				// no match set any pairs / trips / quads then reset
+				switch(match.length) {
+					case 4:
+						quads.push(match);
+					case 3:
+						trips.push(match);
+					break;
+					case 2:
+						pairs.push(match);
+					break;
+				}
+			}
 		}
 		var matches = {pairs:pairs,trips:trips,quads:quads};
 		return matches;
