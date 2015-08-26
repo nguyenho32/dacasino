@@ -1,18 +1,44 @@
 var Deck = {
-	spawn:function() {
-		var deck = game.add.group();
-		var suits = ['diamond','club','heart','spade'];
-		var cards = ['2','3','4','5','6','7','8','9','10','jack','queen','king','ace'];
+	create:function(type,shuffled,jokers) {
+
+		if (type != 'standard') {
+			console.log('not a standard deck');
+		}
+		
+		// create a deck of cards
+		var deck = [];
+		var suits = Card.suits;
+		var names = Card.names;
 		for (var i=0; i<suits.length; i++) {
-			for (var k=0; k<cards.length;k++) {
-				var name = cards[k]+'_'+suits[i];
-				var card = Card.spawn(cards[k],suits[i],5+(130*k),10+(180*i));
-				deck.add(card);
+			for (var k=0; k<names.length;k++) {
+				deck.push(names[k]+'_'+suits[i]);
 			}
 		}
-		deck.add(Card.spawn('1','joker',5,730));
-		deck.add(Card.spawn('2','joker',135,730));
-		deck.add(Card.spawn('0','back',270,730));
+		
+		// add jokers if necessary
+		if (jokers > 0) {
+			for (var i=0; i<jokers;i++) {
+				deck.push('joker_one');
+			}
+		}
+		// shuffle the deck if necessary
+		if (shuffled) {
+			deck = this.shuffle(deck);
+		}
+		// return the deck
 		return deck;
+	},
+	shuffle:function(array) {
+	  var i = 0
+		, j = 0
+		, temp = null
+
+	  for (i = array.length - 1; i > 0; i -= 1) {
+		j = Math.floor(Math.random() * (i + 1))
+		temp = array[i]
+		array[i] = array[j]
+		array[j] = temp
+	  }
+	  return array;
 	}
 }
