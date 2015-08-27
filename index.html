@@ -53,10 +53,11 @@
 
 		/*
 		// set a hand
-		var set = ["ace_spade", "three_spade", "three_diamond","five_heart", "six_diamond", "seven_heart", "jack_heart" ];
+		var set = ["joker_one", "seven_heart", "six_club", "king_spade", "nine_diamond", "queen_diamond", "queen_heart" ];
 		var hand = Hand.create(set);
 //		console.log('creating hand, new deck:',deck);
 		hand.poker = Poker.solve(hand.sorted);
+		hand.houseway = Houseway.solve(hand.poker);
 		console.log('created hand',hand);
 		// show the hand
 		for (var i=0;i<hand.original.length;i++) {
@@ -69,7 +70,7 @@
 			}
 			// add some information for debugging yeah baby!
 			var style = { font: '12pt Arial', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
-			var str = hand.poker.debug;
+			var str = hand.poker.debug+'\n'+hand.houseway.debug;
 			var text = game.add.text(950, 5, str, style);			
 		}
 		*/

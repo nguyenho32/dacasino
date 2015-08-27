@@ -246,12 +246,13 @@ Poker = {
 					switch(match.length) {
 						case 4:
 							quads.push(match);
+							break;
 						case 3:
 							trips.push(match);
-						break;
+							break;
 						case 2:
 							pairs.push(match);
-						break;
+							break;
 					}
 					match = [cards[i]];
 				} else {
@@ -265,12 +266,13 @@ Poker = {
 				switch(match.length) {
 					case 4:
 						quads.push(match);
+						break;
 					case 3:
 						trips.push(match);
-					break;
+						break;
 					case 2:
 						pairs.push(match);
-					break;
+						break;
 				}
 			}
 		}
