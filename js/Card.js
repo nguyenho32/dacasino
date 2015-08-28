@@ -6,12 +6,15 @@ var Card = {
 	},
 	names:['two','three','four','five','six','seven','eight','nine','ten','jack','queen','king','ace'],
 	getName:function(card) {
+		if(!card) { console.log('borked getName **** FIX THIS ****',card);return;} 
 		var name = card.split('_');
 		return name[0];
 	},
 	values:[2,3,4,5,6,7,8,9,10,10,10,10,11],
 	pictures:['10','jack','queen','king'],
 	getRank:function(card) {
+		if(!card) { console.log('borked getRank **** FIX THIS ****',card);return;} 
+
 		var name = card.split('_');
 		
 		var rank = name[0] != 'joker' ? this.names.indexOf(name[0])+2 : 0; 
@@ -65,11 +68,19 @@ var Card = {
 		// return the card
 		group.showCard = this.showCard;
 */
+		card.selected = false;
 		card.key = full;
 		return card;
 	},
 	clicked:function(card,pointer) {
 		console.log(card.key);
+		if (card.selected) {
+			card.selected = false;
+			card.y += 5;
+		} else {
+			card.selected = true;
+			card.y -= 5;
+		}
 		// for now we are going off the parent.back.alpha
 		/*
 		if (img.parent.back.alpha != 1) {

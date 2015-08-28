@@ -7,7 +7,7 @@
 	<script type="text/javascript" src="js/Card.js"></script>
 	<script type="text/javascript" src="js/Deck.js"></script>
 	<script type="text/javascript" src="js/Poker.js"></script>
-	<script type="text/javascript" src="js/Houseway.js"></script>
+	<script type="text/javascript" src="js/Paigow.js"></script>
 	<script type="text/javascript" src="js/Hand.js"></script>
 	
 
@@ -51,35 +51,21 @@
 		}
 		*/
 
-		/*
-		// set a hand
-		var set = ["joker_one", "seven_heart", "six_club", "king_spade", "nine_diamond", "queen_diamond", "queen_heart" ];
-		var hand = Hand.create(set);
-//		console.log('creating hand, new deck:',deck);
-		hand.poker = Poker.solve(hand.sorted);
-		hand.houseway = Houseway.solve(hand.poker);
-		console.log('created hand',hand);
-		// show the hand
-		for (var i=0;i<hand.original.length;i++) {
-			// sorted
-			var sorted = hand.sorted;
-			var card = Card.create({card:sorted[i],clickable:true});
-			if (card) {
-				card.x = 5+i*135;
-				card.y = 5;
-			}
-			// add some information for debugging yeah baby!
-			var style = { font: '12pt Arial', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
-			var str = hand.poker.debug+'\n'+hand.houseway.debug;
-			var text = game.add.text(950, 5, str, style);			
-		}
-		*/
 		// create some hands
 		for (var n=0;n<7;n++) {
-			var hand = Hand.create(deck.splice(0,7));
+//			var set = ["joker_one", "king_diamond", "queen_diamond", "jack_diamond", "seven_spade", "seven_heart", "two_diamond" ];
+//			var hand = Hand.create(set);
+			// create a specific type of hand
+			var hand = Hand.create(Poker.create('flush',50));
+
+			// random hand from deck
+//			var hand = Hand.create(deck.splice(0,7));
+
+			// solve for poker
 			hand.poker = Poker.solve(hand.sorted);
-			hand.houseway = Houseway.solve(hand.poker);
-//console.log('hand:',n,hand);
+			// solve for pai-gow
+			hand.paigow = Paigow.solve(hand.poker);
+			// loop and display the hands
 			for (var i=0;i<hand.original.length;i++) {
 				var sorted = hand.sorted;
 				var card = Card.create({card:sorted[i],clickable:true});
@@ -89,11 +75,10 @@
 				}
 			}
 			// add some information for debugging yeah baby!
-			var style = { font: '12pt Arial', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
-			var str = hand.poker.debug+'\n'+hand.houseway.debug;
+			var style = { font: '11pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
+			var str = hand.poker.debug+'\n'+hand.paigow.debug;
 			var text = game.add.text(950, 5+(200*n), str, style);			
 		}
-
 
 /*		
 		// match the hand to an exist card on the screen so we can move it (do this instead of creating a new one each time)

@@ -1,7 +1,66 @@
 Poker = {
+	shuffle:function(array) {
+	  var i = 0
+		, j = 0
+		, temp = null
+
+	  for (i = array.length - 1; i > 0; i -= 1) {
+		j = Math.floor(Math.random() * (i + 1))
+		temp = array[i]
+		array[i] = array[j]
+		array[j] = temp
+	  }
+	  return array;
+	},
+	// create a specific type of hand
+	create:function(type,chance) {
+		var hand = [];
+		var suits = Card.suits.slice();
+		var names = Card.names.slice();
+		
+		/*
+		for (var i=0; i<suits.length; i++) {
+			for (var k=0; k<names.length;k++) {
+				deck.push(names[k]+'_'+suits[i]);
+			}
+		}
+		*/
+		switch(type) {
+			case 'flush':
+				// grab a random suit
+				var suit = suits[Math.round(Math.random()*(suits.length-1))];
+				// shuffle the names
+				this.shuffle(names);
+				// names for our flush
+				var start = names.slice(0,5);
+				// build the hand
+				var hand = [];
+				for (var i=0; i<start.length;i++) {
+					hand.push(start[i]+'_'+suit);
+				}
+				// random chance of joker
+				if (Math.random()*100 <= chance) {
+					hand[hand.length-1] = 'joker_one';
+				}
+				// now complete the hand
+				do {
+					// generate a random card
+					var suit = suits[Math.round(Math.random()*(suits.length-1))];
+					var name = names[Math.round(Math.random()*(names.length-1))];
+					var card = name+'_'+suit;
+					// if this card is not in the hand already then add it
+					if (hand.indexOf(card) < 0) {
+						hand.push(card);
+					}
+				} while (hand.length < 7)
+				break;
+		}
+		return hand;
+	},
+	// find all poker hands within a set of cards
 	solve:function(cards) {
 		var poker = {};
-		poker.cards = cards;
+		poker.cards = cards.slice();
 		poker.joker = (cards.indexOf('joker_one') > 0 ) ? true : false;
 		var debug = '';
 		
