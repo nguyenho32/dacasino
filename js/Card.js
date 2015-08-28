@@ -6,14 +6,14 @@ var Card = {
 	},
 	names:['two','three','four','five','six','seven','eight','nine','ten','jack','queen','king','ace'],
 	getName:function(card) {
-		if(!card) { console.log('borked getName **** FIX THIS ****',card);return;} 
+		if(!card) { console.log('borked getName **** FIX THIS ****',card);return 'borked';} 
 		var name = card.split('_');
 		return name[0];
 	},
 	values:[2,3,4,5,6,7,8,9,10,10,10,10,11],
 	pictures:['10','jack','queen','king'],
 	getRank:function(card) {
-		if(!card) { console.log('borked getRank **** FIX THIS ****',card);return;} 
+		if(!card) { console.log('borked getRank **** FIX THIS ****',card);return 'borked';} 
 
 		var name = card.split('_');
 		

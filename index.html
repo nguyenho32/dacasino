@@ -53,13 +53,15 @@
 
 		// create some hands
 		for (var n=0;n<7;n++) {
-//			var set = ["joker_one", "king_diamond", "queen_diamond", "jack_diamond", "seven_spade", "seven_heart", "two_diamond" ];
+		
+			// pair, straight, flush w/ joker (set this hand pair & straight)
+//			var set = ["joker_one", "nine_club", "eight_heart", "seven_club", "six_club", "five_club", "five_diamond" ];
 //			var hand = Hand.create(set);
 			// create a specific type of hand
-			var hand = Hand.create(Poker.create('flush',50));
+//			var hand = Hand.create(Poker.create('flush',100));
 
 			// random hand from deck
-//			var hand = Hand.create(deck.splice(0,7));
+			var hand = Hand.create(deck.splice(0,7));
 
 			// solve for poker
 			hand.poker = Poker.solve(hand.sorted);

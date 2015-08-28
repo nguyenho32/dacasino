@@ -256,31 +256,29 @@ Poker = {
 				
 			}
 		}
-		
 		// joker present so place it correctly
 		if (count == 4) {
-			// sub loop goes through whats left
-			for (var i=1;i<flush.length;i++) {
-				var card = flush[i];
-				var this_card = card.split('_');
-				var this_rank = Card.names.indexOf(this_card[0])+2;
+			// top card not an ace, put joker on top
+			if (Card.getName(flush[0]) != 'ace') {
+				flush.unshift('joker_one');
+			} else {
+				// sub loop goes through whats left
+				for (var i=0;i<flush.length;i++) {
+					var card = flush[i];
 
-				var last = flush[i-1];
-				var last_name = last.split('_');
-				var last_rank = Card.names.indexOf(last_name[0])+2;
+					var next = flush[i+1];
 
-				// top card not an ace, put joker on top
-				if (last_name[0] != 'ace') {
-					flush.unshift('joker_one');
-					break;
-				}
-				// otherwise put the joker in next rank
-				if (this_rank != last_rank - 1) {
-					flush.splice(i,0,'joker_one');
-					break;
+					// place joker if necessary
+					if (Card.getRank(card) != Card.getRank(next) +1) {
+						flush.splice(i+1,0,'joker_one');
+						break;
+					}
 				}
 			}
-		}			
+		}
+		if (flush.length < 5) {
+			flush = [];
+		}
 		return flush;
 	},
 	/*

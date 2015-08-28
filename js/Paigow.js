@@ -1,12 +1,22 @@
 Paigow = {
 	solve:function(poker) {
+		// quads / trips get a match final
+		var match_final = false;
+		// override for straight / flush
 		var override = false;
-		// solve for nothing
-		if (poker.nothing) {
-			result = this.solveNothing(poker);
+		
+		// solve for quads
+		if (poker.quads) {
+			result = this.solveTrips(poker);
+			match_final = true;
+		}
+		// solve for trips
+		if (poker.trips && !match_final) {
+			result = this.solveTrips(poker);
+			match_final = true;
 		}
 		// solve for pairs
-		if (poker.pairs) {
+		if (poker.pairs && !match_final) {
 			result = this.solvePairs(poker);
 			// override straight / flush if we have 2 pairs or 1 pair + joker
 			if (poker.pairs.length == 2) {
@@ -16,33 +26,36 @@ Paigow = {
 				override = true;
 			}
 		}
-		// solve for trips
-		if (poker.trips) {
-			result = this.solveTrips(poker);
-		}
-		// solve for quads
-		if (poker.quads) {
-			result = this.solveQuads(poker);
-		}
 
-		// no override (2 pairs / 1 pair + joker)
+		// solve for straight
+		if (!override) {
+			if (poker.straight) {
+				result = this.solveStraight(poker);
+			}
+		}
+		// solve for flush
 		if (poker.flush) {
 			// override set but 6 card flush means we are going to set pair & flush
 			if (override && poker.flush.length == 6) {
 				override = false;
 			}
 			if (!override) {
+				// straight is present
+				if (poker.straight) {
+					poker.result = result;
+				}
 				result = this.solveFlush(poker);
+				// if override present then use straight results
 				if (result.override) {
-					override = true;
+					result = poker.result;
 				}
 			}
 		}
-		if (!override) {
-			// solve for straight
-			if (poker.straight) {
-				result = this.solveStraight(poker);
-			}
+
+		// no result from anything above, solve for nothing
+		if (poker.nothing) {
+			// no result, solve for nothing
+			result = this.solveNothing(poker);
 		}
 
 		/*
@@ -56,7 +69,7 @@ Paigow = {
 		if (Card.getName(hair[0]) == Card.getName(hair[1])) {
 			desc_hair = 'pair of '+Card.getName(hair[0]);
 		} else {
-			desc_hair = Card.getName(result.hair[0])+' - '+Card.getName(hair[1]);
+			desc_hair = Card.getName(result.hair[0])+', '+Card.getName(hair[1]);
 		}
 		// if the 1st card is a joker, reverse the hair
 		if (Card.getName(hair[0]) == 'joker') {
@@ -97,16 +110,24 @@ Paigow = {
 				break;
 		}
 		// replace joker high with ace high
-		if (Card.getName(back[0]) == 'joker') {
+		if (Card.getName(back[0]) == 'joker' && result.brief == 'flush') {
 			desc_back = desc_back.replace('joker','ace');
 		}
 
-		result.desc = desc_hair+', '+desc_back;
+		result.desc = desc_hair+' - '+desc_back;
 		
 		// debug text
-		result.debug = 'rule: '+result.rule+'\n'+result.desc;
-		result.debug += '\n\n'+result.hair.toString()+'\n'+result.back.toString();
-
+		var debug = '';
+		if (match_final) {
+			debug += '{match final} ';
+		}
+		if (override && (poker.straight || poker.flush)) {
+			debug += '[override] ';
+		}
+		debug += 'rule: '+result.rule+'\n'+result.desc;
+		debug += '\n\n'+result.hair.toString()+'\n'+result.back.toString();
+		result.debug = debug;
+		
 		return result;
 	},
 	
@@ -650,19 +671,47 @@ Paigow = {
 		},this);
 		switch(flush.length) {
 			case 7:
-				hair = [flush[0],flush[1]];
-				back = [flush[2],flush[3],flush[4],flush[5],flush[6]];
 				if (joker) {
+					// high card + joker for pair on top, flush behind
+					var jpos = flush.indexOf('joker_one');
+					if (jpos != 0) {
+						hair = [flush[0],flush[jpos]];
+					} else {
+						hair = [flush[1],flush[jpos]];
+					}
+					flush.forEach(function(key) {
+						if (-1 === hair.indexOf(key)) {
+							back.push(key);
+						}
+					},this);
 					rule = '(joker) 7 card flush';
+					override = true;
 				} else {
+					// 2 high cards on top, flush behind
+					hair = [flush[0],flush[1]];
+					back = [flush[2],flush[3],flush[4],flush[5],flush[6]];
 					rule = '7 card flush';
 				}
 				break;
 			case 6:
 				if (joker) {
-					hair = [diff[0],flush[0]];
-					back = [flush[1],flush[2],flush[3],flush[4],flush[5]];
-					rule = '(joker) 6 card flush';
+					// 6 card flush + joker + pair
+					if (poker.pairs) {
+						var p_diff = [];
+						cards.forEach(function(key) {
+							if (-1 === poker.pairs.indexOf(key)) {
+								p_diff.push(key);
+							}
+						},this);
+						console.log(p_diff);
+						hair = [poker.pairs[0][0],poker.pairs[0][1]];
+						back = [flush[0],flush[1],flush[3],flush[4],flush[5]];
+						rule = '(joker) 6 card flush + pair';
+					} else {
+						hair = [diff[0],flush[0]];
+						back = [flush[1],flush[2],flush[3],flush[4],flush[5]];
+						rule = '(joker) 6 card flush';
+					}
 				} else {
 					hair = [flush[0],diff[0]];
 					back = [flush[1],flush[2],flush[3],flush[4],flush[5]];
@@ -679,37 +728,35 @@ Paigow = {
 				}
 				break;
 		}
-		// straight is also present so need to compare
+
 		var override = false;
-		if (poker.straight) {
+
+		// straight is also present so need to compare
+		if (poker.result) {
 			console.log('\nstraight also present');
-			var straight = poker.straight;
-			var s_diff = [];
-			cards.forEach(function(key) {
-				if (-1 === straight.indexOf(key)) {
-					s_diff.push(key);
-				}
-			},this);
-			// straight hair card is lower than the flush hair card
-			if (s_diff[0]) {
-				console.log('straight hair ',s_diff);
-				console.log('flush hair ',hair);
-				if (Card.getRank(s_diff[0]) < Card.getRank(hair[0])) {
-					console.log('straight hair is lower so flush overrides');
+			var result = poker.result;
+			console.log('straight hair: ',result.hair);
+			console.log('flush hair: ',hair);
+			
+			// straight hair is bigger, use straight
+			if (Card.getRank(result.hair[0]) > Card.getRank(hair[0])) {
+				console.log('1st hair bigger, using straight');
+				override = true;
+			}
+			// 1st hair cards are equal compare the 2nd ones
+			if (Card.getRank(result.hair[0]) == Card.getRank(hair[0])) {
+				if (Card.getRank(result.hair[1]) > Card.getRank(hair[1])) {
+					console.log('2nd hair bigger, using straight');
 					override = true;
 				}
-				if (Card.getRank(s_diff[0]) == Card.getRank(hair[0])) {
-					console.log('both hair the same so compare next hair cards');
-					if (s_diff[1]) {
-						console.log('s_diff');
-					}
-				}
-				if (Card.getRank(s_diff[0]) > Card.getRank(hair[0])) {
-					console.log('straight hair higher, no override');
-				}
+			}
+			// 2nd flush hair card is joker means pair so use flush
+			if (Card.getName(hair[1]) == 'joker') {
+				console.log('using flush joker pair');
+				override = false;
 			}
 		}
-		
+
 		var brief = 'flush';
 		
 		return {hair,back,rule,brief,override};
