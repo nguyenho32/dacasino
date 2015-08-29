@@ -7,7 +7,7 @@ Paigow = {
 		
 		// solve for quads
 		if (poker.quads) {
-			result = this.solveTrips(poker);
+			result = this.solveQuads(poker);
 			match_final = true;
 		}
 		// solve for trips
@@ -27,12 +27,19 @@ Paigow = {
 			}
 		}
 
+		// override set but 6 card straight means we are going to set pair & straight
+		if (poker.straight) {
+			if (override && poker.straight.length == 6) {
+				override = false;
+			}
+		}
 		// solve for straight
 		if (!override) {
 			if (poker.straight) {
 				result = this.solveStraight(poker);
 			}
 		}
+
 		// solve for flush
 		if (poker.flush) {
 			// override set but 6 card flush means we are going to set pair & flush
@@ -109,9 +116,15 @@ Paigow = {
 				desc_back = Card.getName(back[0])+' high';
 				break;
 		}
-		// replace joker high with ace high
+		// replace joker high with ace high in flushes
 		if (Card.getName(back[0]) == 'joker' && result.brief == 'flush') {
 			desc_back = desc_back.replace('joker','ace');
+		}
+		// replace joker high with <card> high
+		if (Card.getName(back[0]) == 'joker' && result.brief == 'straight') {
+			var index = Card.names.indexOf(Card.getName(back[1]));
+			var str = Card.names[index+1];
+			desc_back = desc_back.replace('joker',str);
 		}
 
 		result.desc = desc_hair+' - '+desc_back;
@@ -703,7 +716,6 @@ Paigow = {
 								p_diff.push(key);
 							}
 						},this);
-						console.log(p_diff);
 						hair = [poker.pairs[0][0],poker.pairs[0][1]];
 						back = [flush[0],flush[1],flush[3],flush[4],flush[5]];
 						rule = '(joker) 6 card flush + pair';

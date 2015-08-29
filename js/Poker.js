@@ -13,50 +13,188 @@ Poker = {
 	  return array;
 	},
 	// create a specific type of hand
-	create:function(type,chance) {
+	create:function(type,chance,opt) {
+		var hand = [];
+		switch(type) {
+			case 'flush':
+				hand = this.createFlush(opt);
+				break;
+			case 'straight':
+				hand = this.createStraight(opt);
+				break;
+			case 'quad':
+				hand = this.createQuad(opt);
+				break;
+			case 'trip':
+				hand = this.createTrip(opt);
+				break;
+			case 'pair':
+				hand = this.createPair(opt);
+				break;
+			default:
+				hand = this.createNothing(opt);
+				break;
+		}
+		// random chance of joker
+		if (Math.random()*100 <= chance) {
+			// 50 / 50 on where it goes
+			if (Math.random()* 100 > 50) {
+				hand[0] = 'joker_one';
+			} else {
+				hand[hand.length-1] = 'joker_one';
+			}
+		}
+		return hand;
+	},
+	// create a flush
+	createFlush:function(pair_count) {
+		var hand = [];
+		var suits = Card.suits.slice();
+		var names = Card.names.slice();
+
+		// grab a random suit
+		var suit = suits[Math.round(Math.random()*(suits.length-1))];
+		// shuffle the names
+		this.shuffle(names);
+		// names for our flush
+		var start = names.slice(0,5);
+		// build the hand
+		var no_pairs = [];
+		for (var i=0; i<start.length;i++) {
+			hand.push(start[i]+'_'+suit);
+			no_pairs.push(start[i]);
+		}
+		// now complete the hand
+		do {
+			// generate a random card
+			var suit = suits[Math.round(Math.random()*(suits.length-1))];
+			// we want a single pair
+			var name;
+			var paired = false;
+			if (pair_count == 1 && paired == false) {
+				name = no_pairs[Math.round(Math.random()*(no_pairs.length-1))];
+				paired = true;
+			} else {
+				name = names[Math.round(Math.random()*(names.length-1))];
+			}
+			var card = name+'_'+suit;
+			// no pair count and this name is matching no_pairs
+			if (!pair_count && no_pairs.indexOf(name) > 0) {
+				continue;
+			}
+			// this is to prevent trips
+			if (pair_count == 1 && no_pairs.indexOf(name) > 0) {
+				continue;
+			}
+			// if this card is not in the hand already then add it
+			if (hand.indexOf(card) < 0) {
+				hand.push(card);
+				no_pairs.push(name);
+			}
+		} while (hand.length < 7)
+		return hand;
+	},
+	// create a straight
+	createStraight:function() {
 		var hand = [];
 		var suits = Card.suits.slice();
 		var names = Card.names.slice();
 		
-		/*
-		for (var i=0; i<suits.length; i++) {
-			for (var k=0; k<names.length;k++) {
-				deck.push(names[k]+'_'+suits[i]);
+		// generate a random start point
+		var rand = Math.round(Math.random()*(names.length-6));
+		var start = names.slice(rand,rand+5);
+		for (var i=0; i<start.length;i++) {
+			var suit = suits[Math.round(Math.random()*(suits.length-1))];
+			var card = start[i]+'_'+suit;
+			hand.push(card);
+		}
+		// now complete the hand
+		do {
+			// generate a random card
+			var suit = suits[Math.round(Math.random()*(suits.length-1))];
+			var name = names[Math.round(Math.random()*(names.length-1))];
+			var card = name+'_'+suit;
+			// if this card is not in the hand already then add it
+			if (hand.indexOf(card) < 0) {
+				hand.push(card);
 			}
-		}
-		*/
-		switch(type) {
-			case 'flush':
-				// grab a random suit
-				var suit = suits[Math.round(Math.random()*(suits.length-1))];
-				// shuffle the names
-				this.shuffle(names);
-				// names for our flush
-				var start = names.slice(0,5);
-				// build the hand
-				var hand = [];
-				for (var i=0; i<start.length;i++) {
-					hand.push(start[i]+'_'+suit);
-				}
-				// random chance of joker
-				if (Math.random()*100 <= chance) {
-					hand[hand.length-1] = 'joker_one';
-				}
-				// now complete the hand
-				do {
-					// generate a random card
-					var suit = suits[Math.round(Math.random()*(suits.length-1))];
-					var name = names[Math.round(Math.random()*(names.length-1))];
-					var card = name+'_'+suit;
-					// if this card is not in the hand already then add it
-					if (hand.indexOf(card) < 0) {
-						hand.push(card);
-					}
-				} while (hand.length < 7)
-				break;
-		}
+		} while (hand.length < 7)
+
 		return hand;
 	},
+	// create quads
+	createQuad:function() {
+		var hand = [];
+		var suits = Card.suits.slice();
+		var names = Card.names.slice();
+		
+		// grab a random name
+		var rand = Math.round(Math.random()*(names.length-1));
+		var quad = names[rand];
+		for (var i=0; i<suits.length; i++) {
+			hand.push(quad+'_'+suits[i]);
+		}
+		// now complete the hand
+		do {
+			// generate a random card
+			var suit = suits[Math.round(Math.random()*(suits.length-1))];
+			var name = names[Math.round(Math.random()*(names.length-1))];
+			var card = name+'_'+suit;
+			// if this card is not in the hand already then add it
+			if (hand.indexOf(card) < 0) {
+				hand.push(card);
+			}
+		} while (hand.length < 7)
+
+		return hand;
+	},
+	// create trips
+	createTrip:function() {
+		var hand = [];
+		var suits = Card.suits.slice();
+		var names = Card.names.slice();
+
+		// grab a random name
+		var rand = Math.round(Math.random()*(names.length-1));
+		var trip = names[rand];
+		this.shuffle(suits);
+		for (var i=0; i<suits.length-1; i++) {
+			hand.push(trip+'_'+suits[i]);
+		}
+		// now complete the hand
+		do {
+			// generate a random card
+			var suit = suits[Math.round(Math.random()*(suits.length-1))];
+			var name = names[Math.round(Math.random()*(names.length-1))];
+			var card = name+'_'+suit;
+			// if this card is not already part of the trip
+			// and not in the hand already then add it
+			if (name != trip && hand.indexOf(card) < 0) {
+				hand.push(card);
+			}
+		} while (hand.length < 7)
+
+		
+		return hand;
+	},
+	// create pairs
+	createPairs:function() {
+		var hand = [];
+		var suits = Card.suits.slice();
+		var names = Card.names.slice();
+
+		return hand;
+	},
+	// create nothing
+	createNothin:function() {
+		var hand = [];
+		var suits = Card.suits.slice();
+		var names = Card.names.slice();
+
+		return hand;
+	},	
+
+	
 	// find all poker hands within a set of cards
 	solve:function(cards) {
 		var poker = {};
@@ -226,8 +364,7 @@ Poker = {
 		// 5 card minimum for flush
 		var count = (cards.indexOf('joker_one') > 0) ? 4 : 5;
 		for (var i=0;i<cards.length;i++) {
-			var card = cards[i].split('_');
-			switch(card[1]) {
+			switch(Card.getSuit(cards[i])) {
 				case 'heart':
 					hearts.push(cards[i]);
 					if (hearts.length >= count) {
@@ -257,7 +394,7 @@ Poker = {
 			}
 		}
 		// joker present so place it correctly
-		if (count == 4) {
+		if (count == 4 && flush.length > 0) {
 			// top card not an ace, put joker on top
 			if (Card.getName(flush[0]) != 'ace') {
 				flush.unshift('joker_one');

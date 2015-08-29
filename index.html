@@ -58,10 +58,10 @@
 //			var set = ["joker_one", "nine_club", "eight_heart", "seven_club", "six_club", "five_club", "five_diamond" ];
 //			var hand = Hand.create(set);
 			// create a specific type of hand
-//			var hand = Hand.create(Poker.create('flush',100));
+			var hand = Hand.create(Poker.create('flush',50,1));
 
 			// random hand from deck
-			var hand = Hand.create(deck.splice(0,7));
+//			var hand = Hand.create(deck.splice(0,7));
 
 			// solve for poker
 			hand.poker = Poker.solve(hand.sorted);
