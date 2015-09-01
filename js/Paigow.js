@@ -1,5 +1,6 @@
 Paigow = {
 	solve:function(poker) {
+		var bonus = '';
 		// quads / trips get a match final
 		var match_final = false;
 		// override for straight / flush
@@ -8,16 +9,28 @@ Paigow = {
 		// solve for quads
 		if (poker.quads) {
 			result = this.solveQuads(poker);
+			if (poker.joker) {
+				bonus = '5 of a kind';
+			} else {
+				bonus = '4 of a kind';
+			}
 			match_final = true;
 		}
 		// solve for trips
 		if (poker.trips && !match_final) {
 			result = this.solveTrips(poker);
+			if (poker.pairs) {
+				bonus = 'full house';
+			}
 			match_final = true;
 		}
 		// solve for pairs
 		if (poker.pairs && !match_final) {
 			result = this.solvePairs(poker);
+			// 2 pairs with joker yields bonus full house
+			if (poker.pairs.length == 2 && poker.joker) {
+				bonus = 'full house';
+			}
 			// override straight / flush if we have 2 pairs or 1 pair + joker
 			if (poker.pairs.length == 2) {
 				override = true;
@@ -29,6 +42,7 @@ Paigow = {
 
 		// override set but 6 card straight means we are going to set pair & straight
 		if (poker.straight) {
+			bonus = 'straight';
 			if (override && poker.straight.length == 6) {
 				override = false;
 			}
@@ -42,6 +56,7 @@ Paigow = {
 
 		// solve for flush
 		if (poker.flush) {
+			bonus = 'flush';
 			// override set but 6 card flush means we are going to set pair & flush
 			if (override && poker.flush.length == 6) {
 				override = false;
@@ -58,6 +73,20 @@ Paigow = {
 				}
 			}
 		}
+		// if we have a straight flush & the back matches it
+		if (poker.straight_flush) {
+			if (poker.straight_flush.length == 7) {
+				bonus = '7 card straight flush';
+			} else if (Card.getName(poker.straight_flush[0]) == 'ace' || Card.getName(poker.straight_flush[1]) == 'king') {
+				bonus = 'royal flush';
+			} else {
+				bonus = 'straight flush';
+			}
+			if (result.back[0] == poker.straight_flush[0]) {
+				result.rule = 'straight-flush';
+				result.brief = 'straight-flush';
+			}
+		}
 
 		// no result from anything above, solve for nothing
 		if (poker.nothing) {
@@ -72,9 +101,11 @@ Paigow = {
 		var back = result.back;
 		var desc_hair = '';
 		var desc_back = '';
+		var hair_pair = false;
 		// both hair cards match, pair on top
 		if (Card.getName(hair[0]) == Card.getName(hair[1])) {
 			desc_hair = 'pair of '+Card.getName(hair[0]);
+			hair_pair = true;
 		} else {
 			desc_hair = Card.getName(result.hair[0])+', '+Card.getName(hair[1]);
 		}
@@ -85,6 +116,7 @@ Paigow = {
 		// if the 2nd card is a joker then pair up the hair
 		if (Card.getName(hair[1]) == 'joker') {
 			desc_hair = 'pair of '+Card.getName(hair[0]);
+			hair_pair = true;
 		}
 		// the back
 		switch(result.brief) {
@@ -97,17 +129,25 @@ Paigow = {
 			case 'trip':
 				desc_back = 'trip '+Card.getName(back[0]);
 				break;
-			case 'full house':
-				desc_back = 'full house behind '+Card.getName(back[0])+'s over '+Card.getName(back[3])+'s'; 
-				break;
 			case 'straight':
 				desc_back = Card.getName(back[0])+' high straight';
 				break;
 			case 'flush':
 				desc_back = Card.getName(back[0])+' high flush';
 				break;
+			case 'full house':
+				desc_back = 'full house behind '+Card.getName(back[0])+'s over '+Card.getName(back[3])+'s'; 
+				break;
 			case 'quad':
 				desc_back = 'quad '+Card.getName(back[0])+'s';
+				break;
+			case 'straight-flush':
+				// 1st card is ace or 2nd card is a king, then its a royal flush
+				if (Card.getName(back[0]) == 'ace' || Card.getName(back[1]) == 'king') {
+					desc_back = 'royal flush';
+				} else {
+					desc_back = Card.getName(back[0])+' high straight flush';
+				}
 				break;
 			case '5 kind':
 				desc_back = '5 of a kind '+Card.getName(back[0])+'s';
@@ -115,6 +155,9 @@ Paigow = {
 			default:
 				desc_back = Card.getName(back[0])+' high';
 				break;
+		}
+		if (bonus != '') {
+			result.bonus = bonus;
 		}
 		// replace joker high with ace high in flushes
 		if (Card.getName(back[0]) == 'joker' && result.brief == 'flush') {
@@ -137,7 +180,14 @@ Paigow = {
 		if (override && (poker.straight || poker.flush)) {
 			debug += '[override] ';
 		}
-		debug += 'rule: '+result.rule+'\n'+result.desc;
+		debug += 'rule: '+result.rule+'\n';
+		debug += 'bonus: ';
+		if (result.bonus) {
+			debug += result.bonus;
+		} else {
+			debug += 'none';
+		}
+		debug += '\n'+result.desc;
 		debug += '\n\n'+result.hair.toString()+'\n'+result.back.toString();
 		result.debug = debug;
 		
@@ -745,26 +795,20 @@ Paigow = {
 
 		// straight is also present so need to compare
 		if (poker.result) {
-			console.log('\nstraight also present');
 			var result = poker.result;
-			console.log('straight hair: ',result.hair);
-			console.log('flush hair: ',hair);
 			
 			// straight hair is bigger, use straight
 			if (Card.getRank(result.hair[0]) > Card.getRank(hair[0])) {
-				console.log('1st hair bigger, using straight');
 				override = true;
 			}
 			// 1st hair cards are equal compare the 2nd ones
 			if (Card.getRank(result.hair[0]) == Card.getRank(hair[0])) {
 				if (Card.getRank(result.hair[1]) > Card.getRank(hair[1])) {
-					console.log('2nd hair bigger, using straight');
 					override = true;
 				}
 			}
 			// 2nd flush hair card is joker means pair so use flush
 			if (Card.getName(hair[1]) == 'joker') {
-				console.log('using flush joker pair');
 				override = false;
 			}
 		}

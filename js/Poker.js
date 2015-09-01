@@ -15,122 +15,177 @@ Poker = {
 	// create a specific type of hand
 	create:function(type,chance,opt) {
 		var hand = [];
+		// random type
+		if (type == 'random') {
+			var types = ['straight-flush','flush','straight','quad','trips','pairs','nothing'];
+			type = types[Math.round(Math.random()*(types.length-1))];
+		}
 		switch(type) {
+			case 'straight-flush':
+				hand = this.createNatural('straight-flush',opt);
+				break;
 			case 'flush':
-				hand = this.createFlush(opt);
+				hand = this.createNatural('flush',opt);
 				break;
 			case 'straight':
-				hand = this.createStraight(opt);
+				hand = this.createNatural('straight',opt);
 				break;
 			case 'quad':
 				hand = this.createQuad(opt);
 				break;
-			case 'trip':
+			case 'trips':
 				hand = this.createTrip(opt);
 				break;
-			case 'pair':
+			case 'pairs':
 				hand = this.createPair(opt);
 				break;
 			default:
 				hand = this.createNothing(opt);
 				break;
 		}
+		
+		/*
+			we do not want the joker to replace any of the following
+			
+			natural 5 card straight / flush
+			pairs / trips / quads
+			
+			joker should ALWAYS replace the 'extra' card in the hand
+		*/
 		// random chance of joker
 		if (Math.random()*100 <= chance) {
 			// 50 / 50 on where it goes
 			if (Math.random()* 100 > 50) {
+				console.log('joker replacing: ',hand[0]);
 				hand[0] = 'joker_one';
 			} else {
+				console.log('joker replacing: ',hand[hand.length-1]);
 				hand[hand.length-1] = 'joker_one';
 			}
 		}
 		return hand;
 	},
-	// create a flush
-	createFlush:function(pair_count) {
+	// create a natural (straight or flush)
+	createNatural:function(type,opt) {
 		var hand = [];
 		var suits = Card.suits.slice();
 		var names = Card.names.slice();
-
-		// grab a random suit
-		var suit = suits[Math.round(Math.random()*(suits.length-1))];
-		// shuffle the names
-		this.shuffle(names);
-		// names for our flush
-		var start = names.slice(0,5);
-		// build the hand
-		var no_pairs = [];
-		for (var i=0; i<start.length;i++) {
-			hand.push(start[i]+'_'+suit);
-			no_pairs.push(start[i]);
+		// do a random insert
+		if (opt == 'random') {
+			var opts = ['no-pair','one-pair','two-pair','trips'];
+			opt = opts[Math.round(Math.random()*(opts.length-1))];
 		}
-		// now complete the hand
-		do {
-			// generate a random card
-			var suit = suits[Math.round(Math.random()*(suits.length-1))];
-			// we want a single pair
-			var name;
-			var paired = false;
-			if (pair_count == 1 && paired == false) {
-				name = no_pairs[Math.round(Math.random()*(no_pairs.length-1))];
-				paired = true;
-			} else {
-				name = names[Math.round(Math.random()*(names.length-1))];
-			}
-			var card = name+'_'+suit;
-			// no pair count and this name is matching no_pairs
-			if (!pair_count && no_pairs.indexOf(name) > 0) {
-				continue;
-			}
-			// this is to prevent trips
-			if (pair_count == 1 && no_pairs.indexOf(name) > 0) {
-				continue;
-			}
-			// if this card is not in the hand already then add it
-			if (hand.indexOf(card) < 0) {
-				hand.push(card);
-				no_pairs.push(name);
-			}
-		} while (hand.length < 7)
-		return hand;
-	},
-	// create a straight
-	createStraight:function() {
-		var hand = [];
-		var suits = Card.suits.slice();
-		var names = Card.names.slice();
-		
-		// generate a random start point
-		var rand = Math.round(Math.random()*(names.length-6));
-		var start = names.slice(rand,rand+5);
-		for (var i=0; i<start.length;i++) {
-			var suit = suits[Math.round(Math.random()*(suits.length-1))];
-			var card = start[i]+'_'+suit;
-			hand.push(card);
+
+		// build the hand
+		var match = [];
+		switch (type) {
+			case 'straight-flush':
+				// grab a random suit
+				var suit = suits[Math.round(Math.random()*(suits.length-1))];
+				// generate a random start point
+				var rand = Math.round(Math.random()*(names.length-6));
+				// names for our straight
+				var start = names.slice(rand,rand+5);
+				// build the straight
+				for (var i=0; i<start.length;i++) {
+					var card = start[i]+'_'+suit;
+					hand.push(card);
+					match.push(start[i]);
+				}
+				break;
+			case 'flush':
+				// grab a random suit
+				var suit = suits[Math.round(Math.random()*(suits.length-1))];
+				// shuffle the names
+				this.shuffle(names);
+				// names for our flush
+				var start = names.slice(0,5);
+				// build the flush
+				for (var i=0; i<start.length;i++) {
+					hand.push(start[i]+'_'+suit);
+					match.push(start[i]);
+				}
+				break;
+			case 'straight':
+				// generate a random start point
+				var rand = Math.round(Math.random()*(names.length-6));
+				// names for our straight
+				var start = names.slice(rand,rand+5);
+				// build the straight
+				for (var i=0; i<start.length;i++) {
+					var suit = suits[Math.round(Math.random()*(suits.length-1))];
+					var card = start[i]+'_'+suit;
+					hand.push(card);
+					match.push(start[i]);
+				}
+				break;
 		}
 		// now complete the hand
 		do {
 			// generate a random card
 			var suit = suits[Math.round(Math.random()*(suits.length-1))];
 			var name = names[Math.round(Math.random()*(names.length-1))];
+			// no pairs (also no trips)
+			if (opt == 'no-pair') {
+				if (match.indexOf(name) != -1) {
+					continue;
+				}
+			}
+			// insert 1 pair
+			if (opt == 'one-pair') {
+				if (hand.length == 5) {
+					name = match[Math.round(Math.random()*(match.length-1))];
+				} else {
+					if (match.indexOf(name) != -1) {
+						continue;
+					}
+				}
+			}
+			// insert 2 pairs
+			if (opt == 'two-pair') {
+				if (hand.length == 5) {
+					name = match[Math.round(Math.random()*(match.length-1))];
+				} else {
+					name = match[Math.round(Math.random()*(match.length-1))];
+					if (name == match[match.length-1]) {
+						continue;
+					}
+				}
+			}
+			// insert trips
+			if (opt == 'trips') {
+				if (hand.length == 5) {
+					name = match[Math.round(Math.random()*(match.length-1))];
+				} else {
+					name = Card.getName(hand[hand.length-1]);
+				}
+			}
+			// the card we have generated
 			var card = name+'_'+suit;
 			// if this card is not in the hand already then add it
 			if (hand.indexOf(card) < 0) {
 				hand.push(card);
+				match.push(name);
 			}
 		} while (hand.length < 7)
-
+		// return the completed hand
 		return hand;
 	},
 	// create quads
-	createQuad:function() {
+	createQuad:function(opt) {
 		var hand = [];
 		var suits = Card.suits.slice();
 		var names = Card.names.slice();
+		// do a random insert
+		if (opt == 'random') {
+			var opts = ['no-pair','one-pair','trips'];
+			opt = opts[Math.round(Math.random()*(opts.length-1))];
+		}
 		
 		// grab a random name
 		var rand = Math.round(Math.random()*(names.length-1));
 		var quad = names[rand];
+		var match = [quad];
 		for (var i=0; i<suits.length; i++) {
 			hand.push(quad+'_'+suits[i]);
 		}
@@ -139,25 +194,55 @@ Poker = {
 			// generate a random card
 			var suit = suits[Math.round(Math.random()*(suits.length-1))];
 			var name = names[Math.round(Math.random()*(names.length-1))];
+			// no pairs (also no trips)
+			if (opt == 'no-pair') {
+				if (match.indexOf(name) != -1) {
+					continue;
+				}
+			}
+			// insert 1 pair
+			if (opt == 'one-pair') {
+				if (hand.length == 5) {
+					name = match[Math.round(Math.random()*(match.length-1))];
+				} else {
+					if (match.indexOf(name) != -1) {
+						continue;
+					}
+				}
+			}
+			// insert trips
+			if (opt == 'trips') {
+				if (hand.length != 4) {
+					name = Card.getName(hand[hand.length-1]);
+				}
+			}
 			var card = name+'_'+suit;
 			// if this card is not in the hand already then add it
 			if (hand.indexOf(card) < 0) {
 				hand.push(card);
+				match.push(name);
 			}
 		} while (hand.length < 7)
-
+		// return the completed hand
 		return hand;
 	},
 	// create trips
-	createTrip:function() {
+	createTrip:function(opt) {
 		var hand = [];
 		var suits = Card.suits.slice();
 		var names = Card.names.slice();
+		// do a random insert
+		if (opt == 'random') {
+			var opts = ['no-pair','one-pair','two-pair','trips'];
+			opt = opts[Math.round(Math.random()*(opts.length-1))];
+		}
 
 		// grab a random name
 		var rand = Math.round(Math.random()*(names.length-1));
 		var trip = names[rand];
+		// randomize the suits for our trips
 		this.shuffle(suits);
+		var match = [trip];
 		for (var i=0; i<suits.length-1; i++) {
 			hand.push(trip+'_'+suits[i]);
 		}
@@ -166,31 +251,155 @@ Poker = {
 			// generate a random card
 			var suit = suits[Math.round(Math.random()*(suits.length-1))];
 			var name = names[Math.round(Math.random()*(names.length-1))];
+			// no pairs (also no trips)
+			if (opt == 'no-pair') {
+				if (match.indexOf(name) != -1) {
+					continue;
+				}
+			}
+			// insert 1 pair
+			if (opt == 'one-pair') {
+				if (hand.length == 4) {
+					name = match[Math.round(Math.random()*(match.length-1))];
+				} else {
+					if (match.indexOf(name) != -1) {
+						continue;
+					}
+				}
+			}
+			// insert 2 pairs
+			if (opt == 'two-pair') {
+				if (hand.length == 4 || hand.length == 6) {
+					name = match[match.length-1];
+				}
+			}
+			// insert trips
+			if (opt == 'trips') {
+				if (hand.length == 4 || hand.length == 5) {
+					name = Card.getName(hand[hand.length-1]);
+				}
+				// prevent quads
+				if (hand.length == 6) {
+					if (match.indexOf(name) != -1) {
+						continue;
+					}
+				}
+			}
 			var card = name+'_'+suit;
 			// if this card is not already part of the trip
 			// and not in the hand already then add it
 			if (name != trip && hand.indexOf(card) < 0) {
 				hand.push(card);
+				match.push(name);
 			}
 		} while (hand.length < 7)
-
-		
+		// return the completed hand
 		return hand;
 	},
 	// create pairs
-	createPairs:function() {
+	createPair:function(opt) {
 		var hand = [];
 		var suits = Card.suits.slice();
 		var names = Card.names.slice();
+		// do a random insert
+		if (opt == 'random') {
+			var opts = ['one-pair','two-pair','three-pair'];
+			opt = opts[Math.round(Math.random()*(opts.length-1))];
+		}
 
+		// grab a random name
+		var rand = Math.round(Math.random()*(names.length-1));
+		var pair = names[rand];
+		this.shuffle(suits);
+		var match = [pair];
+		for (var i=0; i<suits.length-2; i++) {
+			hand.push(pair+'_'+suits[i]);
+		}
+		// now complete the hand
+		do {
+			// generate a random card
+			var suit = suits[Math.round(Math.random()*(suits.length-1))];
+			var name = names[Math.round(Math.random()*(names.length-1))];
+			// insert 1 pair
+			if (opt == 'one-pair') {
+				if (match.indexOf(name) != -1) {
+					continue;
+				}
+			}
+			// insert 2 pairs
+			if (opt == 'two-pair') {
+				if (hand.length == 3) {
+					name = match[match.length-1];
+				} else {
+					if (match.indexOf(name) != -1) {
+						continue;
+					}
+				}
+			}
+			// insert 3 pairs
+			if (opt == 'three-pair') {
+				if (hand.length == 3 || hand.length == 5) {
+					name = match[match.length-1];
+				} else {
+					if (match.indexOf(name) != -1) {
+						continue;
+					}
+				}
+			}
+			var card = name+'_'+suit;
+			// if this card is not already part of the pair
+			// and not in the hand already then add it
+			if (name != pair && hand.indexOf(card) < 0) {
+				hand.push(card);
+				match.push(name);
+			}
+		} while (hand.length < 7)
+		// return the completed hand
 		return hand;
 	},
 	// create nothing
-	createNothin:function() {
+	createNothing:function() {
 		var hand = [];
 		var suits = Card.suits.slice();
 		var names = Card.names.slice();
 
+		// build the the hand
+		var match = [];
+		do {
+			// generate a random card
+			var suit = suits[Math.round(Math.random()*(suits.length-1))];
+			var name = names[Math.round(Math.random()*(names.length-1))];
+			if (match.indexOf(name) != -1) {
+				continue;
+			}
+			var card = name+'_'+suit;
+			// card not in the hand already then add it
+			if (hand.indexOf(card) < 0) {
+				hand.push(card);
+				match.push(name);
+			}
+		} while (hand.length < 7)
+		var sorted = [];
+		for (var k=0; k<Card.names.length;k++) {
+			for (var i=0; i<Card.suits.length; i++) {
+				var check = Card.names[k]+'_'+Card.suits[i];
+				if (hand.indexOf(check) != -1) {
+					sorted.push(check);
+				}
+			}
+		}
+		sorted.reverse();
+		// make sure no straight
+		var straight = this.findStraight(sorted);
+		if (straight.length > 0) {
+			hand = this.createNothing();
+		}
+		// make sure no flush
+		var flush = this.findFlush(sorted);
+		if (flush.length > 0) {
+			hand = this.createNothing();
+		}
+		// return the completed hand
 		return hand;
 	},	
 
@@ -242,6 +451,17 @@ Poker = {
 			debug += straight.toString()+'\n';
 		}
 		
+		// find straight flush
+		if (poker.flush && poker.straight) {
+			var straight_flush = this.findStraightFlush(poker.straight,poker.flush);
+			if (straight_flush.length != 0) {
+				poker.straight_flush = straight_flush;
+				
+				debug += 'straight flush: ';
+				debug += straight_flush.toString()+'\n';
+			}
+		}
+		
 		// debug text
 		if (debug != '') {
 			poker.debug = debug;
@@ -251,7 +471,28 @@ Poker = {
 		}
 		return poker;
 	},
-	
+	/*
+		find a straight flush
+	*/
+	findStraightFlush:function(straight,flush) {
+		var diff = [];
+		for (var i=0; i<straight.length;i++) {
+			// this card of the straight matches something in the flush
+			if (flush.indexOf(straight[i]) != -1) {
+				diff.push(straight[i]);
+			} else {
+				// otherwise reset because its not a straight flush
+				if (diff.length < 5) {
+					diff = [];
+				}
+			}
+		}
+		if (diff.length < 5) {
+			diff = [];
+		}
+		return diff;
+		
+	},
 	/*
 		find a straight
 	*/

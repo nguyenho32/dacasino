@@ -27,7 +27,7 @@
 
 <script>
 
-	var game = new Phaser.Game(1700,1500,Phaser.CANVAS, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
+	var game = new Phaser.Game(1700,5000,Phaser.CANVAS, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
 
 	// object containing cards
 	var deck;
@@ -37,6 +37,9 @@
 	}
 
 	function create() {
+//		game.stage.backgroundColor = 0xCCCCCC;
+		this.stage.backgroundColor = '#aaaaaa'
+
 		// create a shuffled deck for use in our game
 		deck = Deck.create('standard',true,1);
 //		console.log('created deck:',deck);
@@ -52,13 +55,26 @@
 		*/
 
 		// create some hands
-		for (var n=0;n<7;n++) {
-		
+		for (var n=0;n<25;n++) {
+
+			//**********************************************************************************************************
+			//
+			//	This section for hands that are not being set correctly
+			//
+			//
 			// pair, straight, flush w/ joker (set this hand pair & straight)
 //			var set = ["joker_one", "nine_club", "eight_heart", "seven_club", "six_club", "five_club", "five_diamond" ];
+			// pair with flush & joker (set this hand natural pair w/ joker flush)
+//			var set = ["joker_one", "ace_club", "king_club", "ten_club", "nine_heart", "nine_club", "eight_club"];
+			// 6 card flush + joker, set pair with natural flush
+//			var set = ["joker_one", "ace_heart","king_heart","ten_heart","eight_club","three_heart","two_heart"];
+			// bonus hand straight flush not being set
+//			var set = ["jack_diamond","ten_diamond","nine_diamond","nine_spade","eight_diamond","seven_diamond","two_club"];
+
+
 //			var hand = Hand.create(set);
 			// create a specific type of hand
-			var hand = Hand.create(Poker.create('flush',50,1));
+			var hand = Hand.create(Poker.create('random',50,'random'));
 
 			// random hand from deck
 //			var hand = Hand.create(deck.splice(0,7));
@@ -77,8 +93,9 @@
 				}
 			}
 			// add some information for debugging yeah baby!
-			var style = { font: '11pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
-			var str = hand.poker.debug+'\n'+hand.paigow.debug;
+			var style = { font: '10pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
+//			var str = hand.poker.debug+'\n'+hand.paigow.debug;
+			var str = hand.paigow.debug;
 			var text = game.add.text(950, 5+(200*n), str, style);			
 		}
 
