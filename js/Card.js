@@ -70,7 +70,7 @@ var Card = {
 		return card;
 	},
 	clicked:function(card,pointer) {
-		console.log(card.key);
+		console.log(card);
 		if (card.selected) {
 			card.selected = false;
 			card.y += 5;

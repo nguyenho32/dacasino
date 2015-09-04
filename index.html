@@ -27,10 +27,24 @@
 
 <script>
 
-	var game = new Phaser.Game(1700,5000,Phaser.CANVAS, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
+	var game = new Phaser.Game(1700,5300,Phaser.CANVAS, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
 
 	// object containing cards
 	var deck;
+	
+	// menu information text box
+	var menu_info_box;
+
+	// hand information text box
+	var hand_info_box;
+	
+	// information about a hand
+	var hand;
+	// array containing selected cards
+	var selected;
+	
+	// group containing cards & text
+	var layout;
 
 	function preload() {
 		game.load.atlas('cards', 'assets/full-deck-with-joker.png','assets/full-deck-with-joker.json');
@@ -40,11 +54,135 @@
 //		game.stage.backgroundColor = 0xCCCCCC;
 		this.stage.backgroundColor = '#aaaaaa'
 
+
+		/*
+			extreme sillyness ensues
+		*/
+		
+		// button for creating debug hands
+		var sprite = game.add.sprite(0,0);
+		var gfx = game.add.graphics(0,0);
+		gfx.beginFill(0x000000,1);
+		gfx.drawRect(0,0,50,20);
+		gfx.name = 'graphic';
+		sprite.addChild(gfx);
+		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 100 };
+		var text = game.add.text(4, 4, 'debug', style);			
+		text.name = 'debug';
+		text.inputEnabled = true;
+		sprite.addChild(text);
+		sprite.inputEnabled = true;
+		sprite.input.useHandCursor = true;
+		sprite.x = 10;
+		sprite.y = 10;
+		sprite.events.onInputDown.add(createDebugHands,this);
+
+		// button for creating single hands (for hair selection etc testing)
+		var sprite = game.add.sprite(0,0);
+		var gfx = game.add.graphics(0,0);
+		gfx.beginFill(0x000000,1);
+		gfx.drawRect(0,0,50,20);
+		gfx.name = 'graphic';
+		sprite.addChild(gfx);
+		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 100 };
+		var text = game.add.text(4, 4, 'single', style);			
+		text.name = 'single';
+		text.inputEnabled = true;
+		sprite.addChild(text);
+		sprite.inputEnabled = true;
+		sprite.input.useHandCursor = true;
+		sprite.x = 150;
+		sprite.y = 10;
+		sprite.events.onInputDown.add(createSingleHand,this);
+		
+		// add an info box
+		var style = { font: '12pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 500 };
+		menu_info_box = game.add.text(10,40, '', style);			
+
+		layout = game.add.group();
+		
+	}
+	function createSingleHand(sprite,pointer) {
+		// create a shuffled deck for use in our game
+		deck = Deck.create('standard',true,1);
+		selected = [];
+
+		layout.destroy();
+		layout = game.add.group();
+		// random hand from deck
+		hand = Hand.create(deck.splice(0,7));
+		menu_info_box.text = 'creating a single hand';
+
+		// add some information for the hand
+		var style = { font: '14pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
+		hand_info_box = game.add.text(10, 350, 'click the cards you think belong in the hair', style);	
+		layout.add(hand_info_box);
+		
+		// solve for poker
+		hand.poker = Poker.solve(hand.sorted);
+		// solve for pai-gow
+		hand.paigow = Paigow.solve(hand.poker);
+		// loop and display the hands
+		for (var i=0;i<hand.original.length;i++) {
+			var sorted = hand.sorted;
+			var card = Card.create({card:sorted[i],clickable:true,callback:selectHair});
+			if (card) {
+				card.x = 5+i*135;
+				card.y = 150;
+			}
+			layout.add(card);
+		}
+		// add some information for debugging yeah baby!
+		var style = { font: '10pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
+//			var str = hand.poker.debug+'\n'+hand.paigow.debug;
+		var str = hand.paigow.debug;
+		var text = game.add.text(950, 150, str, style);	
+
+		layout.add(text);
+	}
+	function selectHair(card,pointer) {
+		// this card already selected, so unselect and remove it
+		if (selected.indexOf(card) != -1) {
+			card.y += 15;
+			selected.splice(selected.indexOf(card),1); 
+		} else {
+			card.y -= 15;
+			selected.push(card);
+		}
+		// selected 2 cards, check hair for correctness
+		if (selected.length == 2) {
+			checkHair(selected);
+		}
+		// if hair not correct we are here so unselect the first in line
+		if (selected.length > 2) {
+			selected[0].y += 15;
+			selected.splice(0,1); 
+		}
+	}
+	function checkHair(selected) {
+		console.log(selected[0].key);
+		console.log(selected[1].key);
+		console.log(hand.paigow.hair);
+		var hair = hand.paigow.hair;
+		var s1 = selected[0].key;
+		var s2 = selected[1].key;
+		if (hair.indexOf(s1) != -1 && hair.indexOf(s2) != -1) {
+			hand_info_box.text = 'You chose the correct hair!';
+		} else {
+			hand_info_box.text = 'Hair incorrect, try again :(';
+			selected[0].y += 15;
+			selected.splice(0,1); 
+			selected[0].y += 15;
+			selected.splice(0,1); 
+		}
+	}
+	function createDebugHands(sprite,pointer) {
 		// create a shuffled deck for use in our game
 		deck = Deck.create('standard',true,1);
 //		console.log('created deck:',deck);
-		
-		var group = game.add.group();
+
+		layout.destroy();
+		layout = game.add.group();
 		/*
 		// show the deck
 		for (var i=0;i<deck.length;i++) {
@@ -53,7 +191,6 @@
 			card.x = 5+i*25;
 		}
 		*/
-
 		// create some hands
 		for (var n=0;n<25;n++) {
 
@@ -70,14 +207,17 @@
 //			var set = ["joker_one", "ace_heart","king_heart","ten_heart","eight_club","three_heart","two_heart"];
 			// bonus hand straight flush not being set
 //			var set = ["jack_diamond","ten_diamond","nine_diamond","nine_spade","eight_diamond","seven_diamond","two_club"];
-
-
+			//
+			//
 //			var hand = Hand.create(set);
-			// create a specific type of hand
-			var hand = Hand.create(Poker.create('random',50,'random'));
+			//
+			//
+			//**********************************************************************************************************
 
-			// random hand from deck
-//			var hand = Hand.create(deck.splice(0,7));
+			// create a specific type of hand
+			var type = 'random'
+			var hand = Hand.create(Poker.create('random',50,'random'));
+			menu_info_box.text = 'creating 25 '+type+' hands';
 
 			// solve for poker
 			hand.poker = Poker.solve(hand.sorted);
@@ -86,17 +226,20 @@
 			// loop and display the hands
 			for (var i=0;i<hand.original.length;i++) {
 				var sorted = hand.sorted;
-				var card = Card.create({card:sorted[i],clickable:true});
+				var card = Card.create({card:sorted[i],clickable:false});
 				if (card) {
 					card.x = 5+i*135;
-					card.y = 5+(200*n);
+					card.y = 80+(200*n);
 				}
+				layout.add(card);
 			}
 			// add some information for debugging yeah baby!
 			var style = { font: '10pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
 //			var str = hand.poker.debug+'\n'+hand.paigow.debug;
 			var str = hand.paigow.debug;
-			var text = game.add.text(950, 5+(200*n), str, style);			
+			var text = game.add.text(950, 80+(200*n), str, style);	
+
+			layout.add(text);
 		}
 
 /*		

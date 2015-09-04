@@ -56,10 +56,10 @@ Poker = {
 		if (Math.random()*100 <= chance) {
 			// 50 / 50 on where it goes
 			if (Math.random()* 100 > 50) {
-				console.log('joker replacing: ',hand[0]);
+//				console.log('joker replacing: ',hand[0]);
 				hand[0] = 'joker_one';
 			} else {
-				console.log('joker replacing: ',hand[hand.length-1]);
+//				console.log('joker replacing: ',hand[hand.length-1]);
 				hand[hand.length-1] = 'joker_one';
 			}
 		}
