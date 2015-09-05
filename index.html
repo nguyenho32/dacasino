@@ -29,8 +29,14 @@
 
 	var game = new Phaser.Game(1700,5300,Phaser.AUTO, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
 
+	// type of game to run
+	var game_type;
+
 	// object containing cards
 	var deck;
+	
+	// game start button
+	var btn_start;
 	
 	// menu information text box
 	var menu_info_box;
@@ -51,29 +57,87 @@
 	}
 
 	function create() {
-//		game.stage.backgroundColor = 0xCCCCCC;
-		this.stage.backgroundColor = '#aaaaaa'
 
+		// information about the game of pai-gow
+		var btn_info = createButton('info',fnGameInfo);
+		btn_info.x = 10;
+		btn_info.y = 10;
+		
+		// learn how to play pai-gow
+		var btn_learn = createButton('learn',fnGameLearn);
+		btn_learn.x = 120;
+		btn_learn.y = 10;
 
-		/*
-			extreme sillyness ensues
-		*/
+		// practice by setting random hands
+		var btn_practice = createButton('practice',fnGamePractice);
+		btn_practice.x = 230;
+		btn_practice.y = 10;
+		
+		// do a speed test
+		var btn_speed = createButton('speed',fnGameSpeed);
+		btn_speed.x = 340;
+		btn_speed.y = 10;
 
-		var btn_debug = createButton('debug',createDebugHands);
-		btn_debug.x = 10;
+		// how many hands can you read in 30 seconds
+		var btn_timed = createButton('timed',fnGameTimed);
+		btn_timed.x = 450;
+		btn_timed.y = 10;
+		
+		// start the selected game
+		btn_start = createButton('start',fnStartGame);
+		btn_start.x = 10;
+		btn_start.y = 70;
+		btn_start.visible = false;
+		
+		// debug stuff
+		var btn_single = createButton('single',debugCreateSingle);
+		btn_single.x = 750;
+		btn_single.y = 10;
+		var btn_compare = createButton('compare',debugCreateCompare);
+		btn_compare.x = 860;
+		btn_compare.y = 10;
+		var btn_debug = createButton('debug',debugCreateMultiple);
+		btn_debug.x = 970;
 		btn_debug.y = 10;
 		
-		var btn_single = createButton('single',createSingleHand);
-		btn_single.x = 150;
-		btn_single.y = 10;
 
 		
-		// add an info box
-		var style = { font: '12pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 500 };
+		// add an information box for the menu items
+		var style = { font: '12pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 550 };
 		menu_info_box = game.add.text(10,40, '', style);			
 
 		layout = game.add.group();
 		
+	}
+	function fnGameInfo() {
+		menu_info_box.text = 'information about this program and the game of pai-gow';
+		btn_start.visible = false;
+		game_type = 'info';
+	}
+	function fnGameLearn() {
+		menu_info_box.text = 'learn how to play pai-gow';
+		btn_start.visible = true;
+		game_type = 'learn';
+	}
+	function fnGamePractice() {
+		menu_info_box.text = 'practice setting random hands';
+		btn_start.visible = true;
+		game_type = 'practice';
+	}
+	function fnGameSpeed() {
+		menu_info_box.text = 'read and compare hands as fast as you can';
+		game_type = 'speed';
+	}
+	function fnGameTimed() {
+		menu_info_box.text = 'how many hands can you read in 30 seconds';
+		game_type = 'timed';
+	}
+	function fnStartGame() {
+		console.log('start the game',game_type);
+
+		// destroy and recreate the layout
+		layout.destroy();
+		layout = game.add.group();
 	}
 	
 	// function to create a button
@@ -82,11 +146,12 @@
 		var sprite = game.add.sprite(0,0);
 		var gfx = game.add.graphics(0,0);
 		gfx.beginFill(0x000000,1);
-		gfx.drawRect(0,0,50,20);
+		gfx.drawRect(0,0,100,20);
 		gfx.name = 'graphic';
 		sprite.addChild(gfx);
 		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 100 };
-		var text = game.add.text(4, 4, txt, style);			
+		var text = game.add.text(50, 4, txt, style);	
+		text.anchor.setTo(0.5,0);
 		text.inputEnabled = true;
 		sprite.addChild(text);
 		sprite.inputEnabled = true;
@@ -100,8 +165,52 @@
 		Game Related Functions
 	*/
 	
+	// handle selection of hair cards
+	function selectHair(card,pointer) {
+		// this card already selected, so unselect and remove it
+		if (selected.indexOf(card) != -1) {
+			card.y += 15;
+			selected.splice(selected.indexOf(card),1); 
+		} else {
+			card.y -= 15;
+			selected.push(card);
+		}
+		// selected 2 cards, check hair for correctness
+		if (selected.length == 2) {
+			checkHair(selected);
+		}
+		// if hair not correct we are here so unselect the first in line
+		if (selected.length > 2) {
+			selected[0].y += 15;
+			selected.splice(0,1); 
+		}
+	}
+	// check selected hair for correctness
+	function checkHair(selected) {
+		console.log(selected[0].key);
+		console.log(selected[1].key);
+		console.log(hand.paigow.hair);
+		var hair = hand.paigow.hair;
+		var s1 = selected[0].key;
+		var s2 = selected[1].key;
+		if (hair.indexOf(s1) != -1 && hair.indexOf(s2) != -1) {
+			hand_info_box.text = 'You chose the correct hair!';
+		} else {
+			hand_info_box.text = 'Hair incorrect, try again :(';
+			selected[0].y += 15;
+			selected.splice(0,1); 
+			selected[0].y += 15;
+			selected.splice(0,1); 
+		}
+	}
+	
+	/*
+		DEBUG FUNCTIONS
+	*/
 	// create a single hand of pai-gow from a deck (created within the function)
-	function createSingleHand(sprite,pointer) {
+	function debugCreateSingle(sprite,pointer) {
+		// hide the start button
+		btn_start.visible = false;
 		// create a shuffled deck for use in our game
 		deck = Deck.create('standard',true,1);
 		selected = [];
@@ -139,45 +248,21 @@
 
 		layout.add(text);
 	}
-	function selectHair(card,pointer) {
-		// this card already selected, so unselect and remove it
-		if (selected.indexOf(card) != -1) {
-			card.y += 15;
-			selected.splice(selected.indexOf(card),1); 
-		} else {
-			card.y -= 15;
-			selected.push(card);
-		}
-		// selected 2 cards, check hair for correctness
-		if (selected.length == 2) {
-			checkHair(selected);
-		}
-		// if hair not correct we are here so unselect the first in line
-		if (selected.length > 2) {
-			selected[0].y += 15;
-			selected.splice(0,1); 
-		}
+	// create 2 hands for comparison
+	function debugCreateCompare(sprite,pointer) {
+		// hide the start button
+		btn_start.visible = false;
+
+		layout.destroy();
+		layout = game.add.group();
+		
+		console.log('create 2 hands for comparison');
 	}
-	function checkHair(selected) {
-		console.log(selected[0].key);
-		console.log(selected[1].key);
-		console.log(hand.paigow.hair);
-		var hair = hand.paigow.hair;
-		var s1 = selected[0].key;
-		var s2 = selected[1].key;
-		if (hair.indexOf(s1) != -1 && hair.indexOf(s2) != -1) {
-			hand_info_box.text = 'You chose the correct hair!';
-		} else {
-			hand_info_box.text = 'Hair incorrect, try again :(';
-			selected[0].y += 15;
-			selected.splice(0,1); 
-			selected[0].y += 15;
-			selected.splice(0,1); 
-		}
-	}
-	
 	// create multiple hands of paigow
-	function createDebugHands(sprite,pointer) {
+	function debugCreateMultiple(sprite,pointer) {
+		// hide the start button
+		btn_start.visible = false;
+
 		// create a shuffled deck for use in our game
 		deck = Deck.create('standard',true,1);
 //		console.log('created deck:',deck);
@@ -230,7 +315,7 @@
 				var card = Card.create({card:sorted[i],clickable:false});
 				if (card) {
 					card.x = 5+i*135;
-					card.y = 80+(200*n);
+					card.y = 200+(200*n);
 				}
 				layout.add(card);
 			}
@@ -256,6 +341,10 @@
 */
 	}
 
+	
+	/*
+		these guys do nothing since this is a static game
+	*/
 	function update() {
 
 	}
