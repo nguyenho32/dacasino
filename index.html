@@ -27,7 +27,7 @@
 
 <script>
 
-	var game = new Phaser.Game(1700,5300,Phaser.CANVAS, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
+	var game = new Phaser.Game(1700,5300,Phaser.AUTO, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
 
 	// object containing cards
 	var deck;
@@ -58,42 +58,15 @@
 		/*
 			extreme sillyness ensues
 		*/
-		
-		// button for creating debug hands
-		var sprite = game.add.sprite(0,0);
-		var gfx = game.add.graphics(0,0);
-		gfx.beginFill(0x000000,1);
-		gfx.drawRect(0,0,50,20);
-		gfx.name = 'graphic';
-		sprite.addChild(gfx);
-		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 100 };
-		var text = game.add.text(4, 4, 'debug', style);			
-		text.name = 'debug';
-		text.inputEnabled = true;
-		sprite.addChild(text);
-		sprite.inputEnabled = true;
-		sprite.input.useHandCursor = true;
-		sprite.x = 10;
-		sprite.y = 10;
-		sprite.events.onInputDown.add(createDebugHands,this);
 
-		// button for creating single hands (for hair selection etc testing)
-		var sprite = game.add.sprite(0,0);
-		var gfx = game.add.graphics(0,0);
-		gfx.beginFill(0x000000,1);
-		gfx.drawRect(0,0,50,20);
-		gfx.name = 'graphic';
-		sprite.addChild(gfx);
-		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 100 };
-		var text = game.add.text(4, 4, 'single', style);			
-		text.name = 'single';
-		text.inputEnabled = true;
-		sprite.addChild(text);
-		sprite.inputEnabled = true;
-		sprite.input.useHandCursor = true;
-		sprite.x = 150;
-		sprite.y = 10;
-		sprite.events.onInputDown.add(createSingleHand,this);
+		var btn_debug = createButton('debug',createDebugHands);
+		btn_debug.x = 10;
+		btn_debug.y = 10;
+		
+		var btn_single = createButton('single',createSingleHand);
+		btn_single.x = 150;
+		btn_single.y = 10;
+
 		
 		// add an info box
 		var style = { font: '12pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 500 };
@@ -102,6 +75,32 @@
 		layout = game.add.group();
 		
 	}
+	
+	// function to create a button
+	function createButton(txt,callback) {
+		// button for creating debug hands
+		var sprite = game.add.sprite(0,0);
+		var gfx = game.add.graphics(0,0);
+		gfx.beginFill(0x000000,1);
+		gfx.drawRect(0,0,50,20);
+		gfx.name = 'graphic';
+		sprite.addChild(gfx);
+		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 100 };
+		var text = game.add.text(4, 4, txt, style);			
+		text.inputEnabled = true;
+		sprite.addChild(text);
+		sprite.inputEnabled = true;
+		sprite.input.useHandCursor = true;
+		sprite.events.onInputDown.add(callback,this);
+		
+		return sprite;
+	}
+	
+	/*
+		Game Related Functions
+	*/
+	
+	// create a single hand of pai-gow from a deck (created within the function)
 	function createSingleHand(sprite,pointer) {
 		// create a shuffled deck for use in our game
 		deck = Deck.create('standard',true,1);
@@ -176,6 +175,8 @@
 			selected.splice(0,1); 
 		}
 	}
+	
+	// create multiple hands of paigow
 	function createDebugHands(sprite,pointer) {
 		// create a shuffled deck for use in our game
 		deck = Deck.create('standard',true,1);
