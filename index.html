@@ -27,8 +27,12 @@
 
 <script>
 
-	var game = new Phaser.Game(1700,5300,Phaser.AUTO, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
+	var game = new Phaser.Game(1700,5300,Phaser.CANVAS, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
 
+	// initial hand position
+	var HAND_X = 10;
+	var HAND_Y = 300;
+	
 	// type of game to run
 	var game_type;
 
@@ -37,12 +41,14 @@
 	
 	// game start button
 	var btn_start;
+	// next hand button
+	var btn_next;
 	
 	// menu information text box
 	var menu_info_box;
 
-	// hand information text box
-	var hand_info_box;
+	// game information text box
+	var game_info_box;
 	
 	// information about a hand
 	var hand;
@@ -51,6 +57,8 @@
 	
 	// group containing cards & text
 	var layout;
+	// group containing just cards
+	var layout_cards;
 
 	function preload() {
 		game.load.atlas('cards', 'assets/full-deck-with-joker.png','assets/full-deck-with-joker.json');
@@ -88,6 +96,11 @@
 		btn_start.x = 10;
 		btn_start.y = 70;
 		btn_start.visible = false;
+		// next hand in the series
+		btn_next = createButton('next',fnNextHand);
+		btn_next.x = 10;
+		btn_next.y = 210;
+		btn_next.visible = false;
 		
 		// debug stuff
 		var btn_single = createButton('single',debugCreateSingle);
@@ -107,42 +120,133 @@
 		menu_info_box = game.add.text(10,40, '', style);			
 
 		layout = game.add.group();
+		layout_cards = game.add.group();
 		
 	}
+	function fnResetBoard() {
+		// destroy the layout
+		layout.destroy();
+		// create the layout
+		layout = game.add.group();
+	}
 	function fnGameInfo() {
-		menu_info_box.text = 'information about this program and the game of pai-gow';
+		fnResetBoard();
+		// hide the start / next buttons
 		btn_start.visible = false;
+		btn_next.visible = false;
+
+		menu_info_box.text = 'information about this program and the game of pai-gow';
 		game_type = 'info';
 	}
 	function fnGameLearn() {
+		fnResetBoard();
+
 		menu_info_box.text = 'learn how to play pai-gow';
-		btn_start.visible = true;
 		game_type = 'learn';
+
+		btn_start.visible = true;
+		btn_next.visible = false;
 	}
 	function fnGamePractice() {
+		fnResetBoard();
 		menu_info_box.text = 'practice setting random hands';
-		btn_start.visible = true;
 		game_type = 'practice';
+
+		btn_start.visible = true;
+		btn_next.visible = false;
 	}
 	function fnGameSpeed() {
+		fnResetBoard();
 		menu_info_box.text = 'read and compare hands as fast as you can';
 		game_type = 'speed';
+
+		btn_start.visible = true;
+		btn_next.visible = false;
 	}
 	function fnGameTimed() {
+		fnResetBoard();
 		menu_info_box.text = 'how many hands can you read in 30 seconds';
 		game_type = 'timed';
+
+		btn_start.visible = true;
+		btn_next.visible = false;
 	}
 	function fnStartGame() {
+		fnResetBoard();
 		console.log('start the game',game_type);
+		
+		// create a text box for game related information
+		var sprite = game.add.sprite(0,0);
+		var gfx = game.add.graphics(0,0);
+		gfx.beginFill(0x000000,1);
+		gfx.drawRect(0,0,950,100);
+		gfx.name = 'graphic';
+		sprite.addChild(gfx);
+		var style = { font: '10pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 950 };
+		var txt = 'click the cards you think belong in the hair'
+		game_info_box = game.add.text(0, 0, txt, style);	
+		sprite.addChild(game_info_box);
+		sprite.x = 10;
+		sprite.y = 100;
+		layout.add(sprite);
 
-		// destroy and recreate the layout
-		layout.destroy();
-		layout = game.add.group();
+		// speed game create a deck for use throughout
+		if (game_type == 'speed') {
+			deck = Deck.create('standard',true,1);
+		}
+		
+		fnNextHand();
+	}
+	function fnGameOver() {
+		btn_next.visible = false;
+		layout_cards.destroy();
+		var txt = 'Game Over!!!\n';
+		txt += 'Click start to go again!';
+		game_info_box.text = txt;
+	}
+	function fnNextHand() {
+		btn_next.visible = false;
+		
+		game_info_box.text = 'click the cards you think belong in the hair';
+
+		// create the 'selected' array
+		selected = [];
+		// destroy the 'cards' layout
+		layout_cards.destroy();
+		// create the 'cards' layout
+		layout_cards = game.add.group();
+		layout.add(layout_cards);
+		
+		// speed game then use a normal deck, otherwise just spawn hands
+		if (game_type == 'speed') {
+			hand = Hand.create(deck.splice(0,7));
+			if (deck.length < 7) {
+				fnGameOver();
+			}
+		} else {
+			var type = 'random'
+			hand = Hand.create(Poker.create('random',50,'random'));
+		}
+
+		// solve for poker
+		hand.poker = Poker.solve(hand.sorted);
+		// solve for pai-gow
+		hand.paigow = Paigow.solve(hand.poker);
+		// loop and display the hands
+		for (var i=0;i<hand.original.length;i++) {
+			var sorted = hand.sorted;
+			var card = Card.create({card:sorted[i],clickable:true,callback:selectHair});
+			if (card) {
+				card.x = HAND_X+i*135;
+				card.y = HAND_Y;
+			}
+			layout_cards.add(card);
+		}
+
 	}
 	
 	// function to create a button
 	function createButton(txt,callback) {
-		// button for creating debug hands
 		var sprite = game.add.sprite(0,0);
 		var gfx = game.add.graphics(0,0);
 		gfx.beginFill(0x000000,1);
@@ -187,16 +291,18 @@
 	}
 	// check selected hair for correctness
 	function checkHair(selected) {
-		console.log(selected[0].key);
-		console.log(selected[1].key);
-		console.log(hand.paigow.hair);
 		var hair = hand.paigow.hair;
 		var s1 = selected[0].key;
 		var s2 = selected[1].key;
 		if (hair.indexOf(s1) != -1 && hair.indexOf(s2) != -1) {
-			hand_info_box.text = 'You chose the correct hair!';
+			var txt = 'You chose the correct hair!\n\n';
+			txt += 'rule: '+hand.paigow.rule+'\n';
+			txt += 'bonus: '+hand.paigow.bonus+'\n';
+			txt += 'desc: '+hand.paigow.desc+'\n'
+			game_info_box.text = txt;
+			btn_next.visible = true;
 		} else {
-			hand_info_box.text = 'Hair incorrect, try again :(';
+			game_info_box.text = 'Hair incorrect, try again :(';
 			selected[0].y += 15;
 			selected.splice(0,1); 
 			selected[0].y += 15;
@@ -209,14 +315,15 @@
 	*/
 	// create a single hand of pai-gow from a deck (created within the function)
 	function debugCreateSingle(sprite,pointer) {
-		// hide the start button
+		fnResetBoard();
+		// hide the start / next buttons
 		btn_start.visible = false;
+		btn_next.visible = false;
+
 		// create a shuffled deck for use in our game
 		deck = Deck.create('standard',true,1);
 		selected = [];
 
-		layout.destroy();
-		layout = game.add.group();
 		// random hand from deck
 		hand = Hand.create(deck.splice(0,7));
 		menu_info_box.text = 'creating a single hand';
@@ -235,8 +342,8 @@
 			var sorted = hand.sorted;
 			var card = Card.create({card:sorted[i],clickable:true,callback:selectHair});
 			if (card) {
-				card.x = 5+i*135;
-				card.y = 150;
+				card.x = HAND_X+i*135;
+				card.y = HAND_Y;
 			}
 			layout.add(card);
 		}
@@ -244,31 +351,30 @@
 		var style = { font: '10pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
 //			var str = hand.poker.debug+'\n'+hand.paigow.debug;
 		var str = hand.paigow.debug;
-		var text = game.add.text(950, 150, str, style);	
+		var text = game.add.text(950, HAND_Y, str, style);	
 
 		layout.add(text);
 	}
 	// create 2 hands for comparison
 	function debugCreateCompare(sprite,pointer) {
-		// hide the start button
+		fnResetBoard();
+		// hide the start / next buttons
 		btn_start.visible = false;
+		btn_next.visible = false;
 
-		layout.destroy();
-		layout = game.add.group();
-		
 		console.log('create 2 hands for comparison');
 	}
 	// create multiple hands of paigow
 	function debugCreateMultiple(sprite,pointer) {
-		// hide the start button
+		fnResetBoard();
+		// hide the start / next buttons
 		btn_start.visible = false;
+		btn_next.visible = false;
 
 		// create a shuffled deck for use in our game
 		deck = Deck.create('standard',true,1);
 //		console.log('created deck:',deck);
 
-		layout.destroy();
-		layout = game.add.group();
 		/*
 		// show the deck
 		for (var i=0;i<deck.length;i++) {
@@ -314,8 +420,8 @@
 				var sorted = hand.sorted;
 				var card = Card.create({card:sorted[i],clickable:false});
 				if (card) {
-					card.x = 5+i*135;
-					card.y = 200+(200*n);
+					card.x = HAND_X+i*135;
+					card.y = HAND_Y+(200*n);
 				}
 				layout.add(card);
 			}
@@ -323,7 +429,7 @@
 			var style = { font: '10pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
 //			var str = hand.poker.debug+'\n'+hand.paigow.debug;
 			var str = hand.paigow.debug;
-			var text = game.add.text(950, 80+(200*n), str, style);	
+			var text = game.add.text(950, HAND_Y+(200*n), str, style);	
 
 			layout.add(text);
 		}
