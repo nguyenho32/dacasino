@@ -14,6 +14,10 @@ Poker = {
 	},
 	// create a specific type of hand
 	create:function(type,chance,opt) {
+		console.log('\ncreating hand...');
+		console.log('type:',type);
+		console.log('chance:',chance);
+		console.log('opt:',opt);
 		var hand = [];
 		// random type
 		if (type == 'random') {
@@ -30,7 +34,7 @@ Poker = {
 			case 'straight':
 				hand = this.createNatural('straight',opt);
 				break;
-			case 'quad':
+			case 'quads':
 				hand = this.createQuad(opt);
 				break;
 			case 'trips':

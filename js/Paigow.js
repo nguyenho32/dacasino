@@ -1,4 +1,49 @@
 Paigow = {
+	rules:{
+		'pai-gow':{
+			'nothing':'2nd & 3rd, 1st',
+			'nothing+joker':'1st & 3rd, 2nd'
+		},
+		'pairs':{
+			'one-pair':'rule for one-pair',
+			'two-pair':'rule for two-pair',
+			'three-pair':'rule for three-pair',
+			'one-pair+joker':'rule for joker + one-pair',
+			'two-pair+joker':'rule for joker + two-pair',
+			'three-pair+joker':'rule for joker + three-pair',
+		},
+		'trips':{
+			'no-pair':'rule for 1 trip, no pairs',
+			'one-pair':'rule for 1 trip + pair',
+			'two-pair':'rule for 1 trip + two-pair',
+			'trips':'rule for 2 trip',
+			'one-pair+joker':'rule for trips + one-pair + joker',
+			'trips+joker':'rule for joker + 2 trips',
+		},
+		'straight':{
+			'no-pair':'rule for straight no pairs',
+			'one-pair':'rule for straight with one-pair',
+			'two-pair':'rule for straight with two-pair',
+			'no-pair+joker':'rule for straight with no pair & joker',
+			'one-pair+joker':'rule for straight with joker & one-pair',
+			'two-pair+joker':'rule for straight with two-pair & joker',
+		},
+		'flush':{
+			'no-pair':'rule for flush no pairs',
+			'one-pair':'rule for flush with one-pair',
+			'two-pair':'rule for flush with two-pair',
+			'no-pair+joker':'rule for flush with no pair & joker',
+			'one-pair+joker':'rule for flush with joker & one-pair',
+			'two-pair+joker':'rule for flush with two-pair & joker',
+		},
+		'quads':{
+			'no-pair':'rule for quad no pair',
+			'one-pair':'rule for quad + one-pair',
+			'trips':'rule for quad + trip',
+			'no-pair+joker':'rule for quad w/ joker',
+			'one-pair+joker':'rule for quad + pair & joker',
+		}
+	},
 	solve:function(poker) {
 		var bonus = '';
 		// quads / trips get a match final
@@ -27,11 +72,11 @@ Paigow = {
 		// solve for pairs
 		if (poker.pairs && !match_final) {
 			result = this.solvePairs(poker);
-			// 2 pairs with joker yields bonus full house
+			// two-pairs with joker yields bonus full house
 			if (poker.pairs.length == 2 && poker.joker) {
 				bonus = 'full house';
 			}
-			// override straight / flush if we have 2 pairs or 1 pair + joker
+			// override straight / flush if we have two-pairs or one-pair + joker
 			if (poker.pairs.length == 2) {
 				override = true;
 			}
@@ -123,8 +168,8 @@ Paigow = {
 			case 'pair':
 				desc_back = 'pair of '+Card.getName(back[0]);
 				break;
-			case '2 pair':
-				desc_back = '2 pair behind '+Card.getName(back[0])+' & '+Card.getName(back[2]);
+			case 'two-pair':
+				desc_back = 'two-pair behind '+Card.getName(back[0])+' & '+Card.getName(back[2]);
 				break;
 			case 'trip':
 				desc_back = 'trip '+Card.getName(back[0]);
@@ -251,14 +296,14 @@ Paigow = {
 					// put high pair in front, make full house behind
 					hair = pair1;
 					back = [pair2[0],pair2[1],diff[0],pair3[0],pair3[1]];
-					rule = '(joker) 3 pair';
+					rule = '(joker) three-pair';
 					brief = 'full house';
 				} else {
 					// no joker so put high pair in front, everything else behind
 					hair = pair1;
 					back = [pair2[0],pair2[1],pair3[0],pair3[1],diff[0]];
-					rule = '3 pair';
-					brief = '2 pair';
+					rule = 'three-pair';
+					brief = 'two-pair';
 				}
 				break;
 			case 2:
@@ -274,12 +319,12 @@ Paigow = {
 				var pair_rank = Card.getRank(pair_card);
 				var pair_name = Card.getName(pair_card);
 				if (joker) {
-					// high card is 3 ranks above high pair, make 3 pairs
+					// high card is 3 ranks above high pair, make three-pairs
 					if (high_rank > pair_rank+2) {
 						hair = [diff[0],diff[2]];
 						back = [pair1[0],pair1[1],pair2[0],pair2[1],diff[0]];
 						rule = '(joker) pair pair / high card below ranks';
-						brief = '2 pair';
+						brief = 'two-pair';
 					} else {
 						//  otherwise make trips
 						hair = pair1;
@@ -302,12 +347,12 @@ Paigow = {
 						case 'jack':
 						case 'ten':
 						case 'nine':
-							// if high card is an ace, then 2 pair behind
+							// if high card is an ace, then two-pair behind
 							if (high_rank >= Card.getRank('ace')) {
 								hair = [diff[0],diff[1]];
 								back = [pair1[0],pair1[1],pair2[0],pair2[1],diff[2]];
 								rule = 'pair-pair / j,10,9 with ace';
-								brief = '2 pair';
+								brief = 'two-pair';
 							} else {
 								// otherwise pair pair
 								hair = pair2;
@@ -320,12 +365,12 @@ Paigow = {
 						case 'eight':
 						case 'seven':
 						case 'six':
-							// if high card is an ace, then 2 pair behind
+							// if high card is an ace, then two-pair behind
 							if (high_rank >= Card.getRank('king')) {
 								hair = [diff[0],diff[1]];
 								back = [pair1[0],pair1[1],pair2[0],pair2[1],diff[2]];
 								rule = 'pair-pair / 8,7,6 with king';
-								brief = '2 pair';
+								brief = 'two-pair';
 							} else {
 								// otherwise pair pair
 								hair = pair2;
@@ -338,12 +383,12 @@ Paigow = {
 						case 'five':
 						case 'four':
 						case 'three':
-							// if high card is an ace, then 2 pair behind
+							// if high card is an ace, then two-pair behind
 							if (high_rank >= Card.getRank('queen')) {
 								hair = [diff[0],diff[1]];
 								back = [pair1[0],pair1[1],pair2[0],pair2[1],diff[2]];
 								rule = 'pair-pair / 5 below with queen';
-								brief = '2 pair';
+								brief = 'two-pair';
 							} else {
 								// otherwise pair pair
 								hair = pair2;
@@ -361,20 +406,20 @@ Paigow = {
 					if (Card.getRank(diff[0]) < Card.getRank(all[0])) {
 						hair = [diff[0],diff[4]];
 						back = [all[0],all[1],diff[1],diff[2],diff[3]];
-						rule = '(joker) 1 pair / hi card less';
+						rule = '(joker) one-pair / hi card less';
 						brief = 'pair';
 					} else {
 						// otherwise put pair in front and high card in back with joker
 						hair = [all[0],all[1]];
 						back = [diff[0],diff[4],diff[1],diff[2],diff[3]];
-						rule = '(joker) 1 pair / hi card more';
+						rule = '(joker) one-pair / hi card more';
 						brief = 'pair';
 					}
 				} else {
 					// no joker so put 1st & 2nd high card in front with pair behind
 					hair = [diff[0],diff[1]];
 					back = [all[0],all[1],diff[2],diff[3],diff[4]];
-					rule = '1 pair';
+					rule = 'one-pair';
 					brief = 'pair';
 				}
 				break;
@@ -446,11 +491,11 @@ Paigow = {
 							diff.push(key);
 						}
 					},this);
-					// 2 pairs, full house behind
+					// two-pairs, full house behind
 					if (pairs.length > 1) {
 						hair = pair1;
 						back = [trip1[0],trip1[1],trip1[2],pair2[0],pair2[1]];
-						rule = 'single trip w/ 2 pair';
+						rule = 'single trip w/ two-pair';
 						brief = 'full house';
 					} else {
 						if (joker) {

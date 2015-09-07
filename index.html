@@ -31,10 +31,16 @@
 
 	// initial hand position
 	var HAND_X = 10;
-	var HAND_Y = 250;
+	var HAND_Y = 320;
 	
 	// type of game to run
-	var game_type;
+	var game_mode;
+	// current level
+	var game_level_complete = false;
+	var game_level_main;
+	var game_level_sub;
+	var game_level_current;
+	var game_level_highest;
 
 	// object containing cards
 	var deck;
@@ -44,18 +50,23 @@
 	// next hand button
 	var btn_next;
 	
+	// text box for main information
+	var main_info_box;
 	// text box for game information
-	var game_info_box;
+	var main_info_box;
 	// text box for hand information
 	var hand_info_box;
 	// text box for clock information
 	var clock_info_box;
-	
+	// text box for stat information
+	var stat_info_box;
+
 	// clock stuff
-	var timer;
-	var milliseconds = 0;
-	var seconds = 0;
-	var minutes = 0;
+	var clock;
+	var clockEvent;
+	
+	// stat stuff
+	var hand_count;
 
 	// information about a hand
 	var hand;
@@ -66,13 +77,28 @@
 	var layout;
 	// group containing just cards
 	var layout_cards;
+	// group containing the learn buttons
+	var layout_learn;
+	// group containing the compare buttons
+	var layout_compare;
 
 	function preload() {
 		game.load.atlas('cards', 'assets/full-deck-with-joker.png','assets/full-deck-with-joker.json');
 	}
 
 	function create() {
-
+		/*
+			create some groups
+		*/
+		// main layout group containing cards & debug stuff
+		layout = game.add.group();
+		// group containing cards only
+		layout_cards = game.add.group();
+		// group containing the learn buttons
+		layout_learn = game.add.group();
+		// group containing the compare buttons
+		layout_compare = game.add.group();
+	
 		// information about the game of pai-gow
 		var btn_info = createButton('info',fnGameInfo);
 		btn_info.x = 10;
@@ -106,142 +132,266 @@
 		// next hand in the series
 		btn_next = createButton('next',fnNextHand);
 		btn_next.x = 10;
-		btn_next.y = 180;
+		btn_next.y = 280;
 		btn_next.visible = false;
 		
+		// comparison buttons
+		btn_win = createButton('win',fnCompareHand);
+		btn_win.name = 'win';
+		btn_win.x = 230;
+		btn_win.y = 280;
+		layout_compare.add(btn_win);
+		btn_lose = createButton('lose',fnCompareHand);
+		btn_lose.name = 'lose';
+		btn_lose.x = 340;
+		btn_lose.y = 280;
+		layout_compare.add(btn_lose);
+		btn_push = createButton('push',fnCompareHand);
+		btn_push.name = 'push';
+		btn_push.x = 450;
+		btn_push.y = 280;
+		layout_compare.add(btn_push);
+		layout_compare.visible = false;
+		
+		// create buttons for learn mode
+		var i = 0;
+		for (var key in Paigow.rules) {
+			var value = Paigow.rules[key];
+			var btn = createButton(key,fnLearnMode);
+			btn.main_key = key;
+			btn.x = 560;
+			btn.y = 70 + (30*i);
+			btn.visible = false;
+			layout_learn.add(btn);
+			var n = 1;
+			for (var sub in Paigow.rules[key]) {
+				var subval = Paigow.rules[key][sub];
+				var btn = createButton(sub,fnLearnMode);
+				btn.main_key = key;
+				btn.sub_key = sub;
+				btn.x = 560 +(n*110);
+				btn.y = 70 + (30*i);
+				btn.visible = false;
+				layout_learn.add(btn);
+				n++;
+			}
+			i++;
+		}
+		// hide the learn group for now
+		layout_learn.visible = false;
+
 		// debug stuff
 		var btn_single = createButton('single',debugCreateSingle);
-		btn_single.x = 750;
+		btn_single.x = 1500;
 		btn_single.y = 10;
 		var btn_compare = createButton('compare',debugCreateCompare);
-		btn_compare.x = 860;
-		btn_compare.y = 10;
+		btn_compare.x = 1500;
+		btn_compare.y = 40;
 		var btn_debug = createButton('debug',debugCreateMultiple);
-		btn_debug.x = 970;
-		btn_debug.y = 10;
+		btn_debug.x = 1500;
+		btn_debug.y = 70;
 		
 		// create a text box for game related information
 		var sprite = game.add.sprite(0,0);
 		var gfx = game.add.graphics(0,0);
 		gfx.beginFill(0x000000,1);
-		gfx.drawRect(0,0,700,100);
-		gfx.name = 'graphic';
+		gfx.drawRect(0,0,540,200);
 		sprite.addChild(gfx);
-		// game information box
-		var style = { font: '12pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 700 };
-		var txt = 'this box is for game related information'
-		game_info_box = game.add.text(0, 0, txt, style);	
+		// main information box
+		var gfx = game.add.graphics(0,0);
+		gfx.beginFill(0x0000CC,1);
+		gfx.drawRect(0,0,450,25);
+		sprite.addChild(gfx);
+		var style = { font: '12pt Courier', fill: 'white', align: 'left', wordWrap: false };
+		var txt = 'main information box'
+		main_info_box = game.add.text(0, 0, txt, style);	
+		sprite.addChild(main_info_box);
+
+		// game information box (show rules and stuff)
+		var gfx = game.add.graphics(0,0);
+		gfx.beginFill(0x00CCCC,1);
+		gfx.drawRect(0,25,450,90);
+		sprite.addChild(gfx);
+		var style = { font: '12pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 450 };
+		var txt = 'show rules and such'
+		game_info_box = game.add.text(0, 25, txt, style);	
 		sprite.addChild(game_info_box);
+
 		// hand information box
-		var style = { font: '10pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 700 };
-		var txt = 'this box is for hand related information';
-		hand_info_box = game.add.text(0,25, 'this is a test box', style);
+		var gfx = game.add.graphics(0,0);
+		gfx.beginFill(0x00CC00,1);
+		gfx.drawRect(0,120,450,80);
+		sprite.addChild(gfx);
+		var style = { font: '10pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 450 };
+		var txt = 'you chose\nrule:\nbonus:\ndesc:';
+		hand_info_box = game.add.text(0,120, txt, style);
 		sprite.addChild(hand_info_box);
+
 		// clock information box
-		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 100 };
+		var gfx = game.add.graphics(0,0);
+		gfx.beginFill(0xCC0000,1);
+		gfx.drawRect(450,0,90,70);
+		sprite.addChild(gfx);
+		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 40 };
 		var txt = 'clock'
-		clock_info_box = game.add.text(650, 0, txt, style);
+		clock_info_box = game.add.text(500, 0, txt, style);
 		clock_info_box.anchor.setTo(0.5,0);
 		sprite.addChild(clock_info_box);
+
+		// stat information box
+		var gfx = game.add.graphics(0,0);
+		gfx.beginFill(0xCC00CC,1);
+		gfx.drawRect(450,70,90,130);
+		sprite.addChild(gfx);
+		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 40 };
+		var txt = 'stats'
+		stat_info_box = game.add.text(500, 70, txt, style);
+		stat_info_box.anchor.setTo(0.5,0);
+		sprite.addChild(stat_info_box);
 		
 		sprite.x = 10;
 		sprite.y = 70;
 
-		layout = game.add.group();
-		layout_cards = game.add.group();
+	}
+	function fnLevelProgress() {
+		fnResetBoard();
 		
+		game_level_complete = false;
+		game_level_current++;
+		layout_learn.getChildAt(game_level_current).visible = true;			
+	}
+	function fnLearnMode(btn) {
+		if(!btn.sub_key) {
+			game_level_current++;
+			layout_learn.getChildAt(game_level_current).visible = true;			
+		} else {
+			game_info_box.text = Paigow.rules[btn.main_key][btn.sub_key];
+			var str = btn.sub_key.split('+');
+			var chance;
+			if (str[1] == 'joker') {
+				chance = 100;
+			} else {
+				chance = 0;
+			}
+			var hand = Hand.create(Poker.create(btn.main_key,chance,str[0]));
+			fnNextHand(hand);
+			
+		}
+	}
+	function fnCompareHand(btn) {
+		console.log(btn.name);
 	}
 	function fnResetBoard() {
 		// destroy the layout
 		layout.destroy();
 		// create the layout
 		layout = game.add.group();
+		
+		// reset the clock event
+		if (clockEvent) {
+			game.time.events.remove(clockEvent);
+			clock_info_box.text = 'clock';
+		}
+		game_info_box.text = '';
+		hand_info_box.text = '';
 	}
 	function fnGameInfo() {
 		fnResetBoard();
+		// hide the learn group
+		layout_learn.visible = false;
 		// hide the start / next buttons
 		btn_start.visible = false;
 		btn_next.visible = false;
 
-		game_info_box.text = 'information about this program and the game of pai-gow';
-		game_type = 'info';
+		main_info_box.text = 'general information';
+		game_mode = 'info';
 	}
 	function fnGameLearn() {
 		fnResetBoard();
-
-		game_info_box.text = 'learn how to play pai-gow';
-		game_type = 'learn';
-
+		// show the learn group
+		layout_learn.visible = true;
+		// hide the start / next buttons
 		btn_start.visible = true;
 		btn_next.visible = false;
+
+		main_info_box.text = 'learn how to play pai-gow';
+		game_mode = 'learn';
 	}
 	function fnGamePractice() {
 		fnResetBoard();
-		game_info_box.text = 'practice setting random hands';
-		game_type = 'practice';
-
+		// hide the learn group
+		layout_learn.visible = false;
+		// hide the start / next buttons
 		btn_start.visible = true;
 		btn_next.visible = false;
+
+		main_info_box.text = 'practice setting random hands';
+		game_mode = 'practice';
 	}
 	function fnGameSpeed() {
 		fnResetBoard();
-		game_info_box.text = 'read and compare hands as fast as you can';
-		game_type = 'speed';
-
+		// hide the learn group
+		layout_learn.visible = false;
+		// hide the start / next buttons
 		btn_start.visible = true;
 		btn_next.visible = false;
+		main_info_box.text = 'read and compare hands as fast as you can';
+		game_mode = 'speed';
 	}
 	function fnGameTimed() {
 		fnResetBoard();
-		game_info_box.text = 'how many hands can you read in 30 seconds';
-		game_type = 'timed';
-
+		// hide the learn group
+		layout_learn.visible = false;
+		// hide the start / next buttons
 		btn_start.visible = true;
 		btn_next.visible = false;
+		main_info_box.text = 'how many hands can you read in 30 seconds';
+		game_mode = 'timed';
 	}
 	function fnStartGame() {
 		fnResetBoard();
-		console.log('start the game',game_type);
 
+		// learn mode, set the game level
+		if (game_mode == 'learn') {
+			layout_learn.visible = true;
+			game_level_current = 0;
+			layout_learn.getChildAt(0).visible = true;
+		}
 		// speed game create a deck for use throughout
-		if (game_type == 'speed') {
+		if (game_mode == 'speed') {
 			deck = Deck.create('standard',true,1);
-			timer = game.time.create(game);
-			timer.add(300,fnGameOver,this);
-			timer.start();
+			clock_info_box.text = 'clock\n0';
+			clock = 0;
+			clockEvent = game.time.events.loop(Phaser.Timer.SECOND,updateClock,this,'up');
+		}
+		// timed game use a 30 second clock
+		if (game_mode == 'timed') {
+			clock_info_box.text = 'clock\n30';
+			clock = 30;
+			clockEvent = game.time.events.loop(Phaser.Timer.SECOND,updateClock,this,'down');
 		}
 		
-		fnNextHand();
-	}
-	function updateTimer() {
-		minutes = Math.floor(game.time.time / 60000) % 60;
-		seconds = Math.floor(game.time.time / 1000) % 60;
-		milliseconds = Math.floor(game.time.time) % 100;
+		hand_count = 0;
 		
-		// if any digit becomes single, then pad it
-		if (milliseconds < 10) {
-			milliseconds = '0' + milliseconds;
+		// all game modes start with a hand except learn mode
+		if (game_mode != 'learn') {
+			fnNextHand();
 		}
-		if (seconds < 10) {
-			seconds = '0' + seconds;
-		}
-		if (minutes < 10) {
-			minutes = '0' + minutes;
-		}
-		clock_info_box.text = minutes + ':' + seconds + ':' + milliseconds;
 	}
-	function fnGameOver() {
-		btn_next.visible = false;
-		layout_cards.destroy();
-		var txt = 'Game Over!!!\n';
-		txt += 'Click start to go again!';
-		game_info_box.text = txt;
-	}
-	function fnNextHand() {
+	function fnNextHand(data) {
 		btn_next.visible = false;
 		
-		game_info_box.text = 'click the cards you think belong in the hair';
+		// learn mode so progress
+		if (game_mode == 'learn' && game_level_complete) {
+			fnLevelProgress();
+			return;
+		}
+		
+		main_info_box.text = 'click the cards you think belong in the hair';
 		hand_info_box.text = '';
+
+		fnUpdateStats();
+		hand_count += 1;
 
 		// create the 'selected' array
 		selected = [];
@@ -252,14 +402,18 @@
 		layout.add(layout_cards);
 		
 		// speed game then use a normal deck, otherwise just spawn hands
-		if (game_type == 'speed') {
+		if (game_mode == 'speed') {
 			hand = Hand.create(deck.splice(0,7));
 			if (deck.length < 7) {
 				fnGameOver();
 			}
 		} else {
-			var type = 'random'
-			hand = Hand.create(Poker.create('random',50,'random'));
+			if (game_mode == 'learn' && data) {
+				hand = data;
+			} else {
+				var type = 'random'
+				hand = Hand.create(Poker.create('random',50,'random'));
+			}
 		}
 
 		// solve for poker
@@ -278,9 +432,38 @@
 		}
 
 	}
+	function updateClock(dir) {
+		var finish;
+		var reset;
+		if (dir == 'down') {
+			clock -= 1;
+			finish = 0;
+			reset = 11;
+		} else {
+			clock += 1;
+			finish = 30;
+			reset = 0;
+		}
+		if (clock === finish) {
+			clock = reset;
+			clock_info_box.text = "done"
+		} else {
+			clock_info_box.text = 'clock\n' + clock;
+		}
+	}
+	function fnUpdateStats() {
+		stat_info_box.text = 'stats\nhands: ' + hand_count;
+	}
+	function fnGameOver() {
+		btn_next.visible = false;
+		layout_cards.destroy();
+		var txt = 'Game Over!!!\n';
+		txt += 'Click start to go again!';
+		main_info_box.text = txt;
+	}
 	
 	// function to create a button
-	function createButton(txt,callback) {
+	function createButton(txt,callback,arg) {
 		var sprite = game.add.sprite(0,0);
 		var gfx = game.add.graphics(0,0);
 		gfx.beginFill(0x000000,1);
@@ -294,7 +477,7 @@
 		sprite.addChild(text);
 		sprite.inputEnabled = true;
 		sprite.input.useHandCursor = true;
-		sprite.events.onInputDown.add(callback,this);
+		sprite.events.onInputDown.add(callback,this,arg);
 		
 		return sprite;
 	}
@@ -335,8 +518,11 @@
 			txt += 'desc: '+hand.paigow.desc+'\n'
 			hand_info_box.text = txt;
 			btn_next.visible = true;
+			if (game_mode == 'learn') {
+				game_level_complete = true;
+			}
 		} else {
-			game_info_box.text = 'Hair incorrect, try again :(';
+			hand_info_box.text = 'Hair incorrect, try again :(';
 			selected[0].y += 15;
 			selected.splice(0,1); 
 			selected[0].y += 15;
@@ -360,7 +546,7 @@
 
 		// random hand from deck
 		hand = Hand.create(deck.splice(0,7));
-		game_info_box.text = 'creating a single hand';
+		main_info_box.text = 'creating a single hand';
 
 		// add some information for the hand
 		var style = { font: '14pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
@@ -427,6 +613,8 @@
 			//
 			// pair, straight, flush w/ joker (set this hand pair & straight)
 //			var set = ["joker_one", "nine_club", "eight_heart", "seven_club", "six_club", "five_club", "five_diamond" ];
+			// pair, straight, flush w/ joker (set this hand pair & straight)
+//			var set = ["joker_one", "jack_heart", "ten_heart", "nine_heart", "nine_club", "seven_club", "six_heart" ];
 			// pair with flush & joker (set this hand natural pair w/ joker flush)
 //			var set = ["joker_one", "ace_club", "king_club", "ten_club", "nine_heart", "nine_club", "eight_club"];
 			// 6 card flush + joker, set pair with natural flush
@@ -443,7 +631,7 @@
 			// create a specific type of hand
 			var type = 'random'
 			var hand = Hand.create(Poker.create('random',50,'random'));
-			game_info_box.text = 'creating 25 '+type+' hands';
+			main_info_box.text = 'creating 25 '+type+' hands';
 
 			// solve for poker
 			hand.poker = Poker.solve(hand.sorted);
@@ -486,10 +674,6 @@
 		these guys do nothing since this is a static game
 	*/
 	function update() {
-//		updateTimer();
-		if (game_type == 'speed') {
-			console.log(timer);
-		}
 
 	}
 
