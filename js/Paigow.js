@@ -1,8 +1,9 @@
 Paigow = {
+	
 	rules:{
 		'pai-gow':{
-			'nothing':'2nd & 3rd, 1st',
-			'nothing+joker':'1st & 3rd, 2nd'
+			'nothing':'When the hand contains no pairs, trips, quads, straights or flushes you put the 2nd & 3rd highest cards in the hair with the rest behind',
+			'nothing+joker':'When the hand contains no pairs, trips, quads, straights or flushes and you have a joker. Put the 1st and 3rd high card in front with the 2nd high card + joker behind'
 		},
 		'pairs':{
 			'one-pair':'rule for one-pair',
@@ -181,7 +182,7 @@ Paigow = {
 				desc_back = Card.getName(back[0])+' high flush';
 				break;
 			case 'full house':
-				desc_back = 'full house behind '+Card.getName(back[0])+'s over '+Card.getName(back[3])+'s'; 
+				desc_back = 'full house '+Card.getName(back[0])+'s over '+Card.getName(back[3])+'s'; 
 				break;
 			case 'quad':
 				desc_back = 'quad '+Card.getName(back[0])+'s';
@@ -203,6 +204,8 @@ Paigow = {
 		}
 		if (bonus != '') {
 			result.bonus = bonus;
+		} else {
+			result.bonus = 'none';
 		}
 		// replace joker high with ace high in flushes
 		if (Card.getName(back[0]) == 'joker' && result.brief == 'flush') {

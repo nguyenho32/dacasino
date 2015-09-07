@@ -26,21 +26,23 @@
 <body>
 
 <script>
-
+	/******************************************************************************************************************
+		GLOBAL STUFF
+	******************************************************************************************************************/
 	var game = new Phaser.Game(1700,5300,Phaser.CANVAS, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
 
 	// initial hand position
 	var HAND_X = 10;
-	var HAND_Y = 320;
+	var HAND_Y = 300;
 	
 	// type of game to run
 	var game_mode;
-	// current level
+	// level complete
 	var game_level_complete = false;
+	// main level group (ie pairs / trips)
 	var game_level_main;
+	// sub level group (ie no-pair / joker+trips)
 	var game_level_sub;
-	var game_level_current;
-	var game_level_highest;
 
 	// object containing cards
 	var deck;
@@ -73,31 +75,36 @@
 	// array containing selected cards
 	var selected;
 	
-	// group containing cards & text
-	var layout;
 	// group containing just cards
 	var layout_cards;
 	// group containing the learn buttons
 	var layout_learn;
 	// group containing the compare buttons
 	var layout_compare;
+	// group containing debug stuff
+	var layout_debug;
 
+	/******************************************************************************************************************
+		PRELOAD
+	******************************************************************************************************************/
 	function preload() {
 		game.load.atlas('cards', 'assets/full-deck-with-joker.png','assets/full-deck-with-joker.json');
 	}
-
+	/******************************************************************************************************************
+		CREATE
+	******************************************************************************************************************/
 	function create() {
 		/*
 			create some groups
 		*/
-		// main layout group containing cards & debug stuff
-		layout = game.add.group();
 		// group containing cards only
 		layout_cards = game.add.group();
 		// group containing the learn buttons
 		layout_learn = game.add.group();
 		// group containing the compare buttons
 		layout_compare = game.add.group();
+		// group containing the debug stuff
+		layout_debug = game.add.group();
 	
 		// information about the game of pai-gow
 		var btn_info = createButton('info',fnGameInfo);
@@ -114,69 +121,80 @@
 		btn_practice.x = 230;
 		btn_practice.y = 10;
 		
+		// practice comparing hands
+		var btn_compare = createButton('compare',fnGameCompare);
+		btn_compare.x = 340;
+		btn_compare.y = 10;
+
 		// do a speed test
 		var btn_speed = createButton('speed',fnGameSpeed);
-		btn_speed.x = 340;
+		btn_speed.x = 450;
 		btn_speed.y = 10;
 
 		// how many hands can you read in 30 seconds
 		var btn_timed = createButton('timed',fnGameTimed);
-		btn_timed.x = 450;
+		btn_timed.x = 560;
 		btn_timed.y = 10;
+		
 		
 		// start the selected game
 		btn_start = createButton('start',fnStartGame);
 		btn_start.x = 10;
-		btn_start.y = 40;
+		btn_start.y = 250;
 		btn_start.visible = false;
 		// next hand in the series
 		btn_next = createButton('next',fnNextHand);
 		btn_next.x = 10;
-		btn_next.y = 280;
+		btn_next.y = 250;
 		btn_next.visible = false;
 		
 		// comparison buttons
 		btn_win = createButton('win',fnCompareHand);
 		btn_win.name = 'win';
 		btn_win.x = 230;
-		btn_win.y = 280;
+		btn_win.y = 250;
 		layout_compare.add(btn_win);
 		btn_lose = createButton('lose',fnCompareHand);
 		btn_lose.name = 'lose';
 		btn_lose.x = 340;
-		btn_lose.y = 280;
+		btn_lose.y = 250;
 		layout_compare.add(btn_lose);
 		btn_push = createButton('push',fnCompareHand);
 		btn_push.name = 'push';
 		btn_push.x = 450;
-		btn_push.y = 280;
+		btn_push.y = 250;
 		layout_compare.add(btn_push);
+		// set everything in the group to invisible
+		layout_compare.setAll('visible',false);
+		// hide the learn group for now
 		layout_compare.visible = false;
 		
 		// create buttons for learn mode
 		var i = 0;
+		var uid = 0;
 		for (var key in Paigow.rules) {
 			var value = Paigow.rules[key];
-			var btn = createButton(key,fnLearnMode);
+			var btn = createButton(key,fnLevelStart);
 			btn.main_key = key;
-			btn.x = 560;
-			btn.y = 70 + (30*i);
-			btn.visible = false;
+			btn.x = 670;
+			btn.y = 40 + (30*i);
 			layout_learn.add(btn);
 			var n = 1;
 			for (var sub in Paigow.rules[key]) {
 				var subval = Paigow.rules[key][sub];
-				var btn = createButton(sub,fnLearnMode);
+				var btn = createButton(sub,fnLevelStart);
 				btn.main_key = key;
 				btn.sub_key = sub;
-				btn.x = 560 +(n*110);
-				btn.y = 70 + (30*i);
-				btn.visible = false;
+				btn.x = 670 +(n*110);
+				btn.y = 40 + (30*i);
 				layout_learn.add(btn);
 				n++;
+				uid++;
 			}
 			i++;
 		}
+		// set everything in the group to invisible
+		layout_learn.setAll('visible',false);
 		// hide the learn group for now
 		layout_learn.visible = false;
 
@@ -184,160 +202,158 @@
 		var btn_single = createButton('single',debugCreateSingle);
 		btn_single.x = 1500;
 		btn_single.y = 10;
-		var btn_compare = createButton('compare',debugCreateCompare);
-		btn_compare.x = 1500;
-		btn_compare.y = 40;
-		var btn_debug = createButton('debug',debugCreateMultiple);
+		var btn_debug = createButton('multiple',debugCreateMultiple);
 		btn_debug.x = 1500;
-		btn_debug.y = 70;
+		btn_debug.y = 40;
 		
 		// create a text box for game related information
 		var sprite = game.add.sprite(0,0);
 		var gfx = game.add.graphics(0,0);
 		gfx.beginFill(0x000000,1);
-		gfx.drawRect(0,0,540,200);
+		gfx.drawRect(0,0,650,200);
 		sprite.addChild(gfx);
 		// main information box
 		var gfx = game.add.graphics(0,0);
 		gfx.beginFill(0x0000CC,1);
-		gfx.drawRect(0,0,450,25);
+		gfx.drawRect(0,0,550,25);
 		sprite.addChild(gfx);
 		var style = { font: '12pt Courier', fill: 'white', align: 'left', wordWrap: false };
-		var txt = 'main information box'
+		var txt = 'Welcome to Da Casino (alpha 1.0)'
 		main_info_box = game.add.text(0, 0, txt, style);	
 		sprite.addChild(main_info_box);
-
 		// game information box (show rules and stuff)
 		var gfx = game.add.graphics(0,0);
 		gfx.beginFill(0x00CCCC,1);
-		gfx.drawRect(0,25,450,90);
+		gfx.drawRect(0,25,550,90);
 		sprite.addChild(gfx);
-		var style = { font: '12pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 450 };
-		var txt = 'show rules and such'
+		var style = { font: '10pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 550 };
+		var txt = 'Click a button above to begin'
 		game_info_box = game.add.text(0, 25, txt, style);	
 		sprite.addChild(game_info_box);
-
 		// hand information box
 		var gfx = game.add.graphics(0,0);
 		gfx.beginFill(0x00CC00,1);
-		gfx.drawRect(0,120,450,80);
+		gfx.drawRect(0,120,550,80);
 		sprite.addChild(gfx);
-		var style = { font: '10pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 450 };
-		var txt = 'you chose\nrule:\nbonus:\ndesc:';
+		var style = { font: '10pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 550 };
+		var txt = '\nrule:\nbonus:\ndesc:';
 		hand_info_box = game.add.text(0,120, txt, style);
 		sprite.addChild(hand_info_box);
-
 		// clock information box
 		var gfx = game.add.graphics(0,0);
 		gfx.beginFill(0xCC0000,1);
-		gfx.drawRect(450,0,90,70);
+		gfx.drawRect(550,0,100,70);
 		sprite.addChild(gfx);
-		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 40 };
+		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 100 };
 		var txt = 'clock'
-		clock_info_box = game.add.text(500, 0, txt, style);
+		clock_info_box = game.add.text(600, 0, txt, style);
 		clock_info_box.anchor.setTo(0.5,0);
 		sprite.addChild(clock_info_box);
-
 		// stat information box
 		var gfx = game.add.graphics(0,0);
 		gfx.beginFill(0xCC00CC,1);
-		gfx.drawRect(450,70,90,130);
+		gfx.drawRect(550,70,100,130);
 		sprite.addChild(gfx);
-		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 40 };
+		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 100 };
 		var txt = 'stats'
-		stat_info_box = game.add.text(500, 70, txt, style);
+		stat_info_box = game.add.text(600, 70, txt, style);
 		stat_info_box.anchor.setTo(0.5,0);
 		sprite.addChild(stat_info_box);
-		
+		// place the information area
 		sprite.x = 10;
-		sprite.y = 70;
+		sprite.y = 40;
 
 	}
-	function fnLevelProgress() {
-		fnResetBoard();
-		
-		game_level_complete = false;
-		game_level_current++;
-		layout_learn.getChildAt(game_level_current).visible = true;			
-	}
-	function fnLearnMode(btn) {
-		if(!btn.sub_key) {
-			game_level_current++;
-			layout_learn.getChildAt(game_level_current).visible = true;			
-		} else {
-			game_info_box.text = Paigow.rules[btn.main_key][btn.sub_key];
-			var str = btn.sub_key.split('+');
-			var chance;
-			if (str[1] == 'joker') {
-				chance = 100;
-			} else {
-				chance = 0;
-			}
-			var hand = Hand.create(Poker.create(btn.main_key,chance,str[0]));
-			fnNextHand(hand);
-			
-		}
-	}
-	function fnCompareHand(btn) {
-		console.log(btn.name);
-	}
-	function fnResetBoard() {
-		// destroy the layout
-		layout.destroy();
-		// create the layout
-		layout = game.add.group();
-		
-		// reset the clock event
-		if (clockEvent) {
-			game.time.events.remove(clockEvent);
-			clock_info_box.text = 'clock';
-		}
-		game_info_box.text = '';
-		hand_info_box.text = '';
-	}
+	/******************************************************************************************************************
+		MAIN MENU STUFF
+	******************************************************************************************************************/
+	// game information
 	function fnGameInfo() {
+		// clear any cards / timers etc
+		fnResetBoard();
+		// hide the learn group
+		layout_learn.visible = false;
+		// hide the compare group
+		layout_compare.visible = false;
+		// hide the start / next buttons
+		btn_start.visible = false;
+		btn_next.visible = false;
+		// set the message
+		main_info_box.text = 'Welcome to Da Casino (alpha 1.0)';
+		// give some helpful info
+		var txt = 'This is where i\'ll put information about the game of pai-gow';
+		game_info_box.text = txt;
+	}
+	// learn some pai-gow
+	function fnGameLearn() {
+		// clear any cards / timers etc
+		fnResetBoard();
+		// show the learn group
+		layout_learn.visible = true;
+		// hide the start / next buttons
+		btn_start.visible = false;
+		btn_next.visible = false;
+		// set the game mode
+		game_mode = 'learn';
+		// set the main level
+		game_level_main = 'pai-gow';
+		// set the sub level
+		game_level_sub = 'nothing';
+		
+		// learn mode, set the game level
+		if (game_mode == 'learn') {
+			layout_learn.visible = true;
+			layout_learn.forEach(function(btn) {
+				if (btn.main_key == game_level_main && !btn.sub_key) {
+					btn.visible = true;
+				}
+				if (btn.main_key == game_level_main && btn.sub_key == game_level_sub) {
+					btn.visible = true;
+				}
+			},this);
+		}
+		// set the message
+		main_info_box.text = 'learn how to play pai-gow';
+		// give some helpful info
+		game_info_box.text = 'click the \''+game_level_sub+'\' button on your right to begin';
+	}
+	// practice hands
+	function fnGamePractice() {
+		fnResetBoard();
+		// show the learn group
+		layout_learn.visible = true;
+		// hide the start / next buttons
+		btn_start.visible = false;
+		btn_next.visible = false;
+
+		main_info_box.text = 'practice setting random hands';
+		game_mode = 'practice';
+	}
+	// practice comparing hands
+	function fnGameCompare() {
 		fnResetBoard();
 		// hide the learn group
 		layout_learn.visible = false;
 		// hide the start / next buttons
 		btn_start.visible = false;
 		btn_next.visible = false;
-
-		main_info_box.text = 'general information';
-		game_mode = 'info';
+		main_info_box.text = 'practice comparing hands';
+		game_info_box.text = 'coming soon';
+		game_mode = 'compare';
 	}
-	function fnGameLearn() {
-		fnResetBoard();
-		// show the learn group
-		layout_learn.visible = true;
-		// hide the start / next buttons
-		btn_start.visible = true;
-		btn_next.visible = false;
-
-		main_info_box.text = 'learn how to play pai-gow';
-		game_mode = 'learn';
-	}
-	function fnGamePractice() {
-		fnResetBoard();
-		// hide the learn group
-		layout_learn.visible = false;
-		// hide the start / next buttons
-		btn_start.visible = true;
-		btn_next.visible = false;
-
-		main_info_box.text = 'practice setting random hands';
-		game_mode = 'practice';
-	}
+	// speed test
 	function fnGameSpeed() {
 		fnResetBoard();
 		// hide the learn group
 		layout_learn.visible = false;
 		// hide the start / next buttons
-		btn_start.visible = true;
+		btn_start.visible = false;
 		btn_next.visible = false;
 		main_info_box.text = 'read and compare hands as fast as you can';
+		game_info_box.text = 'coming soon';
 		game_mode = 'speed';
 	}
+	// as many hands as you can
 	function fnGameTimed() {
 		fnResetBoard();
 		// hide the learn group
@@ -348,15 +364,74 @@
 		main_info_box.text = 'how many hands can you read in 30 seconds';
 		game_mode = 'timed';
 	}
-	function fnStartGame() {
+	/******************************************************************************************************************
+		LEARN MODE
+	******************************************************************************************************************/
+	// start a level
+	function fnLevelStart(btn) {
+		// only do something if a sub button was clicked
+		if(btn.sub_key) {
+			hand_count = 0;
+			fnNextHand();
+		}
+	}
+	// progress a level
+	function fnLevelProgress() {
+		console.log('progress to next level');
 		fnResetBoard();
 
-		// learn mode, set the game level
-		if (game_mode == 'learn') {
-			layout_learn.visible = true;
-			game_level_current = 0;
-			layout_learn.getChildAt(0).visible = true;
+		game_level_complete = false;
+
+		// main keys + index
+		var main_keys = Object.keys(Paigow.rules);
+		var main_index = main_keys.indexOf(game_level_main);
+		// sub keys + index
+		var sub_keys = Object.keys(Paigow.rules[game_level_main]);
+		var sub_index = sub_keys.indexOf(game_level_sub);
+		
+		// first increase sub_index by 1
+		sub_index += 1;
+		// sub_index over sub_key length, then increase main_index and reset sub index
+		if (sub_index >= sub_keys.length) {
+			main_index += 1;
+			sub_index = 0;
 		}
+		// if main_index over length, end the game
+		if (main_index >= main_keys.length) {
+			fnGameOver();
+			return;
+		}
+		// set new level stuff
+		game_level_main = main_keys[main_index];
+		var sub_keys = Object.keys(Paigow.rules[game_level_main]);
+		game_level_sub = sub_keys[sub_index];
+
+		// show the proper buttons
+		layout_learn.forEach(function(btn) {
+			if (btn.main_key == game_level_main && !btn.sub_key) {
+				btn.visible = true;
+			}
+			if (btn.main_key == game_level_main && btn.sub_key == game_level_sub) {
+				btn.visible = true;
+			}
+		},this);
+		game_info_box.text = 'Congratultions you passed that level!\nClick the '+game_level_sub+' button to continue';
+	}
+	/******************************************************************************************************************
+		SPEED MODE
+	******************************************************************************************************************/
+	function fnCompareHand(btn) {
+		console.log(btn.name);
+	}
+	/******************************************************************************************************************
+		GENERIC GAME FUNCTIONS
+	******************************************************************************************************************/
+	// start a speed or timed game
+	function fnStartGame() {
+		fnResetBoard();
+		// hide the start button
+		btn_start.visible = false;
+
 		// speed game create a deck for use throughout
 		if (game_mode == 'speed') {
 			deck = Deck.create('standard',true,1);
@@ -378,13 +453,21 @@
 			fnNextHand();
 		}
 	}
+	// show a hand
 	function fnNextHand(data) {
 		btn_next.visible = false;
 		
-		// learn mode so progress
-		if (game_mode == 'learn' && game_level_complete) {
-			fnLevelProgress();
-			return;
+		// learn mode so handle things
+		if (game_mode == 'learn') {
+			// 10 hands then move onto the next level
+			if (hand_count > 10) {
+				game_level_complete = true;
+			}
+			// level complete so move onto the next one
+			if (game_level_complete) {
+				fnLevelProgress();
+				return;			
+			}
 		}
 		
 		main_info_box.text = 'click the cards you think belong in the hair';
@@ -399,7 +482,6 @@
 		layout_cards.destroy();
 		// create the 'cards' layout
 		layout_cards = game.add.group();
-		layout.add(layout_cards);
 		
 		// speed game then use a normal deck, otherwise just spawn hands
 		if (game_mode == 'speed') {
@@ -408,8 +490,16 @@
 				fnGameOver();
 			}
 		} else {
-			if (game_mode == 'learn' && data) {
-				hand = data;
+			if (game_mode == 'learn') {
+				game_info_box.text = Paigow.rules[game_level_main][game_level_sub];
+				var str = game_level_sub.split('+');
+				var chance;
+				if (str[1] == 'joker') {
+					chance = 100;
+				} else {
+					chance = 0;
+				}
+				hand = Hand.create(Poker.create(game_level_main,chance,str[0]));
 			} else {
 				var type = 'random'
 				hand = Hand.create(Poker.create('random',50,'random'));
@@ -421,9 +511,9 @@
 		// solve for pai-gow
 		hand.paigow = Paigow.solve(hand.poker);
 		// loop and display the hands
+		var cards = hand.shuffled;
 		for (var i=0;i<hand.original.length;i++) {
-			var sorted = hand.sorted;
-			var card = Card.create({card:sorted[i],clickable:true,callback:selectHair});
+			var card = Card.create({card:cards[i],clickable:true,callback:selectHair});
 			if (card) {
 				card.x = HAND_X+i*135;
 				card.y = HAND_Y;
@@ -432,60 +522,6 @@
 		}
 
 	}
-	function updateClock(dir) {
-		var finish;
-		var reset;
-		if (dir == 'down') {
-			clock -= 1;
-			finish = 0;
-			reset = 11;
-		} else {
-			clock += 1;
-			finish = 30;
-			reset = 0;
-		}
-		if (clock === finish) {
-			clock = reset;
-			clock_info_box.text = "done"
-		} else {
-			clock_info_box.text = 'clock\n' + clock;
-		}
-	}
-	function fnUpdateStats() {
-		stat_info_box.text = 'stats\nhands: ' + hand_count;
-	}
-	function fnGameOver() {
-		btn_next.visible = false;
-		layout_cards.destroy();
-		var txt = 'Game Over!!!\n';
-		txt += 'Click start to go again!';
-		main_info_box.text = txt;
-	}
-	
-	// function to create a button
-	function createButton(txt,callback,arg) {
-		var sprite = game.add.sprite(0,0);
-		var gfx = game.add.graphics(0,0);
-		gfx.beginFill(0x000000,1);
-		gfx.drawRect(0,0,100,20);
-		gfx.name = 'graphic';
-		sprite.addChild(gfx);
-		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 100 };
-		var text = game.add.text(50, 4, txt, style);	
-		text.anchor.setTo(0.5,0);
-		text.inputEnabled = true;
-		sprite.addChild(text);
-		sprite.inputEnabled = true;
-		sprite.input.useHandCursor = true;
-		sprite.events.onInputDown.add(callback,this,arg);
-		
-		return sprite;
-	}
-	
-	/*
-		Game Related Functions
-	*/
-	
 	// handle selection of hair cards
 	function selectHair(card,pointer) {
 		// this card already selected, so unselect and remove it
@@ -516,11 +552,10 @@
 			txt += 'rule: '+hand.paigow.rule+'\n';
 			txt += 'bonus: '+hand.paigow.bonus+'\n';
 			txt += 'desc: '+hand.paigow.desc+'\n'
+			// place the cards
+			fnPlaceCardsHouseWay();
 			hand_info_box.text = txt;
 			btn_next.visible = true;
-			if (game_mode == 'learn') {
-				game_level_complete = true;
-			}
 		} else {
 			hand_info_box.text = 'Hair incorrect, try again :(';
 			selected[0].y += 15;
@@ -529,10 +564,130 @@
 			selected.splice(0,1); 
 		}
 	}
+	// silly function to display the cards correctly
+	function fnPlaceCardsHouseWay() {
+		var hair = hand.paigow.hair;
+		var back = hand.paigow.back;
+		for (var i=0; i<layout_cards.length;i++) {
+			var card = layout_cards.getChildAt(i);
+			if (card.key == hair[0]) {
+				card.x = 10;
+				card.y = 280;
+			}
+			if (card.key == hair[1]) {
+				card.x = 140;
+				card.y = 280;
+			}
+			if (card.key == back[0]) {
+				card.x = 10;
+				card.y = 470;
+			}
+			if (card.key == back[1]) {
+				card.x = 140;
+				card.y = 470;
+			}
+			if (card.key == back[2]) {
+				card.x = 270;
+				card.y = 470;
+			}
+			if (card.key == back[3]) {
+				card.x = 400;
+				card.y = 470;
+			}
+			if (card.key == back[4]) {
+				card.x = 530;
+				card.y = 470;
+			}
+		}
+	}
+	// game over do stuff
+	function fnGameOver() {
+		btn_next.visible = false;
+		layout_cards.destroy();
+		var txt = 'Game Over!!!\n';
+		if (game_mode == 'timed') {
+			txt += 'You got '+hand_count+' hands correct!\n\n';
+		}
+		txt += 'Click start to go again!';
+		game_info_box.text = txt;
+		hand_info_box.text = '';
+		btn_start.visible = true;
+	}
+	/******************************************************************************************************************
+		DISPLAY FUNCTIONS
+	******************************************************************************************************************/
+	// update the clock
+	function updateClock(dir) {
+		var finish;
+		var reset;
+		if (dir == 'down') {
+			clock -= 1;
+			finish = 0;
+			reset = 30;
+		} else {
+			clock += 1;
+			finish = 30;
+			reset = 0;
+		}
+		if (clock === finish) {
+			clock = reset;
+			clock_info_box.text = "done"
+			game.time.events.remove(clockEvent);
+			fnGameOver();
+		} else {
+			clock_info_box.text = 'clock\n' + clock;
+		}
+	}
+	// update stats
+	function fnUpdateStats() {
+		stat_info_box.text = 'stats\nhands: ' + hand_count;
+	}
+	/******************************************************************************************************************
+		GENERIC UTILITIES
+	******************************************************************************************************************/
+	// function to create a button
+	function createButton(txt,callback,arg) {
+		var sprite = game.add.sprite(0,0);
+		var gfx = game.add.graphics(0,0);
+		gfx.beginFill(0x000000,1);
+		gfx.drawRect(0,0,100,20);
+		gfx.name = 'graphic';
+		sprite.addChild(gfx);
+		var style = { font: '10pt Courier', fill: 'white', align: 'center', wordWrap: true, wordWrapWidth: 100 };
+		var text = game.add.text(50, 4, txt, style);	
+		text.anchor.setTo(0.5,0);
+		text.inputEnabled = true;
+		sprite.addChild(text);
+		sprite.inputEnabled = true;
+		sprite.input.useHandCursor = true;
+		sprite.events.onInputDown.add(callback,this,arg);
+		
+		return sprite;
+	}
+	// reset everything
+	function fnResetBoard() {
+		// destroy the 'debug' layout
+		layout_debug.destroy();
+		// create the 'debug' layout
+		layout_debug = game.add.group();
+		
+		// destroy the 'cards' layout
+		layout_cards.destroy();
+		// create the 'cards' layout
+		layout_cards = game.add.group();
+		
+		// reset the clock event
+		if (clockEvent) {
+			game.time.events.remove(clockEvent);
+			clock_info_box.text = 'clock';
+		}
+		game_info_box.text = '';
+		hand_info_box.text = '';
+	}
 	
-	/*
+	/******************************************************************************************************************
 		DEBUG FUNCTIONS
-	*/
+	******************************************************************************************************************/
 	// create a single hand of pai-gow from a deck (created within the function)
 	function debugCreateSingle(sprite,pointer) {
 		fnResetBoard();
@@ -551,7 +706,7 @@
 		// add some information for the hand
 		var style = { font: '14pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
 		hand_info_box = game.add.text(10, 350, 'click the cards you think belong in the hair', style);	
-		layout.add(hand_info_box);
+		layout_debug.add(hand_info_box);
 		
 		// solve for poker
 		hand.poker = Poker.solve(hand.sorted);
@@ -565,7 +720,7 @@
 				card.x = HAND_X+i*135;
 				card.y = HAND_Y;
 			}
-			layout.add(card);
+			layout_debug.add(card);
 		}
 		// add some information for debugging yeah baby!
 		var style = { font: '10pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
@@ -573,16 +728,7 @@
 		var str = hand.paigow.debug;
 		var text = game.add.text(950, HAND_Y, str, style);	
 
-		layout.add(text);
-	}
-	// create 2 hands for comparison
-	function debugCreateCompare(sprite,pointer) {
-		fnResetBoard();
-		// hide the start / next buttons
-		btn_start.visible = false;
-		btn_next.visible = false;
-
-		console.log('create 2 hands for comparison');
+		layout_debug.add(text);
 	}
 	// create multiple hands of paigow
 	function debugCreateMultiple(sprite,pointer) {
@@ -645,7 +791,7 @@
 					card.x = HAND_X+i*135;
 					card.y = HAND_Y+(200*n);
 				}
-				layout.add(card);
+				layout_debug.add(card);
 			}
 			// add some information for debugging yeah baby!
 			var style = { font: '10pt Courier', fill: 'white', align: 'left', wordWrap: true, wordWrapWidth: 650 };
@@ -653,7 +799,7 @@
 			var str = hand.paigow.debug;
 			var text = game.add.text(950, HAND_Y+(200*n), str, style);	
 
-			layout.add(text);
+			layout_debug.add(text);
 		}
 
 /*		
@@ -668,11 +814,9 @@
 		},this);
 */
 	}
-
-	
-	/*
-		these guys do nothing since this is a static game
-	*/
+	/******************************************************************************************************************
+		FOLLOWING DOES NOTHING SINCE THIS IS A STATIC GAME
+	******************************************************************************************************************/
 	function update() {
 
 	}
