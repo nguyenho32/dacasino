@@ -1,5 +1,17 @@
 Paigow = {
-	
+	// get the difference between 2 arrays
+	arrayDiff:function(big,small) {
+		var diff = [];
+		big.forEach(function(key) {
+			if (-1 === small.indexOf(key)) {
+				diff.push(key);
+			}
+		},this);
+		return diff;
+	},
+	/******************************************************************************************************************************************
+		PAI-GOW RULES
+	******************************************************************************************************************************************/
 	rules:{
 		'pai-gow':{
 			'nothing':'When the hand contains no pairs, trips, quads, straights or flushes. Put the 2nd & 3rd highest cards in the hair',
@@ -45,11 +57,14 @@ Paigow = {
 			'one-pair+joker':'When the hand contains quads + pair & joker...',
 		}
 	},
+	/******************************************************************************************************************************************
+		SOLVE FUNCTIONS
+	******************************************************************************************************************************************/
 	solve:function(poker) {
 		var bonus = '';
 		// quads / trips get a match final
 		var match_final = false;
-		// override for straight / flush
+		// override for straights / flushes
 		var override = false;
 		
 		// solve for quads
@@ -86,8 +101,14 @@ Paigow = {
 			}
 		}
 
+		// solve for straight
+		if (poker.straights) {
+			result = this.solveStraight(poker);
+		}
+
+		/*
 		// override set but 6 card straight means we are going to set pair & straight
-		if (poker.straight) {
+		if (poker.straights) {
 			bonus = 'straight';
 			if (override && poker.straight.length == 6) {
 				override = false;
@@ -95,7 +116,7 @@ Paigow = {
 		}
 		// solve for straight
 		if (!override) {
-			if (poker.straight) {
+			if (poker.straights) {
 				result = this.solveStraight(poker);
 			}
 		}
@@ -133,6 +154,7 @@ Paigow = {
 				result.brief = 'straight-flush';
 			}
 		}
+		*/
 
 		// no result from anything above, solve for nothing
 		if (poker.nothing) {
@@ -236,7 +258,7 @@ Paigow = {
 			debug += 'none';
 		}
 		debug += '\n'+result.desc;
-		debug += '\n\n'+result.hair.toString()+'\n'+result.back.toString();
+		debug += '\n'+result.hair.toString()+'\n'+result.back.toString();
 		result.debug = debug;
 		
 		return result;
@@ -678,6 +700,65 @@ Paigow = {
 		return {hair,back,rule,brief};
 	},
 	
+	// solve straight
+	solveStraight:function(poker) {
+		var straights = poker.straights;
+		var cards = poker.cards;
+		var joker = poker.joker;
+		var hair = [];
+		var back = [];
+		var rule = '';
+
+		switch(straights.length) {
+			// one straight
+			default:
+				var straight = straights[0];
+				console.log('straight: ',straight);
+				var diff = this.arrayDiff(cards,straight);
+				console.log('straight diff: ',diff);
+				// pairs present
+				if (poker.pairs) {
+					console.log('pairs present: ',poker.pairs.length);
+					// one pair present
+					if (poker.pairs.length == 1) {
+						// pair inside straight
+						if (straight.indexOf(poker.pairs[0][0]) != -1 || straight.indexOf(poker.pairs[0][1])) {
+							console.log('pair within the straight');
+							// joker not part of straight
+							if (diff.indexOf('joker_one') != -1) {
+								console.log('joker not in straight, add to hair choice');
+								hair = [poker.pairs[0][0],poker.pairs[0][1],'joker_one'];
+							} else {
+								console.log('joker in straight, so the extra card + pairs is the hair');
+								hair = [diff[1],poker.pairs[0][0],poker.pairs[0][1]];
+							}
+							back = straights[0];
+						}
+					} else {
+						result = this.solvePairs(poker);
+					}
+					
+				} else {
+					hair = [diff[0],diff[1]];
+					back = straights[0];
+				}
+				if (joker) {
+					rule = '(joker) 5 card straight';
+				} else {
+					rule = '5 card straight';
+				}
+				break;
+		}
+		// tmp shit
+		if (hair.length < 1 || back.length < 1) {
+			hair = [cards[0],cards[2]];
+			back = [cards[1],cards[3],cards[4],cards[5],cards[6]];
+		}
+		var brief = 'straight';
+		
+		return {hair,back,rule,brief};
+	},
+	/* WORKING STRAIGHT SOLVER
 	// straight
 	solveStraight:function(poker) {
 		var cards = poker.cards;
@@ -763,7 +844,8 @@ Paigow = {
 		var brief = 'straight';
 		
 		return {hair,back,rule,brief};
-	},	
+	},
+	*/
 	
 	// flush
 	solveFlush:function(poker) {

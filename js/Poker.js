@@ -1,4 +1,8 @@
 Poker = {
+	/******************************************************************************************************************************************
+		GENERIC FUNCTIONS
+	******************************************************************************************************************************************/
+	// randomize an array
 	shuffle:function(array) {
 	  var i = 0
 		, j = 0
@@ -12,6 +16,23 @@ Poker = {
 	  }
 	  return array;
 	},
+	// sort an array
+	sort:function(array) {
+		var sorted = [];
+		for (var k=0; k<Card.names.length;k++) {
+			for (var i=0; i<Card.suits.length; i++) {
+				var check = Card.names[k]+'_'+Card.suits[i];
+				if (array.indexOf(check) != -1) {
+					sorted.push(check);
+				}
+			}
+		}
+		sorted.reverse();
+		return sorted;
+	},
+	/******************************************************************************************************************************************
+		CREATE FUNCTIONS
+	******************************************************************************************************************************************/
 	// create a specific type of hand
 	create:function(type,chance,opt) {
 //		console.log('\ncreating hand...');
@@ -65,6 +86,25 @@ Poker = {
 			} else {
 //				console.log('\nPoker.create(): joker replacing: ',hand[hand.length-1]);
 				hand[hand.length-1] = 'joker_one';
+			}
+			
+			// sort the hand in rank order and do some sanity checks
+			var sorted = this.sort(hand);
+			// building straight, make sure no flush
+			if (type == 'straight') {
+				var flush = this.findFlushes(sorted);
+				if (flush.length > 0) {
+					console.log('createNatural - joker added: straight - found flush, rebuilding');
+					hand = this.createNatural(type,opt);
+				}
+			}
+			// building flush, make sure no straight
+			if (type == 'flush') {
+				var straight = this.findStraights(sorted);
+				if (straight.length > 0) {
+					console.log('createNatural - joker added: flush - found straight, rebuilding');
+					hand = this.createNatural(type,opt);
+				}
 			}
 		}
 		return hand;
@@ -172,6 +212,25 @@ Poker = {
 				match.push(name);
 			}
 		} while (hand.length < 7)
+			
+		// sort the hand in rank order and do some sanity checks
+		var sorted = this.sort(hand);
+		// building straight, make sure no flush
+		if (type == 'straight') {
+			var flush = this.findFlushes(sorted);
+			if (flush.length > 0) {
+				console.log('createNatural: straight - found flush, rebuilding');
+				hand = this.createNatural(type,opt);
+			}
+		}
+		// building flush, make sure no straight
+		if (type == 'flush') {
+			var straight = this.findStraights(sorted);
+			if (straight.length > 0) {
+				console.log('createNatural: flush - found straight, rebuilding');
+				hand = this.createNatural(type,opt);
+			}
+		}
 		// return the completed hand
 		return hand;
 	},
@@ -297,6 +356,21 @@ Poker = {
 				match.push(name);
 			}
 		} while (hand.length < 7)
+			
+		// sort the hand in rank order and do some sanity checks
+		var sorted = this.sort(hand);
+		// make sure no straight
+		var straight = this.findStraights(sorted);
+		if (straight.length > 0) {
+			console.log('createTrip found straight, rebuilding');
+			hand = this.createTrip(opt);
+		}
+		// make sure no flush
+		var flush = this.findFlushes(sorted);
+		if (flush.length > 0) {
+			console.log('createTrip found flush, rebuilding');
+			hand = this.createTrip(opt);
+		}
 		// return the completed hand
 		return hand;
 	},
@@ -358,6 +432,21 @@ Poker = {
 				match.push(name);
 			}
 		} while (hand.length < 7)
+			
+		// sort the hand in rank order and do some sanity checks
+		var sorted = this.sort(hand);
+		// make sure no straight
+		var straight = this.findStraights(sorted);
+		if (straight.length > 0) {
+			console.log('createTrip found straight, rebuilding');
+			hand = this.createPair(opt);
+		}
+		// make sure no flush
+		var flush = this.findFlushes(sorted);
+		if (flush.length > 0) {
+			console.log('createPair found flush, rebuilding');
+			hand = this.createPair(opt);
+		}
 		// return the completed hand
 		return hand;
 	},
@@ -383,31 +472,27 @@ Poker = {
 				match.push(name);
 			}
 		} while (hand.length < 7)
-		var sorted = [];
-		for (var k=0; k<Card.names.length;k++) {
-			for (var i=0; i<Card.suits.length; i++) {
-				var check = Card.names[k]+'_'+Card.suits[i];
-				if (hand.indexOf(check) != -1) {
-					sorted.push(check);
-				}
-			}
-		}
-		sorted.reverse();
+			
+		// sort the hand in rank order and do some sanity checks
+		var sorted = this.sort(hand);
 		// make sure no straight
-		var straight = this.findStraight(sorted);
+		var straight = this.findStraights(sorted);
 		if (straight.length > 0) {
+			console.log('createNothing found straight, rebuilding');
 			hand = this.createNothing();
 		}
 		// make sure no flush
-		var flush = this.findFlush(sorted);
+		var flush = this.findFlushes(sorted);
 		if (flush.length > 0) {
+			console.log('createTrip found flush, rebuilding');
 			hand = this.createNothing();
 		}
 		// return the completed hand
 		return hand;
 	},	
-
-	
+	/******************************************************************************************************************************************
+		SOLVE FUNCTIONS
+	******************************************************************************************************************************************/
 	// find all poker hands within a set of cards
 	solve:function(cards) {
 		var poker = {};
@@ -438,26 +523,32 @@ Poker = {
 		}
 		
 		// find flushes
-		var flush = this.findFlush(cards);
-		if (flush.length != 0) {
-			poker.flush = flush;
+		var flushes = this.findFlushes(cards);
+		if (flushes.length != 0) {
+			poker.flushes = flushes;
 			
-			debug += 'flush: ';
-			debug += flush.toString()+'\n';
+			debug += 'flushes: ';
+			// loop the flushes
+			debug += flushes.toString()+'\n';
 		}
 
 		// find straights
-		var straight = this.findStraight(cards);
-		if (straight.length != 0) {
-			poker.straight = straight;
+		var straights = this.findStraights(cards);
+		if (straights.length != 0) {
+			poker.straights = straights;
 			
-			debug += 'straight: ';
-			debug += straight.toString()+'\n';
+			debug += 'straight:\n';
+			// loop the straights
+			for(var i=0; i<straights.length; i++) {
+				var straight = straights[i];
+				debug += straight.toString()+'\n';
+			}
 		}
 		
 		// find straight flush
-		if (poker.flush && poker.straight) {
-			var straight_flush = this.findStraightFlush(poker.straight,poker.flush);
+		/*
+		if (poker.flushes && poker.straights) {
+			var straight_flush = this.findStraightsFlush(poker.straight,poker.flush);
 			if (straight_flush.length != 0) {
 				poker.straight_flush = straight_flush;
 				
@@ -465,6 +556,7 @@ Poker = {
 				debug += straight_flush.toString()+'\n';
 			}
 		}
+		*/
 		
 		// debug text
 		if (debug != '') {
@@ -478,12 +570,12 @@ Poker = {
 	/*
 		find a straight flush
 	*/
-	findStraightFlush:function(straight,flush) {
+	findStraightsFlush:function(straights,flush) {
 		var diff = [];
-		for (var i=0; i<straight.length;i++) {
+		for (var i=0; i<straights.length;i++) {
 			// this card of the straight matches something in the flush
-			if (flush.indexOf(straight[i]) != -1) {
-				diff.push(straight[i]);
+			if (flush.indexOf(straights[i]) != -1) {
+				diff.push(straights[i]);
 			} else {
 				// otherwise reset because its not a straight flush
 				if (diff.length < 5) {
@@ -500,107 +592,119 @@ Poker = {
 	/*
 		find a straight
 	*/
-	findStraight:function(cards) {
-		var straight = [];
+	findStraights:function(cards) {
+		var straights = [];
+		
+		// joker will always be in the last position if present
+		var joker_present = (cards.indexOf('joker_one') != -1) ? true : false;
 
-		// first card
-		var first = cards[0];
-		// straight qualifies (5 or more cards)
-		var qualified = false;
-		
-		// if the first item is a joker, then set joker = true;
-		var joker = false;
-		var available = false;
-		if (cards.indexOf('joker_one') > 0) {
-			joker = true;
-			available = true;
-		}
-		
-		// master loop only the top 3 cards
-		for (var k=0;k<4;k++) {
-			if (qualified){
-				break;
-			}
-			// sub loop goes through whats left
-			for (var i=k;i<cards.length;i++) {
-				// straight has no cards in it yet
-				if (straight.length < 1) {
-					straight.push(cards[k]);
+		// go 4 deep in case of joker based wheel straights
+		for (var i=0; i<4; i++) {
+			// joker is available
+			var joker_available = (joker_present) ? true : false;
+			// add this item to the straight
+			var straight = [cards[i]];
+			// now loop the rest of the cards
+			for (var k=i+1; k<cards.length; k++) {
+				// this card
+				var card = cards[k];
+				var this_rank = Card.getRank(card);
+				// last item in straight
+				var last = straight[straight.length-1];
+				var last_rank = Card.getRank(last);
+
+				// this rank is one less than last rank
+				if (this_rank == last_rank-1) {
+					straight.push(card);
+				} else if (this_rank == last_rank) {
+					// do nothing
 				} else {
-					var card = cards[i];
-					var this_rank = Card.getRank(card);
-
-					var last = straight[straight.length-1];
-					var last_rank = Card.getRank(last);
-
-					// this rank is one less than last rank
-					if (this_rank == last_rank-1) {
-						straight.push(card);
-						// nothing below two (wheel straights)
-						if (Card.getName(card) == 'two') {
-							// ace present so add it to the end of the wheel
-							if (Card.getName(first) == 'ace') {
+					// joker present and available
+					if (joker_present && joker_available) {
+						// straight length less than 4
+						if (straight.length < 4) {
+							// first card in straight is 5, this card is 3 and we have ace + joker make a wheel
+							if (straight.length == 3 && Card.getName(straight[0]) == 'five' && Card.getName(straight[2]) == 'three' && Card.getName(cards[0]) == 'ace') {
+								joker_available = false;
+								straight.push('joker_one');
 								straight.push(cards[0]);
-							}
-							// joker present and available add to front of straight
-							if (joker && available) {
-								straight.unshift('joker_one');
-								available = false;
-								break;
-							}
-						}
-					} else if (this_rank == last_rank){
-						// do nothing
-					} else {
-						// not one less but joker is available
-						if (joker && available) {
-							straight.push('joker_one');
-							available = false;
-							// if this card is a three, check for ace to complete the wheel
-							if (Card.getName(last) == 'three' && Card.getName(first) == 'ace') {
-								straight.push(cards[0]);
-								break;
-							}
-							// check this card again, add if necessary and continue loop to next card
-							if (this_rank == last_rank-2) {
+							} else if (this_rank == last_rank-2) {
+								// this card is 2 less than last in straight (and not a 2)
+								joker_available = false;
+								straight.push('joker_one');
 								straight.push(card);
-								continue;
+							} else {
+								// with joker, no straight possible so start next master loop
+								break;
 							}
 						}
-						// card failed the rank check and straight is big enough
-						if (straight.length > 4) {
-							qualified = true;
-							break;
-						}
-						// straight is not big enough then reset
-						if (straight.length < 5) {
-							straight = [];
-							available = true;
-							break;
-						}
+					} else {
+						// not a straight to start the next master loop
+						break;
+					}
+				}
+				// straight is 4 cards long, top card in straight is 5, last card is a 2 and ace present so make a wheel
+				if (straight.length == 4 && Card.getName(straight[0]) == 'five' && Card.getName(card) == 'two' && Card.getName(cards[0]) == 'ace') {
+					straight.push(cards[0]);
+				}
+				// straight more than 5 for some reason, so cut the end off 
+				if (straight.length > 5) {
+					straight.slice(-1,1);
+				}
+				// straight is 5 cards long, then push it
+				if (straight.length == 5) {
+					straights.push(straight);
+					break;
+				}
+			}
+			// straight is 4 long and joker present and available add to straight
+			if (straight.length == 4 && joker_present && joker_available) {
+				joker_available = false;
+				// if top card is an ace, then put in the back
+				if (Card.getName(straight[0]) == 'ace') {
+					straight.push('joker_one');
+				} else {
+					// otherwise put in the front
+					straight.unshift('joker_one');
+				}
+				straights.push(straight);
+			}
+		}
+
+		// multiple straights with the same start card...are the same straight
+		if (straights.length > 1) {
+			// 3 straights?
+			if (straights.length == 3) {
+				if (Card.getName(straights[2][0]) == 'joker') {
+					// last straight with a joker on top most likely matches the 2nd straight
+					if (Card.getName(straights[2][1]) == Card.getName(straights[1][1])) {
+						straights.splice(-1,1);
+					}
+				} else {
+					// 3rd straight and 2nd straight match due to pair or trips
+					if (Card.getName(straights[1][0]) == Card.getName(straights[2][0])) {
+						straights.splice(-1,1);
 					}
 				}
 			}
-		}
-		// if the joker is the last item and the first item is not an ace
-		if (straight.length > 0) {
-			var top = Card.getName(straight[0]);
-			if (straight[straight.length-1] == 'joker_one' && top != 'ace') {
-				straight.unshift(straight.pop());
+			if (Card.getName(straights[1][0]) == 'joker') {
+				// last straight with a joker on top most likely matches the 1st straight
+				if (Card.getName(straights[1][1]) == Card.getName(straights[0][1])) {
+					straights.splice(-1,1);
+				}  
+			} else {
+				// only here if we have at least 2 straights
+				if (Card.getName(straights[0][0]) == Card.getName(straights[1][0])) {
+						straights.splice(-1,1);
+				}
 			}
 		}
-		// straight is not big enough then reset
-		if (straight.length < 5) {
-			straight = [];
-		}
-		return straight;
-		
+		return straights;
 	},
-	
 	/*
 		find a flush
 	*/
-	findFlush:function(cards) {
+	findFlushes:function(cards) {
 		var hearts = [];
 		var spades = [];
 		var clubs = [];
