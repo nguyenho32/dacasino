@@ -42,7 +42,7 @@ Poker = {
 		var hand = [];
 		// random type
 		if (type == 'random') {
-			var types = ['straight-flush','flush','straight','quad','trips','pairs','nothing'];
+			var types = ['straight-flush','flush','straight','quads','trips','pairs','pai-gow'];
 			type = types[Math.round(Math.random()*(types.length-1))];
 		}
 		switch(type) {
@@ -56,13 +56,13 @@ Poker = {
 				hand = this.createNatural('straight',opt);
 				break;
 			case 'quads':
-				hand = this.createQuad(opt);
+				hand = this.createQuads(opt);
 				break;
 			case 'trips':
-				hand = this.createTrip(opt);
+				hand = this.createTrips(opt);
 				break;
 			case 'pairs':
-				hand = this.createPair(opt);
+				hand = this.createPairs(opt);
 				break;
 			default:
 				hand = this.createNothing(opt);
@@ -87,26 +87,30 @@ Poker = {
 //				console.log('\nPoker.create(): joker replacing: ',hand[hand.length-1]);
 				hand[hand.length-1] = 'joker_one';
 			}
-			
+			/*
 			// sort the hand in rank order and do some sanity checks
 			var sorted = this.sort(hand);
 			// building straight, make sure no flush
 			if (type == 'straight') {
-				var flush = this.findFlushes(sorted);
-				if (flush.length > 0) {
+//				console.log('created straight, checking for flush...');
+				var flush = this.findFlushes(hand);
+//				console.log('flush length: ',flush.length);
+				if (flush.length != 0) {
 					console.log('createNatural - joker added: straight - found flush, rebuilding');
-					hand = this.createNatural(type,opt);
+					hand = this.create(type,chance,opt);
 				}
 			}
 			// building flush, make sure no straight
 			if (type == 'flush') {
-				var straight = this.findStraights(sorted);
-				if (straight.length > 0) {
+				var straights = this.findStraights(sorted);
+				if (straights.length > 0) {
 					console.log('createNatural - joker added: flush - found straight, rebuilding');
-					hand = this.createNatural(type,opt);
+					hand = this.create(type,opt);
 				}
 			}
+			*/
 		}
+		hand.type = type;
 		return hand;
 	},
 	// create a natural (straight or flush)
@@ -116,7 +120,7 @@ Poker = {
 		var names = Card.names.slice();
 		// do a random insert
 		if (opt == 'random') {
-			var opts = ['no-pair','one-pair','two-pair','trips'];
+			var opts = ['0-pair','1-pair','2-pair','trips'];
 			opt = opts[Math.round(Math.random()*(opts.length-1))];
 		}
 
@@ -170,13 +174,13 @@ Poker = {
 			var suit = suits[Math.round(Math.random()*(suits.length-1))];
 			var name = names[Math.round(Math.random()*(names.length-1))];
 			// no pairs (also no trips)
-			if (opt == 'no-pair') {
+			if (opt == '0-pair') {
 				if (match.indexOf(name) != -1) {
 					continue;
 				}
 			}
 			// insert 1 pair
-			if (opt == 'one-pair') {
+			if (opt == '1-pair') {
 				if (hand.length == 5) {
 					name = match[Math.round(Math.random()*(match.length-1))];
 				} else {
@@ -186,7 +190,7 @@ Poker = {
 				}
 			}
 			// insert 2 pairs
-			if (opt == 'two-pair') {
+			if (opt == '2-pair') {
 				if (hand.length == 5) {
 					name = match[Math.round(Math.random()*(match.length-1))];
 				} else {
@@ -218,7 +222,7 @@ Poker = {
 		// building straight, make sure no flush
 		if (type == 'straight') {
 			var flush = this.findFlushes(sorted);
-			if (flush.length > 0) {
+			if (flush.length != 0) {
 				console.log('createNatural: straight - found flush, rebuilding');
 				hand = this.createNatural(type,opt);
 			}
@@ -232,16 +236,17 @@ Poker = {
 			}
 		}
 		// return the completed hand
+		hand.opt = opt;
 		return hand;
 	},
 	// create quads
-	createQuad:function(opt) {
+	createQuads:function(opt) {
 		var hand = [];
 		var suits = Card.suits.slice();
 		var names = Card.names.slice();
 		// do a random insert
 		if (opt == 'random') {
-			var opts = ['no-pair','one-pair','trips'];
+			var opts = ['0-pair','1-pair','trips'];
 			opt = opts[Math.round(Math.random()*(opts.length-1))];
 		}
 		
@@ -258,13 +263,13 @@ Poker = {
 			var suit = suits[Math.round(Math.random()*(suits.length-1))];
 			var name = names[Math.round(Math.random()*(names.length-1))];
 			// no pairs (also no trips)
-			if (opt == 'no-pair') {
+			if (opt == '0-pair') {
 				if (match.indexOf(name) != -1) {
 					continue;
 				}
 			}
 			// insert 1 pair
-			if (opt == 'one-pair') {
+			if (opt == '1-pair') {
 				if (hand.length == 5) {
 					name = match[Math.round(Math.random()*(match.length-1))];
 				} else {
@@ -287,16 +292,17 @@ Poker = {
 			}
 		} while (hand.length < 7)
 		// return the completed hand
+		hand.opt = opt;
 		return hand;
 	},
 	// create trips
-	createTrip:function(opt) {
+	createTrips:function(opt) {
 		var hand = [];
 		var suits = Card.suits.slice();
 		var names = Card.names.slice();
 		// do a random insert
 		if (opt == 'random') {
-			var opts = ['no-pair','one-pair','two-pair','trips'];
+			var opts = ['0-pair','1-pair','2-pair','trips'];
 			opt = opts[Math.round(Math.random()*(opts.length-1))];
 		}
 
@@ -315,13 +321,13 @@ Poker = {
 			var suit = suits[Math.round(Math.random()*(suits.length-1))];
 			var name = names[Math.round(Math.random()*(names.length-1))];
 			// no pairs (also no trips)
-			if (opt == 'no-pair') {
+			if (opt == '0-pair') {
 				if (match.indexOf(name) != -1) {
 					continue;
 				}
 			}
 			// insert 1 pair
-			if (opt == 'one-pair') {
+			if (opt == '1-pair') {
 				if (hand.length == 4) {
 					name = match[Math.round(Math.random()*(match.length-1))];
 				} else {
@@ -331,7 +337,7 @@ Poker = {
 				}
 			}
 			// insert 2 pairs
-			if (opt == 'two-pair') {
+			if (opt == '2-pair') {
 				if (hand.length == 4 || hand.length == 6) {
 					name = match[match.length-1];
 				}
@@ -362,26 +368,27 @@ Poker = {
 		// make sure no straight
 		var straight = this.findStraights(sorted);
 		if (straight.length > 0) {
-			console.log('createTrip found straight, rebuilding');
-			hand = this.createTrip(opt);
+			console.log('createTrips found straight, rebuilding');
+			hand = this.createTrips(opt);
 		}
 		// make sure no flush
 		var flush = this.findFlushes(sorted);
 		if (flush.length > 0) {
-			console.log('createTrip found flush, rebuilding');
-			hand = this.createTrip(opt);
+			console.log('createTrips found flush, rebuilding');
+			hand = this.createTrips(opt);
 		}
 		// return the completed hand
+		hand.opt = opt;
 		return hand;
 	},
 	// create pairs
-	createPair:function(opt) {
+	createPairs:function(opt) {
 		var hand = [];
 		var suits = Card.suits.slice();
 		var names = Card.names.slice();
 		// do a random insert
 		if (opt == 'random') {
-			var opts = ['one-pair','two-pair','three-pair'];
+			var opts = ['1-pair','2-pair','3-pair'];
 			opt = opts[Math.round(Math.random()*(opts.length-1))];
 		}
 
@@ -399,13 +406,13 @@ Poker = {
 			var suit = suits[Math.round(Math.random()*(suits.length-1))];
 			var name = names[Math.round(Math.random()*(names.length-1))];
 			// insert 1 pair
-			if (opt == 'one-pair') {
+			if (opt == '1-pair') {
 				if (match.indexOf(name) != -1) {
 					continue;
 				}
 			}
 			// insert 2 pairs
-			if (opt == 'two-pair') {
+			if (opt == '2-pair') {
 				if (hand.length == 3) {
 					name = match[match.length-1];
 				} else {
@@ -415,7 +422,7 @@ Poker = {
 				}
 			}
 			// insert 3 pairs
-			if (opt == 'three-pair') {
+			if (opt == '3-pair') {
 				if (hand.length == 3 || hand.length == 5) {
 					name = match[match.length-1];
 				} else {
@@ -438,16 +445,17 @@ Poker = {
 		// make sure no straight
 		var straight = this.findStraights(sorted);
 		if (straight.length > 0) {
-			console.log('createTrip found straight, rebuilding');
-			hand = this.createPair(opt);
+			console.log('createPairs found straight, rebuilding');
+			hand = this.createPairs(opt);
 		}
 		// make sure no flush
 		var flush = this.findFlushes(sorted);
 		if (flush.length > 0) {
-			console.log('createPair found flush, rebuilding');
-			hand = this.createPair(opt);
+			console.log('createPairs found flush, rebuilding');
+			hand = this.createPairs(opt);
 		}
 		// return the completed hand
+		hand.opt = opt;
 		return hand;
 	},
 	// create nothing
@@ -484,10 +492,11 @@ Poker = {
 		// make sure no flush
 		var flush = this.findFlushes(sorted);
 		if (flush.length > 0) {
-			console.log('createTrip found flush, rebuilding');
+			console.log('createTrips found flush, rebuilding');
 			hand = this.createNothing();
 		}
 		// return the completed hand
+		hand.opt = 'none';
 		return hand;
 	},	
 	/******************************************************************************************************************************************
@@ -523,13 +532,12 @@ Poker = {
 		}
 		
 		// find flushes
-		var flushes = this.findFlushes(cards);
-		if (flushes.length != 0) {
-			poker.flushes = flushes;
+		var flush = this.findFlushes(cards);
+		if (flush.length != 0) {
+			poker.flush = flush;
 			
-			debug += 'flushes: ';
-			// loop the flushes
-			debug += flushes.toString()+'\n';
+			debug += 'flush: ';
+			debug += flush.toString()+'\n';
 		}
 
 		// find straights
@@ -602,6 +610,10 @@ Poker = {
 		for (var i=0; i<4; i++) {
 			// joker is available
 			var joker_available = (joker_present) ? true : false;
+			// last time running loop and this card not a 5 no reason to continue
+			if (i == 3 && Card.getName(cards[i]) != 'five') {
+				break;
+			}
 			// add this item to the straight
 			var straight = [cards[i]];
 			// now loop the rest of the cards
@@ -616,8 +628,16 @@ Poker = {
 				// this rank is one less than last rank
 				if (this_rank == last_rank-1) {
 					straight.push(card);
+					// 5 card straight with available joker and natural pair at the bottom
+					if (straight.length == 5 && joker_available && Card.getName(card) == Card.getName(cards[k+1])) {
+						// otherwise put in the front
+						var new_straight = straight.slice();
+						new_straight.unshift('joker_one');
+						new_straight.splice(-1,1);
+						straights.push(new_straight);
+					}
 				} else if (this_rank == last_rank) {
-					// do nothing
+					// otherwise do nothing
 				} else {
 					// joker present and available
 					if (joker_present && joker_available) {
@@ -649,7 +669,7 @@ Poker = {
 				}
 				// straight more than 5 for some reason, so cut the end off 
 				if (straight.length > 5) {
-					straight.slice(-1,1);
+					straight.splice(-1,1);
 				}
 				// straight is 5 cards long, then push it
 				if (straight.length == 5) {
@@ -673,29 +693,17 @@ Poker = {
 
 		// multiple straights with the same start card...are the same straight
 		if (straights.length > 1) {
-			// 3 straights?
-			if (straights.length == 3) {
-				if (Card.getName(straights[2][0]) == 'joker') {
-					// last straight with a joker on top most likely matches the 2nd straight
-					if (Card.getName(straights[2][1]) == Card.getName(straights[1][1])) {
-						straights.splice(-1,1);
-					}
-				} else {
-					// 3rd straight and 2nd straight match due to pair or trips
-					if (Card.getName(straights[1][0]) == Card.getName(straights[2][0])) {
-						straights.splice(-1,1);
-					}
+			for (var i=straights.length-1; i>0; i--) {
+				var this_straight = straights[i];
+				var next_straight = straights[i-1];
+				// if the 1st cards match then get rid of it
+				if (Card.getName(this_straight[0]) == Card.getName(next_straight[0])) {
+					straights.splice(i-1,1);
+					continue;
 				}
-			}
-			if (Card.getName(straights[1][0]) == 'joker') {
-				// last straight with a joker on top most likely matches the 1st straight
-				if (Card.getName(straights[1][1]) == Card.getName(straights[0][1])) {
-					straights.splice(-1,1);
-				}  
-			} else {
-				// only here if we have at least 2 straights
-				if (Card.getName(straights[0][0]) == Card.getName(straights[1][0])) {
-						straights.splice(-1,1);
+				// first card is joker, then match up the 2nd cards
+				if (Card.getName(this_straight[0]) == 'joker' && Card.getName(this_straight[1]) == Card.getName(next_straight[1])) {
+					straights.splice(i,1);
 				}
 			}
 		}

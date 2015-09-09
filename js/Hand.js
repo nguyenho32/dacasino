@@ -22,6 +22,13 @@ var Hand = {
 		}
 		sorted.reverse();
 		var hand = {original:original,reverse:reverse,sorted:sorted,shuffled:shuffled};
+		// this hand was created so we have some extra options to add
+		if (cards.type) {
+			hand.type = cards.type;
+		}
+		if (cards.opt) {
+			hand.opt = cards.opt;
+		}
 		return hand;
 	},
 	shuffle:function(array) {

@@ -33,10 +33,10 @@
 
 	
 	// debug hand creator
-	var DEBUG_COUNT = 1;
-	var DEBUG_MAIN = 'straight';
+	var DEBUG_COUNT = 25;
+	var DEBUG_MAIN = 'random';
 	var DEBUG_SUB = 'random';
-	var DEBUG_JOKER = 100;
+	var DEBUG_JOKER = 50;
 	/*
 		color scheme
 	*/
@@ -52,7 +52,9 @@
 	
 	// initial hand position
 	var HAND_X = 5;
-	var HAND_Y = 300;
+	var HAND_Y = 280;
+	var BANK_X = 5;
+	var BANK_Y = 670;
 	
 	// type of game to run
 	var game_mode;
@@ -96,8 +98,8 @@
 
 	// information about a hand
 	var hand;
-	// array containing selected cards
-	var selected;
+	// array containing chosen hair cards
+	var hair_chosen;
 	
 	// group containing just cards
 	var group_cards;
@@ -419,6 +421,20 @@
 		main_info_box.text = 'practice comparing hands';
 		game_info_box.text = 'coming soon';
 		game_mode = 'compare';
+		
+		
+		deck = Deck.create('standard',true,1);
+		var hand = Hand.create(deck.splice(0,7));
+		hand.poker = Poker.solve(hand.sorted);
+		hand.paigow = Paigow.solve(hand.poker);
+		console.log(hand);
+		fnDisplayHouseWay(hand);
+
+		var hand = Hand.create(deck.splice(0,7));
+		hand.poker = Poker.solve(hand.sorted);
+		hand.paigow = Paigow.solve(hand.poker);
+		console.log(hand);
+		fnDisplayBankHand(hand);
 	}
 	// speed test
 	function fnGameSpeed() {
@@ -630,8 +646,8 @@
 		// increase hand count
 		hand_count += 1;
 
-		// create the 'selected' array
-		selected = [];
+		// create an array to hold chosen hair cards
+		hair_chosen = [];
 		// destroy the 'cards' layout
 		group_cards.destroy();
 		// create the 'cards' layout
@@ -677,36 +693,48 @@
 	// handle selection of hair cards
 	function selectHair(card,pointer) {
 		// this card already selected, so unselect and remove it
-		if (selected.indexOf(card) != -1) {
+		if (hair_chosen.indexOf(card) != -1) {
 			card.y += 15;
-			selected.splice(selected.indexOf(card),1); 
+			hair_chosen.splice(hair_chosen.indexOf(card),1); 
 		} else {
 			card.y -= 15;
-			selected.push(card);
+			hair_chosen.push(card);
 		}
 		// selected 2 cards, check hair for correctness
-		if (selected.length == 2) {
-			checkHair(selected);
+		if (hair_chosen.length == 2) {
+			checkHair(hair_chosen);
 		}
 		// if hair not correct we are here so unselect the first in line
-		if (selected.length > 2) {
-			selected[0].y += 15;
-			selected.splice(0,1); 
+		if (hair_chosen.length > 2) {
+			hair_chosen[0].y += 15;
+			hair_chosen.splice(0,1); 
 		}
 	}
-	// check selected hair for correctness
-	function checkHair(selected) {
+	// check hair selection for correctness
+	function checkHair(hair_chosen) {
+		// chosen hair cards
+		var chosen = [hair_chosen[0].key,hair_chosen[1].key];
+		// actual hair cards
 		var hair = hand.paigow.hair;
-		console.log(hair);
-		var s1 = selected[0].key;
-		var s2 = selected[1].key;
-		if (hair.indexOf(s1) != -1 && hair.indexOf(s2) != -1) {
+
+		console.log('checkHair: ',hair);
+		// required is true by default
+		var required = true;
+		// hair is more than 2 cards and 1st one does not match 2nd one
+		if (hair.length > 2 && Card.getName(hair[0]) != Card.getName(hair[1])) {
+			console.log('hair is over 2 and not paired')
+			if (chosen.indexOf(hair[0]) == -1) {
+				console.log('selected cards do not equal required hair choice');
+				required = false;
+			}
+		}
+		if (required && (hair.indexOf(chosen[0]) != -1 && hair.indexOf(chosen[1]) != -1)) {
 			var txt = 'You chose the correct hair!\n';
 			txt += 'rule: '+hand.paigow.rule+'\n';
 			txt += 'bonus: '+hand.paigow.bonus+'\n';
 			txt += 'desc: '+hand.paigow.desc+'\n'
 			// place the cards
-			fnDisplayHouseWay(hand,selected);
+			fnDisplayHouseWay(hand,chosen);
 			hand_info_box.text = txt;
 			btn_next.visible = true;
 		} else {
@@ -721,15 +749,20 @@
 			} else {
 				hand_info_box.text = 'Hair incorrect, try again :(';
 			}
-			selected[0].y += 15;
-			selected.splice(0,1); 
-			selected[0].y += 15;
-			selected.splice(0,1);
+			// reset the chosen hair cards
+			hair_chosen[0].y += 15;
+			hair_chosen.splice(0,1); 
+			hair_chosen[0].y += 15;
+			hair_chosen.splice(0,1);
 		}
 	}
 	// silly function to disply the hand normally
 	function fnDisplayNormalWay(hand,opt){
-		console.log('hair cards: ',hand.paigow.hair);
+		// destroy the 'cards' layout
+		group_cards.destroy();
+		// create the 'cards' layout
+		group_cards = game.add.group();
+
 		// opt is set means we are doing debug stuff
 		if (opt) {
 			var n = (!opt.row) ? 0 : opt.row;
@@ -754,7 +787,11 @@
 			// no pai-gow info, show poker debug
 //			var	str = (!hand.paigow) ? hand.poker.debug : hand.paigow.debug;
 			// show both debug
-			var str = hand.poker.debug+'\n'+hand.paigow.debug;
+			var str = '';
+			if (hand.type && hand.opt) {
+				str += 'created: '+hand.type+' - '+hand.opt+'\n';
+			}
+			str += hand.paigow.debug;
 			var text = game.add.text(0,0, str, style);	
 			sprite.addChild(text);
 			group_debug.add(sprite);
@@ -774,64 +811,120 @@
 		}
 	}
 	// silly function to display the hand set correctly
-	function fnDisplayHouseWay(hand,selected) {
-		console.log('display houseway: ',selected);
-		var hair = (!selected) ? hand.paigow.hair : [selected[0].key,selected[1].key];
-		console.log('hair: ',hair);
+	function fnDisplayHouseWay(hand,chosen) {
+		// destroy the 'cards' layout
+		group_cards.destroy();
+		// create the 'cards' layout
+		group_cards = game.add.group();
+
+		if (chosen) {
+			var extras = arrayDiff(hand.paigow.hair,chosen);
+		}
+		var hair = (!chosen) ? hand.paigow.hair : chosen;
 		// if 1st hair is joker then reverse
 		if (Card.getName(hair[0]) == 'joker') {
+			hair.reverse();
+		}
+		// if 1st hair is lower than 2nd (due to selected)
+		if (Card.getRank(hair[0]) < Card.getRank(hair[1])) {
 			hair.reverse();
 		}
 		// setup the back
 		var back;
 		// default back comes from paigow data
-		if (!selected) {
+		if (!chosen) {
 			back = hand.paigow.back;
 		} else {
 			back = hand.paigow.back;
-			// otherwise replace if need be
-			if (hair.length > 2) {
+			console.log(back);
+			// hair length is 3 so we might need to replace something in the back
+			if (hand.paigow.hair.length > 2) {
 				// hair bigger than 2 always means pair / trip / quad / joker so use the first hair card
 				var name = Card.getName(hair[0]);
 				// find the position of the card to replace
-				for (var i=0; i<back;i++) {
+				for (var i=0; i<back.length;i++) {
 					if (Card.getName(back[i]) == name) {
-						console.log('match found at: ',i);
+						if (extras.length > 0) {
+							back[i] = extras[0];
+							extras.splice(0,1);
+						}
 					}
 				}
 			}
 		}
-		console.log('back: ',back);
-		for (var i=0; i<group_cards.length;i++) {
-			var card = group_cards.getChildAt(i);
+		var spacer = 190;
+		var cards = hand.shuffled;
+		for (var i=0;i<hand.original.length;i++) {
+			var card = Card.create({card:cards[i],clickable:false});
 			if (card.key == hair[0]) {
 				card.x = 10;
-				card.y = 280;
+				card.y = HAND_Y;
 			}
 			if (card.key == hair[1]) {
 				card.x = 140;
-				card.y = 280;
+				card.y = HAND_Y;
 			}
 			if (card.key == back[0]) {
 				card.x = 10;
-				card.y = 470;
+				card.y = HAND_Y+spacer;
 			}
 			if (card.key == back[1]) {
 				card.x = 140;
-				card.y = 470;
+				card.y = HAND_Y+spacer;
 			}
 			if (card.key == back[2]) {
 				card.x = 270;
-				card.y = 470;
+				card.y = HAND_Y+spacer;
 			}
 			if (card.key == back[3]) {
 				card.x = 400;
-				card.y = 470;
+				card.y = HAND_Y+spacer;
 			}
 			if (card.key == back[4]) {
 				card.x = 530;
-				card.y = 470;
+				card.y = HAND_Y+spacer;
 			}
+			group_cards.add(card);
+		}
+	}
+	// silly function to display the bank hand
+	function fnDisplayBankHand(hand) {
+
+		var spacer = 190;
+		var hair = hand.paigow.hair;
+		var back = hand.paigow.back;;
+		var cards = hand.sorted;
+		for (var i=0;i<hand.original.length;i++) {
+			var card = Card.create({card:cards[i],clickable:false});
+			if (card.key == hair[0]) {
+				card.x = 10;
+				card.y = BANK_Y;
+			}
+			if (card.key == hair[1]) {
+				card.x = 140;
+				card.y = BANK_Y;
+			}
+			if (card.key == back[0]) {
+				card.x = 10;
+				card.y = BANK_Y+spacer;
+			}
+			if (card.key == back[1]) {
+				card.x = 140;
+				card.y = BANK_Y+spacer;
+			}
+			if (card.key == back[2]) {
+				card.x = 270;
+				card.y = BANK_Y+spacer;
+			}
+			if (card.key == back[3]) {
+				card.x = 400;
+				card.y = BANK_Y+spacer;
+			}
+			if (card.key == back[4]) {
+				card.x = 530;
+				card.y = BANK_Y+spacer;
+			}
+			group_cards.add(card);
 		}
 	}
 	// game over do stuff
@@ -922,6 +1015,9 @@
 		// create the 'cards' layout
 		group_cards = game.add.group();
 		
+		// reset the chosen hair cards
+		hair_chosen = [];
+		
 		// reset the clock event
 		if (clockEvent) {
 			game.time.events.remove(clockEvent);
@@ -988,45 +1084,125 @@
 			//	This section for hands that are not being set correctly
 			//
 			//
-			// pair, straight, flush w/ joker (set this hand pair & straight)
-//			var set = ["joker_one", "nine_club", "eight_heart", "seven_club", "six_club", "five_club", "five_diamond" ];
-			// pair, straight, flush w/ joker (set this hand pair & straight)
-//			var set = ["joker_one", "jack_heart", "ten_heart", "nine_heart", "nine_club", "seven_club", "six_heart" ];
-			// pair with flush & joker (set this hand natural pair w/ joker flush)
-//			var set = ["joker_one", "ace_club", "king_club", "ten_club", "nine_heart", "nine_club", "eight_club"];
-			// 6 card flush + joker, set pair with natural flush
-//			var set = ["joker_one", "ace_heart","king_heart","ten_heart","eight_club","three_heart","two_heart"];
-			// bonus hand straight flush not being set
-//			var set = ["jack_diamond","ten_diamond","nine_diamond","nine_spade","eight_diamond","seven_diamond","two_club"];
-
 			/* FIXED
 				wheel straight w/ joker
+			var set = ["ace_diamond","seven_diamond","six_heart","five_heart","four_spade","two_club","joker_one"];
 			*/
 			// wheel straights w/joker
-//			var set = ["ace_diamond","seven_diamond","six_heart","five_heart","four_spade","two_club","joker_one"];
 			/* FIXED
 				not finding the joker high straight? joker,queen,10,9,8...but this would make it 9,8 straight instead of
 				pair of 9, queen high straight. So this hand is correct
+			var set = ["queen_heart","jack_spade","ten_club","nine_spade","nine_heart","eight_club","joker_one"];
  			*/
-//			var set = ["queen_heart","jack_spade","ten_club","nine_spade","nine_heart","eight_club","joker_one"];
 			/* FIXED
 				reading the 6 high straight twice (due to the pairs)
+			var set = ["seven_heart","six_heart","six_club","five_club","four_diamond","two_spade","joker_one"];
 			*/
-//			var set = ["seven_heart","six_heart","six_club","five_club","four_diamond","two_spade","joker_one"];
+			/* FIXED
+				this hand should be pair with a joker high straight
+			var set = ["seven_diamond","six_heart","five_heart","four_club","three_diamond","three_club","joker_one"];
+			*/
+			/* FIXED
+				this hand should be pair queen straight
+				jack, 10, 9, joker, 7
+			var set = ["queen_spade","queen_diamond","jack_club","ten_diamond","nine_heart","seven_heart","joker_one"];
+			*/
+			/* FIXED
+				this hand should be pair king natural straight
+			var set = ["king_club","nine_spade","eight_spade","seven_heart","six_diamond","five_club","joker_one"];
+			*/
+			/* FIXED
+				this is broken for some reason
+				should be pair queen / natural straight
+				hair should contain queen-diamond, queen-heart, joker
+			var set = ["queen_club","queen_diamond","jack_heart","ten_club","nine_spade","eight_diamond","joker_one"];
+			*/
+			/* FIXED
+				incorrectly set as 9, 8 - 7 high straight (7,6,5,joker,3)
+				should be pair 3 - 9 high natural straight
+				bonus of straight not being set
+			var set = ["nine_club","eight_diamond","seven_heart","six_club","five_diamond","three_club","joker_one"];
+			*/
+			/* FIXED
+				incorrectly set as jack,nine - 10 high straight
+				should be pair / pair 9's & jacks
+				bonus of straight not being set
+			var set = ["jack_heart","ten_heart","nine_heart","nine_club","eight_club","six_spade","joker_one"];
+			*/
+			/* FIXED
+				this correctly set as pair / pair jacks & queens
+				bonus of straight not being set
+			var set = ["queen_diamond","jack_club","jack_diamond","ten_club","nine_club","five_heart","joker_one"];
+			*/
+			/* FIXED
+				correctly set as this hand is pair 5, nine high straight
+				needs to have the trip 5's in the hair
+			var set = ["eight_heart","seven_heart","six_club","five_heart","five_club","five_diamond","joker_one"];
+			*/
+			/* FIXED
+				bugs out 
+				should be queen, jack...joker, 9, 8, 7, 6
+			var set = ["queen_club", "jack_diamond", "nine_heart", "eight_spade", "seven_club", "six_club", "joker_one"];
+			*/
+			/* FIXED
+				hand is incorrectly set 8,4 - flush
+				should be set full house solvePair
+			var set = ["ten_diamond","eight_spade","eight_diamond","four_spade","four_diamond","three_diamond","joker_one"];
+			*/
+			
+			/*
+				hand contains a flush, automatic check in Poker.create() should rebuild the hand until there is no flush
+			*/
+//			var set = ["jack_heart","jack_diamond","ten_heart","ten_diamond","nine_heart","eight_heart","joker_one"];
 			//
-			//
-//			var hand = Hand.create(set);
 			//
 			//
 			//**********************************************************************************************************
-
-
+			//
+			/*
+				hand incorrectly set pair six, jack high straight
+				should be pair jack, 10 high straight
+			*/
+//			var set = ["jack_diamond","ten_diamond","nine_club","eight_club","seven_diamond","six_club","joker_one"];
+			/*
+				hand correctly set pair king, quad 2's
+				need to put trip kings in the hair
+			*/
+//			var set = ["king_spade","king_heart","king_club","two_heart","two_club","two_diamond","joker_one"];
+			/*
+				hand incorrectly set 7,2 - ace high flush
+				should be pair 2 / pair ace (solvePair)
+			*/
+//			var set = ["ace_heart","ten_heart","seven_club","four_heart","two_spade","two_heart","joker_one"];
+			/*
+				hand correctly set pair king, queen high flush
+				bonus straight flush not set
+			*/
+//			var set = ["king_club","queen_heart","jack_heart","ten_heart","nine_heart","six_heart","joker_one"];
+			//
+			//
+			//
+			//**********************************************************************************************************
+			if (typeof set !== 'undefined') {
+				var hand = Hand.create(set);
+			}
+			//
+			//
+			//
 			// solve for poker
+//			console.log('hand: ',n,hand);
 			hand.poker = Poker.solve(hand.sorted);
+//			console.log('hand poker: ',n,hand.poker)
 			// solve for pai-gow
 			hand.paigow = Paigow.solve(hand.poker);
+//			console.log('hand paigow: ',n,hand.paigow);
 			// display the hand (debug);
 			fnDisplayNormalWay(hand,{debug:true,row:n});
+			
+			// break out of the loop if we are setting 1 hand
+			if (typeof set !== 'undefined') {
+				break;
+			}
 		}
 
 /*		
