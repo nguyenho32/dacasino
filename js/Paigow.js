@@ -55,7 +55,15 @@ Paigow = {
 			'trips':'When the hand contains quads + trips. Put 2 of the trips in front with the quads behind',
 			'0-pair+joker':'When the hand contains quads & joker. Put the highest non-quad in front with joker and quads behind',
 			'1-pair+joker':'When the hand contains quads + pair & joker...',
-		}
+		},
+		'straight-flush':{
+			'0-pair':'When the hand contains a straight-flush place the highest 2 cards in the hair that will not break the straight-flush',
+			'1-pair':'When the hand contains a straight-flush + pair place the highest 2 cards in the hair that will not break the straight-flush',
+			'2-pair':'When the hand contains a straight-flush + 2 pairs, follow the pairs : 2-pair rule',
+			'0-pair+joker':'When the hand contains a straight-flush + joker. Put the highest 2 cards in the hair that will not break the straight-flush',
+			'1-pair+joker':'When the hand contains a straight-flush + pair + joker. Follow pairs : 2-pair rule',
+			'2-pair+joker':'When the hand contains a straight-flush + 2 pairs + joker. Follow the pairs : 2-pair + joker rule',
+		},
 	},
 	/******************************************************************************************************************************************
 		SOLVE FUNCTIONS
@@ -64,8 +72,6 @@ Paigow = {
 		var bonus = '';
 		// quads / trips get a match final
 		var match_final = false;
-		// override for straights / flushes
-		var override = false;
 		// the result
 		var result;
 		
@@ -90,7 +96,54 @@ Paigow = {
 		}
 		// solve for flush
 		if (poker.flush) {
+			// straight present so send results
+			if (poker.straights) {
+				poker.result = result;
+			}
 			result = this.solveFlush(poker);
+			if (result.override) {
+				result = poker.result;
+			}
+		}
+		// solve for straight flush
+		if (poker.straight_flush) {
+			// result from straight & flush already determined
+			var override = false;
+			var old_result = result;
+			result = this.solveStraightFlush(poker);
+//			console.log('old_result: ',old_result);
+//			console.log('result: ',result);
+			// old result hair is bigger use old result
+			if (Card.getRank(old_result.hair[0]) > Card.getRank(result.hair[0])) {
+				override = true;
+			}
+			// 1st hair cards are equal compare the 2nd ones
+			if (Card.getRank(old_result.hair[0]) == Card.getRank(result.hair[0])) {
+				if (Card.getRank(old_result.hair[1]) > Card.getRank(result.hair[1])) {
+					override = true;
+				}
+			}
+			// 2nd old result hair card is joker means pair so use old result
+			if (Card.getName(old_result.hair[1]) == 'joker') {
+				override = true;
+			}
+			// 2nd straight flush hair card is joker means pair so use straight flush
+			if (Card.getName(result.hair[1]) == 'joker') {
+				override = false;
+			}
+			// old hair is paired up so use the old one
+			if (Card.getName(old_result.hair[0]) == Card.getName(old_result.hair[1])) {
+				// unless both results have teh same hair then use the straight flush
+				if (Card.getName(old_result.hair[1]) == Card.getName(result.hair[0])) {
+					override = false;
+				} else {
+					override = true;					
+				}
+			}
+			if (override) {
+//				console.log('overriding result with old one: ');
+				result = old_result;
+			}
 		}
 
 		// no result from anything above, solve for nothing
@@ -112,7 +165,10 @@ Paigow = {
 			desc_hair = 'pair of '+Card.getName(hair[0]);
 			hair_pair = true;
 		} else {
-			desc_hair = Card.getName(result.hair[0])+', '+Card.getName(hair[1]);
+			desc_hair = Card.getName(hair[0])+', '+Card.getName(hair[1]);
+		}
+		if (Card.getRank(hair[0]) < Card.getRank(hair[1])) {
+			desc_hair = Card.getName(hair[1])+', '+Card.getName(hair[0]);
 		}
 		// if the 1st card is a joker, reverse the hair
 		if (Card.getName(hair[0]) == 'joker') {
@@ -132,7 +188,12 @@ Paigow = {
 				desc_back = '2-pair behind '+Card.getName(back[0])+' & '+Card.getName(back[2]);
 				break;
 			case 'trips':
-				desc_back = 'trip '+Card.getName(back[0]);
+				// trip aces get split so its a pair behind
+				if (Card.getName(back[0]) == 'ace' && Card.getName(back[1]) == 'ace' && Card.getName(back[2]) != 'ace') {
+					desc_back = 'pair '+Card.getName(back[0]);
+				} else {
+					desc_back = 'trip '+Card.getName(back[0]);
+				}
 				break;
 			case 'straight':
 				desc_back = Card.getName(back[0])+' high straight';
@@ -147,11 +208,16 @@ Paigow = {
 				desc_back = 'quad '+Card.getName(back[0])+'s';
 				break;
 			case 'straight-flush':
+				desc_back = Card.getName(back[0])+' high straight flush';
+				// replace joker high with <card> high
+				if (Card.getName(back[0]) == 'joker' && result.brief == 'straight-flush') {
+					var index = Card.names.indexOf(Card.getName(back[1]));
+					var str = Card.names[index+1];
+					desc_back = desc_back.replace('joker',str);
+				}
 				// 1st card is ace or 2nd card is a king, then its a royal flush
 				if (Card.getName(back[0]) == 'ace' || Card.getName(back[1]) == 'king') {
 					desc_back = 'royal flush';
-				} else {
-					desc_back = Card.getName(back[0])+' high straight flush';
 				}
 				break;
 			case '5 kind':
@@ -185,7 +251,13 @@ Paigow = {
 		if (poker.flush) {
 			bonus = 'flush';
 		}
-		if (poker.quads) {
+		if (poker.straight_flush) {
+			bonus = 'straight flush';
+			// 1st card is ace or 2nd card is a king, then its a royal flush
+			if (Card.getName(back[0]) == 'ace' || Card.getName(back[1]) == 'king') {
+				bonus = 'royal flush';
+			}
+		} else if (poker.quads) {
 			// quads with joker yields 5 of a kind
 			if (poker.joker) {
 				bonus = '5 of a kind';
@@ -423,7 +495,7 @@ Paigow = {
 		switch(trips.length) {
 			case 2:
 				rule = 'trips:trips';
-				hair = [trip1[0],trip1[1]];
+				hair = trip1;
 				// trip card is higher than the remainder then put in front of it
 				if (Card.getRank(trip1[0]) > Card.getRank(extras[0])) {
 					back = [trip2[0],trip2[1],trip2[2],trip1[2],extras[0]];
@@ -433,6 +505,7 @@ Paigow = {
 				}
 				// with a joker we get quads
 				if (joker) {
+					hair = trip1;
 					back = [trip2[0],trip2[1],trip2[2],extras[0],trip1[2]];
 					rule = 'trips:trips+joker';
 					brief = 'quads';
@@ -487,7 +560,7 @@ Paigow = {
 					} else {
 						// trip aces split
 						if (Card.getName(trip1[0]) == 'ace') {
-							hair = [trip1[0],extras[0]];
+							hair = [extras[0],trip1[0],trip1[1],trip1[2]];
 							back = [trip1[1],trip1[2],extras[1],extras[2],extras[3]];
 						} else {
 							// 1st & 2nd high card in front, trips behind
@@ -517,8 +590,7 @@ Paigow = {
 		// have trips
 		if (poker.trips) {
 			var trip = poker.trips[0];
-
-			hair = [trip[0],trip[1]];
+			hair = trip;
 			back = [quads[0],quads[1],quads[2],quads[3],trip[2]];
 			rule = 'quads:trips';
 		}
@@ -562,7 +634,7 @@ Paigow = {
 					case 'queen':
 						hair = quads;
 						back = [quads[2],quads[3],extras[0],extras[1],extras[2]];
-						brief = 'pair';
+						brief = '1-pair';
 						break;
 					// quad j,10,9 needs king or better
 					case 'jack':
@@ -574,7 +646,7 @@ Paigow = {
 						} else {
 							hair = quads;
 							back = [quads[2],quads[3],extras[0],extras[1],extras[2]];
-							brief = 'pair';
+							brief = '1-pair';
 						}
 						break;
 					// quad 8,7,6 needs queen or better
@@ -587,7 +659,7 @@ Paigow = {
 						} else {
 							hair = quads;
 							back = [quads[2],quads[3],extras[0],extras[1],extras[2]];
-							brief = 'pair';
+							brief = '1-pair';
 						}
 						break;
 					// 5 and below never split
@@ -655,10 +727,10 @@ Paigow = {
 							} else {
 								hair = extras2;
 								back = straight2;
-							}							
+							}
 						} else {
 							// otherwise joker part of straight along with pair so solve for pairs
-	//						console.log('joker in straight with 1 pair, so we go by pair-pair rules');
+//							console.log('joker in straight with 1 pair, so we go by pair-pair rules');
 							result = this.solvePairs(poker);
 						}
 					} else {
@@ -667,12 +739,14 @@ Paigow = {
 							hair = extras1;
 							back = straight1;
 						} else {
-							hair = extras2;
+							hair = this.arrayDiff(extras2,pair);
+							hair.push(pair[0])
+							hair.push(pair[1]);
 							back = straight2;
 						}
+						
 					}
 				} else {
-//					console.log('no pairs present');
 					// if the joker is in the first set of extras
 					if (extras1.indexOf('joker_one') != -1) {
 						hair = extras1;
@@ -681,6 +755,18 @@ Paigow = {
 						// otherwise use the lower straight
 						hair = extras2;
 						back = straight2;
+					}
+					// joker is 2nd card in both extras means both are paired up
+					if (Card.getName(extras1[1]) == 'joker' && Card.getName(extras2[1]) == 'joker') {
+						// first extras is higher use that one
+						if (Card.getRank(extras1[0]) > Card.getRank(extras2[0])) {
+							hair = extras1;
+							back = straight1;
+						} else {
+							// otherwise use the lower straight
+							hair = extras2;
+							back = straight2;
+						}
 					}
 				}
 				break;
@@ -710,16 +796,28 @@ Paigow = {
 //								console.log('pair within the straight');
 								extras = this.arrayDiff(extras,pair);
 //								console.log('revised extras: ',extras);
-								// joker not part of straight
-								if (extras.indexOf('joker_one') != -1) {
-//									console.log('joker not in straight, add to hair choice');
-									hair = [pair[0],pair[1],'joker_one'];
-									back = straight;
-									rule = 'straight:1-pair+joker';
+								if (joker) {
+//									console.log('joker present');
+									// joker not part of straight
+									if (extras.indexOf('joker_one') != -1) {
+//										console.log('joker not in straight, add to hair choice');
+										hair = [pair[0],pair[1],'joker_one'];
+										back = straight;
+										rule = 'straight:1-pair+joker';
+									} else {
+//										console.log('joker in straight with 1 pair, so we go by pair-pair rules');
+										result = this.solvePairs(poker);
+									}									
 								} else {
-//									console.log('joker in straight with 1 pair, so we go by pair-pair rules');
-									result = this.solvePairs(poker);
+//									console.log('no joker - straight with 1 pair, just play the straight');
+//									console.log(extras,pair);
+									hair = [extras[0],pair[0],pair[1]];
+									back = straight;
 								}
+							} else {
+								// pair outside of straight so play pair & straight
+								hair = pair;
+								back = straight;
 							}
 						} else {
 //							console.log('2 pairs so we go by pair-pair rules');
@@ -772,13 +870,8 @@ Paigow = {
 					} else {
 						hair = [flush[1],flush[jpos]];
 					}
-					flush.forEach(function(key) {
-						if (-1 === hair.indexOf(key)) {
-							back.push(key);
-						}
-					},this);
+					back = this.arrayDiff(flush,hair);
 					rule = 'flush:0-pair+joker';
-					override = true;
 				} else {
 					// 2 high cards on top, flush behind
 					hair = [flush[0],flush[1]];
@@ -791,16 +884,22 @@ Paigow = {
 					// 6 card flush + joker + pair
 					if (poker.pairs) {
 						var pair = poker.pairs[0];
-						hair = [pair[0],pair[1]];
-						back = [flush[0],flush[1],flush[3],flush[4],flush[5]];
+						hair = pair;
+						back = this.arrayDiff(flush,hair);
 					} else {
 						hair = [extras[0],flush[0]];
 						back = [flush[1],flush[2],flush[3],flush[4],flush[5]];
 					}
 				} else {
-					hair = [flush[0],extras[0]];
-					back = [flush[1],flush[2],flush[3],flush[4],flush[5]];
-					rule = 'flush:1-pair';
+					if (poker.pairs) {
+						var pair = poker.pairs[0];
+						hair = pair;
+						back = this.arrayDiff(flush,hair);
+						rule = 'flush:1-pair';
+					} else {
+						hair = [extras[0],flush[0]];
+						back = [flush[1],flush[2],flush[3],flush[4],flush[5]];
+					}
 				}
 				break;
 			case 5:
@@ -809,9 +908,21 @@ Paigow = {
 					if (poker.pairs.length == 2) {
 						result = this.solvePairs(poker);
 					} else {
-						// 1 pair + 5 card flush
-						hair = [extras[0],extras[1]];
-						back = [flush[0],flush[1],flush[2],flush[3],flush[4]];
+						if (joker) {
+							var pair = poker.pairs[0];
+							// pair is part of the flush then solve for pairs
+							if (flush.indexOf(pair[0]) != -1 || flush.indexOf(pair[1]) != -1) {
+								result = this.solvePairs(poker);
+							} else {
+								// otherwise set pair & flush
+								hair = pair;
+								back = flush;
+							}
+						} else {
+							// 1 pair + 5 card flush
+							hair = [extras[0],extras[1]];
+							back = [flush[0],flush[1],flush[2],flush[3],flush[4]];
+						}
 					}
 				} else {
 					hair = [extras[0],extras[1]];
@@ -821,7 +932,6 @@ Paigow = {
 		}
 		// result present means the hand was set from another function
 		if (result) {
-//			console.log('set hand from from outside function');
 			hair = result.hair;
 			back = result.back;
 			rule = result.rule;
@@ -848,8 +958,161 @@ Paigow = {
 			if (Card.getName(hair[1]) == 'joker') {
 				override = false;
 			}
+			// flush hair is paired up so use the flush
+			if (Card.getName(hair[0]) == Card.getName(hair[1])) {
+				override = false;
+			}
 		}
 		
 		return {hair,back,rule,brief,override};
+	},
+	// straight flush
+	solveStraightFlush:function(poker) {
+		var straight_flushes = poker.straight_flush;
+		var cards = poker.cards;
+		var joker = poker.joker;
+		var hair = [];
+		var back = [];
+		var rule = (joker) ? 'straight-flush:0-pair+joker' : 'straight-flush:0-pair';
+		var brief = 'straight-flush';
+		// whatever
+		var result;
+
+//		console.log('\ncards in hand: ',cards);
+//		console.log('number of straight_flushes: ',straight_flushes.length);
+		switch(straight_flushes.length) {
+			// three straight_flushes means 7 card straight_flush so use the lowest straight_flush
+			case 3:
+				var straight_flush = straight_flushes[2];
+//				console.log('straight_flush: ',straight_flush);
+				var extras = this.arrayDiff(cards,straight_flush);
+//				console.log('straight_flush extras: ',extras);
+				hair = extras;
+				back = straight_flush;
+				break;
+			// two straight_flushes
+			case 2:
+				var straight_flush1 = straight_flushes[0];
+				var straight_flush2 = straight_flushes[1];
+				// get the extras from each straight
+				var extras1 = this.arrayDiff(cards,straight_flush1);
+				var extras2 = this.arrayDiff(cards,straight_flush2);
+//				console.log('extras1: ',extras1);
+//				console.log('extras2: ',extras2);
+				// if pairs are present (with 2 straight_flushes, only 1 pair possible)
+				if (poker.pairs) {
+					var pair = poker.pairs[0];
+					rule = 'straight_flush:1-pair';
+//					console.log('pairs present: ',pair)
+					// joker present
+					if (joker) {
+						rule = 'straight_flush:1-pair+joker';
+						// joker part of either set of extras means natural straight_flush
+						if (extras1.indexOf('joker_one') != -1 || extras2.indexOf('joker_one') != -1) {
+							// if the first set of extras is a pair then use that one
+							if (Card.getName(extras1[0]) == Card.getName(extras1[1])) {
+								hair = extras1;
+								back = straight_flush1;
+							} else {
+								hair = extras2;
+								back = straight_flush2;
+							}							
+						} else {
+							// otherwise joker part of straight_flush along with pair so solve for pairs
+//							console.log('joker in straight_flush with 1 pair, so we go by pair-pair rules');
+							result = this.solvePairs(poker);
+						}
+					} else {
+						// if the first set of extras is a pair then use that one
+						if (Card.getName(extras1[0]) == Card.getName(extras1[1])) {
+							hair = extras1;
+							back = straight_flush1;
+						} else {
+							hair = extras2;
+							back = straight_flush2;
+						}
+					}
+				} else {
+//					console.log('no pairs present');
+					// if the joker is in the first set of extras
+					if (extras1.indexOf('joker_one') != -1) {
+						hair = extras1;
+						back = straight_flush1;
+					} else {
+						// otherwise use the lower straight
+						hair = extras2;
+						back = straight_flush2;
+					}
+				}
+				break;
+			// one straight
+			case 1:
+				var straight_flush = straight_flushes[0];
+//				console.log('straight_flush: ',straight_flush);
+				var extras = this.arrayDiff(cards,straight_flush);
+//				console.log('straight_flush extras: ',extras);
+				// trips present
+				if (poker.trips) {
+//					console.log('trips present: ',poker.trips[0]);
+					hair = this.arrayDiff(cards,straight_flush);
+					back = straight_flush;
+					rule = 'straight_flush:trips';
+				} else {
+					// pairs present
+					if (poker.pairs) {
+						rule = 'straight_flush:1-pair';
+//						console.log('pairs present: ',poker.pairs.length);
+						// one pair present
+						if (poker.pairs.length == 1) {
+							var pair = poker.pairs[0];
+//							console.log('pair: ',pair);
+							// pair inside straight_flush
+							if (straight_flush.indexOf(pair[0]) != -1 || straight_flush.indexOf(pair[1]) != -1) {
+//								console.log('pair within the straight_flush');
+								extras = this.arrayDiff(extras,pair);
+//								console.log('revised extras: ',extras);
+								if (joker) {
+//									console.log('joker present');
+									// joker not part of straight_flush
+									if (extras.indexOf('joker_one') != -1) {
+//										console.log('joker not in straight_flush, add to hair choice');
+										hair = this.arrayDiff(cards,straight_flush);
+										back = straight_flush;
+										rule = 'straight_flush:1-pair+joker';
+									} else {
+//										console.log('joker in straight_flush with 1 pair, so we go by pair-pair rules');
+										result = this.solvePairs(poker);
+									}
+								} else {
+//									console.log('no joker - straight flush with pair, just play straight flush');
+									hair = this.arrayDiff(cards,straight_flush);
+									back = straight_flush;
+								}
+							}
+						} else {
+//							console.log('2 pairs so we go by pair-pair rules');
+							result = this.solvePairs(poker);
+						}
+					} else {
+						hair = [extras[0],extras[1]];
+						back = straight_flush;
+					}
+				}
+				break;
+			default:
+//				console.log('default behaviour');
+				hair = [cards[0],cards[2]];
+				back = [cards[1],cards[3],cards[4],cards[5],cards[6]];
+				break;
+		}
+		// result present means the hand was set from another function
+		if (result) {
+			hair = result.hair;
+			back = result.back;
+			rule = result.rule;
+			brief = result.brief;
+		}
+
+		return {hair,back,rule,brief};
 	}
 }

@@ -554,9 +554,8 @@ Poker = {
 		}
 		
 		// find straight flush
-		/*
-		if (poker.flushes && poker.straights) {
-			var straight_flush = this.findStraightsFlush(poker.straight,poker.flush);
+		if (poker.flush && poker.straights) {
+			var straight_flush = this.findStraightFlush(poker);
 			if (straight_flush.length != 0) {
 				poker.straight_flush = straight_flush;
 				
@@ -564,7 +563,6 @@ Poker = {
 				debug += straight_flush.toString()+'\n';
 			}
 		}
-		*/
 		
 		// debug text
 		if (debug != '') {
@@ -578,24 +576,90 @@ Poker = {
 	/*
 		find a straight flush
 	*/
-	findStraightsFlush:function(straights,flush) {
-		var diff = [];
-		for (var i=0; i<straights.length;i++) {
-			// this card of the straight matches something in the flush
-			if (flush.indexOf(straights[i]) != -1) {
-				diff.push(straights[i]);
-			} else {
-				// otherwise reset because its not a straight flush
-				if (diff.length < 5) {
-					diff = [];
-				}
+	findStraightFlush:function(poker) {
+		var straights = poker.straights;
+		var flush = poker.flush;
+		var cards = poker.cards;
+//		console.log('cards: ',cards);
+//		console.log('straights: ',straights);
+//		console.log('flush: ',flush);
+
+		// joker
+		var joker = poker.joker;
+		var available = true;
+		// master suit
+		var master;
+		// array of names
+		var flush_names = [];
+		for (var i=0; i<flush.length; i++) {
+			var suit = Card.getSuit(flush[i]);
+			var name = Card.getName(flush[i]);
+			flush_names.push(name);
+			
+			if (suit != 'one' && !master) {
+				master = suit;
 			}
 		}
-		if (diff.length < 5) {
-			diff = [];
+//		console.log('master: ',master);
+//		console.log(flush_names);
+		var straight_flush = [];
+		// loop the straights
+		for (var i=0; i<straights.length; i++) {
+//			console.log('\nstarting new master loop...');
+			var sf = [];
+			var straight = straights[i];
+			// loop the straight and match names to the flush
+			for (var n=0; n<straight.length; n++) {
+				// match this item in the straight to something in the flush_names
+				if (flush_names.indexOf(Card.getName(straight[n])) != -1) {
+//					console.log('this item of the straight is in the flush names...');
+					// now see if the whole thing matches
+					if (flush.indexOf(straight[n]) != -1) {
+//						console.log('full match adding to straight-flush...',straight[n]);
+						sf.push(straight[n]);
+					} else {
+						var card = Card.getName(straight[n])+'_'+master;
+//						console.log('not a full match, checking for other match...',card);
+						if (cards.indexOf(card) != -1) {
+//							console.log('other match found...');
+							sf.push(card);
+						} else {
+							// no other match found, push the joker if available
+							if (joker && available) {
+								sf.push('joker_one');
+								available = false;
+							}
+						}
+					}
+				}
+			}
+			// if length is 4 and joker is available then add it
+			if (sf.length == 4 && joker && available) {
+//				console.log('adding joker');
+				// top card not an ace, put joker on top
+				if (Card.getName(sf[0]) != 'ace') {
+//					console.log('added to the top');
+					sf.unshift('joker_one');
+				} else {
+					// sub loop goes through whats left
+					for (var k=0;k<sf.length;k++) {
+						var card = sf[k];
+						var next = sf[k+1];
+						// place joker if necessary
+						if (Card.getRank(card) != Card.getRank(next) +1) {
+							sf.splice(k+1,0,'joker_one');
+							break;
+						}
+					}
+				}
+			}
+//			console.log('sf: ',sf);
+			if (sf.length == 5) {
+				straight_flush.push(sf);
+			}
 		}
-		return diff;
-		
+//		console.log('straight flush: ',straight_flush);
+		return straight_flush;
 	},
 	/*
 		find a straight

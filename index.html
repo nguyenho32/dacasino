@@ -38,7 +38,7 @@
 	var DEBUG_SUB = 'random';
 	var DEBUG_JOKER = 50;
 	/*
-		color scheme
+		color scheme - brown
 	*/
 	// background-color: #AA8639;
 	// button background
@@ -49,7 +49,7 @@
 	var INFO_BG = 0x604409;
 	// information text
 	var INFO_TXT = '#F4D38D';
-	
+
 	// initial hand position
 	var HAND_X = 5;
 	var HAND_Y = 280;
@@ -394,7 +394,7 @@
 		game_mode = 'practice';
 		
 		game_practice_main_level = 'random';
-		game_practice_sub_level = 'random';
+		game_practice_sub_level = 'random+random';
 
 		// show all the learn buttons
 		group_buttons_level.forEach(function(btn) {
@@ -422,19 +422,7 @@
 		game_info_box.text = 'coming soon';
 		game_mode = 'compare';
 		
-		
-		deck = Deck.create('standard',true,1);
-		var hand = Hand.create(deck.splice(0,7));
-		hand.poker = Poker.solve(hand.sorted);
-		hand.paigow = Paigow.solve(hand.poker);
-		console.log(hand);
-		fnDisplayHouseWay(hand);
-
-		var hand = Hand.create(deck.splice(0,7));
-		hand.poker = Poker.solve(hand.sorted);
-		hand.paigow = Paigow.solve(hand.poker);
-		console.log(hand);
-		fnDisplayBankHand(hand);
+		fnCompareHand();
 	}
 	// speed test
 	function fnGameSpeed() {
@@ -465,7 +453,7 @@
 		game_mode = 'timed';
 	}
 	/******************************************************************************************************************************************
-		LEARN MODE
+		LEARN / PRACTICE MODE STUFF
 	******************************************************************************************************************************************/
 	// select a level
 	function fnLevelSelect(btn) {
@@ -578,10 +566,19 @@
 		game_info_box.text = 'Congratultions you passed that level!\nClick the '+game_learn_sub_level+' button to continue';
 	}
 	/******************************************************************************************************************************************
-		SPEED MODE
+		COMPARE MODE
 	******************************************************************************************************************************************/
 	function fnCompareHand(btn) {
-		console.log(btn.name);
+		deck = Deck.create('standard',true,1);
+		var hand = Hand.create(deck.splice(0,7));
+		hand.poker = Poker.solve(hand.sorted);
+		hand.paigow = Paigow.solve(hand.poker);
+		fnDisplayHouseWay(hand);
+
+		var hand = Hand.create(deck.splice(0,7));
+		hand.poker = Poker.solve(hand.sorted);
+		hand.paigow = Paigow.solve(hand.poker);
+		fnDisplayBankHand(hand);
 	}
 	/******************************************************************************************************************************************
 		GENERIC GAME FUNCTIONS
@@ -677,6 +674,12 @@
 				} else {
 					chance = 0;
 				}
+				if (str[1] == 'random') {
+					chance = Math.random()*100;
+				}
+				// a specific hand to play with
+//				var set = ["nine_club","nine_heart","nine_diamond","nine_spade","jack_diamond","eight_club","seven_diamond"];
+//				hand = Hand.create(set);
 				hand = Hand.create(Poker.create(game_practice_main_level,chance,str[0]));
 			} else {
 				var type = 'random'
@@ -716,15 +719,12 @@
 		var chosen = [hair_chosen[0].key,hair_chosen[1].key];
 		// actual hair cards
 		var hair = hand.paigow.hair;
-
-		console.log('checkHair: ',hair);
+console.log(hand);
 		// required is true by default
 		var required = true;
 		// hair is more than 2 cards and 1st one does not match 2nd one
 		if (hair.length > 2 && Card.getName(hair[0]) != Card.getName(hair[1])) {
-			console.log('hair is over 2 and not paired')
 			if (chosen.indexOf(hair[0]) == -1) {
-				console.log('selected cards do not equal required hair choice');
 				required = false;
 			}
 		}
@@ -836,11 +836,15 @@
 			back = hand.paigow.back;
 		} else {
 			back = hand.paigow.back;
-			console.log(back);
 			// hair length is 3 so we might need to replace something in the back
 			if (hand.paigow.hair.length > 2) {
 				// hair bigger than 2 always means pair / trip / quad / joker so use the first hair card
-				var name = Card.getName(hair[0]);
+				var name;
+				if (Card.getName(hair[0]) == Card.getName(hair[1])) {
+					name = Card.getName(hair[0]);
+				} else {
+					name = Card.getName(hair[1]);
+				}
 				// find the position of the card to replace
 				for (var i=0; i<back.length;i++) {
 					if (Card.getName(back[i]) == name) {
@@ -1149,36 +1153,95 @@
 				should be set full house solvePair
 			var set = ["ten_diamond","eight_spade","eight_diamond","four_spade","four_diamond","three_diamond","joker_one"];
 			*/
-			
-			/*
-				hand contains a flush, automatic check in Poker.create() should rebuild the hand until there is no flush
+			/* FIXED
+				hand incorrectly set as 5, 4 - queen high straight flush
+				should be queen 5, jack high flush (with straight-flush bonus)
+			var set = ["queen_club","jack_club","ten_club","nine_club","eight_club","five_heart","four_club"];
 			*/
-//			var set = ["jack_heart","jack_diamond","ten_heart","ten_diamond","nine_heart","eight_heart","joker_one"];
+			/* FIXED
+				hand incorrectly set as jack, 6 - pair of 3
+				should be pair 3 flush, with a straight-flush bonus
+			var set = ["jack_club","six_club","five_club","four_club","three_heart","three_club","two_club"];
+			*/
+			/* FIXED
+				hand correctly set as as pair 9, jack high straight flush
+				bonus incorrect as 4 of a kind, should be straight flush
+				description reads joker high straight flush
+			var set = ["ten_spade","nine_spade","nine_heart","nine_club","eight_spade","seven_spade","joker_one"];
+			*/
+			/* FIXED
+				hand correctly set as pair 6, 6 high straight flush
+				need to remove the 6 spade from possible hair
+			var set = ["six_spade","six_heart","five_spade","four_spade","three_spade","two_spade","joker_one"];
+			*/
+			/* FIXED
+				hand incorrectly set 10,7 pair of 6
+				should be 10, 6 - 7 high straight flush
+			var set = ["ten_club","seven_diamond","six_spade","six_diamond","five_diamond","four_diamond","three_diamond"];
+			*/
+			/* FIXED
+				hand correctly set, not setting as straight flush
+			var set = ["eight_heart","seven_spade","six_spade","five_spade","five_diamond","four_spade","three_spade"];
+			*/
+			/* FIXED
+				hand correctly set pair king, queen high flush
+				bonus straight flush not set
+			var set = ["king_club","queen_heart","jack_heart","ten_heart","nine_heart","six_heart","joker_one"];
+			*/
+			/* FIXED
+				hand incorrectly set 7,2 - ace high flush
+				should be pair 2 / pair ace (solvePair)
+			var set = ["ace_heart","ten_heart","seven_club","four_heart","two_spade","two_heart","joker_one"];
+			*/
+			/* FIXED
+				hand correctly set pair king, quad 2's
+				need to put trip kings in the hair
+			var set = ["king_spade","king_heart","king_club","two_heart","two_club","two_diamond","joker_one"];
+			*/
+			/* FIXED
+				hand incorrectly set pair six, jack high straight
+				should be pair jack, 10 high straight
+//			var set = ["jack_diamond","ten_diamond","nine_club","eight_club","seven_diamond","six_club","joker_one"];
+			*/
+			/* FIXED
+				hand set correctly, possible hair not correct
+				should be trip queens
+			var set = ["queen_heart","queen_club","queen_diamond","two_spade","two_heart","two_club","two_diamond"];
+			*/
+			/* FIXED
+				hand set almost correctly, desc incorrect
+				should be ace (joker) high flush
+			var set = ["queen_club","nine_heart","nine_club","five_club","three_club","two_club","joker_one"];
+			// this is almost the same thing, should put the natural in front with joker based flush behind
+			var set = ["ace_spade","ace_heart","jack_spade","seven_spade","five_spade","four_spade","joker_one"];
+			*/
+			/*
+				hand set correctly, hair incorrect
+				should be five_diamond, followed by both nines (five is required)
+			var set = ["jack_club","ten_club","nine_spade","nine_diamond","eight_heart","seven_heart","five_diamond"];
+			*/
+			/* FIXED
+				hand set incorrectly
+				should be pair 8 (natural) with joker based flush behind
+			var set = ["king_heart","jack_heart","nine_heart","eight_spade","eight_club","six_heart","joker_one"];
+			var set = ["king_heart","jack_heart","nine_heart","eight_diamond","eight_club","six_heart","five_heart"];
+			*/
+			/* FIXED
+				hand set correctly
+				should have king and both 9's in the hair
+			var set = ["king_club","queen_club","jack_heart","ten_diamond","nine_heart","nine_club","eight_heart"];
+			*/
+			
 			//
 			//
 			//
 			//**********************************************************************************************************
 			//
 			/*
-				hand incorrectly set pair six, jack high straight
-				should be pair jack, 10 high straight
+				hand contains a flush, automatic check in Poker.create() should rebuild the hand until there is no flush
 			*/
-//			var set = ["jack_diamond","ten_diamond","nine_club","eight_club","seven_diamond","six_club","joker_one"];
-			/*
-				hand correctly set pair king, quad 2's
-				need to put trip kings in the hair
-			*/
-//			var set = ["king_spade","king_heart","king_club","two_heart","two_club","two_diamond","joker_one"];
-			/*
-				hand incorrectly set 7,2 - ace high flush
-				should be pair 2 / pair ace (solvePair)
-			*/
-//			var set = ["ace_heart","ten_heart","seven_club","four_heart","two_spade","two_heart","joker_one"];
-			/*
-				hand correctly set pair king, queen high flush
-				bonus straight flush not set
-			*/
-//			var set = ["king_club","queen_heart","jack_heart","ten_heart","nine_heart","six_heart","joker_one"];
+//			var set = ["jack_heart","jack_diamond","ten_heart","ten_diamond","nine_heart","eight_heart","joker_one"];
+
 			//
 			//
 			//
