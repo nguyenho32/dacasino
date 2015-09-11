@@ -1,14 +1,4 @@
 Paigow = {
-	// get the difference between 2 arrays
-	arrayDiff:function(big,small) {
-		var diff = [];
-		big.forEach(function(key) {
-			if (-1 === small.indexOf(key)) {
-				diff.push(key);
-			}
-		},this);
-		return diff;
-	},
 	/******************************************************************************************************************************************
 		PAI-GOW RULES
 	******************************************************************************************************************************************/
@@ -66,95 +56,83 @@ Paigow = {
 		},
 	},
 	/******************************************************************************************************************************************
-		SOLVE FUNCTIONS
+		UTILITY FUNCTIONS
 	******************************************************************************************************************************************/
-	solve:function(poker) {
-		var bonus = '';
-		// quads / trips get a match final
-		var match_final = false;
-		// the result
-		var result;
-		
-		// solve for quads
-		if (poker.quads) {
-			result = this.solveQuads(poker);
-			match_final = true;
-		}
-		// solve for trips
-		if (poker.trips && !match_final) {
-			result = this.solveTrips(poker);
-			match_final = true;
-		}
-		// solve for pairs
-		if (poker.pairs && !match_final) {
-			result = this.solvePairs(poker);
-		}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// get the difference between 2 arrays
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	arrayDiff:function(big,small) {
+		var diff = [];
+		big.forEach(function(key) {
+			if (-1 === small.indexOf(key)) {
+				diff.push(key);
+			}
+		},this);
+		return diff;
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// compare 2 results and return the higher one (for comparing straight vs flush)
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	compareResults:function(result1,result2) {
+		var debug = true;
+		var override = false;
+//		console.log('comparing results');
+//		console.log('result1: ',result1);
+//		console.log('result2: ',result2);
 
-		// solve for straight
-		if (poker.straights) {
-			result = this.solveStraight(poker);
-		}
-		// solve for flush
-		if (poker.flush) {
-			// straight present so send results
-			if (poker.straights) {
-				poker.result = result;
-			}
-			result = this.solveFlush(poker);
-			if (result.override) {
-				result = poker.result;
-			}
-		}
-		// solve for straight flush
-		if (poker.straight_flush) {
-			// result from straight & flush already determined
-			var override = false;
-			var old_result = result;
-			result = this.solveStraightFlush(poker);
-//			console.log('old_result: ',old_result);
-//			console.log('result: ',result);
-			// old result hair is bigger use old result
-			if (Card.getRank(old_result.hair[0]) > Card.getRank(result.hair[0])) {
+		// result1 brief is not 'straight' or 'flush' means result1 came from outside solution
+		if (result1.brief == 'straight' || result1.brief =='flush') {
+			// result1 hair is paired up so use result1
+			if (Card.getName(result1.hair[0]) == Card.getName(result1.hair[1])) {
+//				console.log('result1 paired up');
 				override = true;
 			}
-			// 1st hair cards are equal compare the 2nd ones
-			if (Card.getRank(old_result.hair[0]) == Card.getRank(result.hair[0])) {
-				if (Card.getRank(old_result.hair[1]) > Card.getRank(result.hair[1])) {
-					override = true;
-				}
-			}
-			// 2nd old result hair card is joker means pair so use old result
-			if (Card.getName(old_result.hair[1]) == 'joker') {
+			// 2nd card of result2 hair is a joker means pair so use result1
+			if (Card.getName(result1.hair[1]) == 'joker') {
+//				console.log('result1 paired up');
 				override = true;
 			}
-			// 2nd straight flush hair card is joker means pair so use straight flush
-			if (Card.getName(result.hair[1]) == 'joker') {
+		}
+		// not paired and result1 hair is bigger, use result1
+		if (Card.getRank(result1.hair[0]) > Card.getRank(result2.hair[0])) {
+//			console.log('result1 hair bigger');
+			override = true;
+		}
+		// not paired and 1st hair cards are equal compare the 2nd ones
+		if (Card.getRank(result1.hair[0]) == Card.getRank(result2.hair[0])) {
+			if (Card.getRank(result1.hair[1]) > Card.getRank(result2.hair[1])) {
+//				console.log('result1 2nd hair bigger');
+				override = true;
+			}
+		}
+		// result2 brief is not 'straight' or 'flush' means result1 came from outside solution
+		if (result2.brief == 'straight' || result2.brief == 'flush' || result2.brief == 'straight-flush') {
+			// result2 hair is paired up so use result2
+			if (Card.getName(result2.hair[0]) == Card.getName(result2.hair[1])) {
+//				console.log('result2 paired up');
 				override = false;
 			}
-			// old hair is paired up so use the old one
-			if (Card.getName(old_result.hair[0]) == Card.getName(old_result.hair[1])) {
-				// unless both results have teh same hair then use the straight flush
-				if (Card.getName(old_result.hair[1]) == Card.getName(result.hair[0])) {
-					override = false;
-				} else {
-					override = true;					
-				}
-			}
-			if (override) {
-//				console.log('overriding result with old one: ');
-				result = old_result;
+			// 2nd result2 hair card is joker means pair so use result2
+			if (Card.getName(result2.hair[1]) == 'joker') {
+//				console.log('result2 paired up');
+				override = false;
 			}
 		}
-
-		// no result from anything above, solve for nothing
-		if (poker.nothing) {
-			// no result, solve for nothing
-			result = this.solveNothing(poker);
+		
+		// if override means use result1
+		if (override) {
+//			console.log('using result1');
+			result = result1;
+		} else {
+//			console.log('using result2');
+			result = result2;
 		}
-
-		/*
-			 add the description
-		*/
+		return result;
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// set the description for the hand
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	setDescription:function(result) {
 		var hair = result.hair;
 		var back = result.back;
 		var desc_hair = '';
@@ -241,10 +219,14 @@ Paigow = {
 			var str = Card.names[index+1];
 			desc_back = desc_back.replace('joker',str);
 		}
-
-		result.desc = desc_hair+' - '+desc_back;
-
-		// the bonus
+		
+		return desc_hair+' - '+desc_back;		
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// set the bonus for the hand
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	setBonus:function(poker,result) {
+		var bonus;
 		if (poker.straights) {
 			bonus = 'straight';
 		}
@@ -254,7 +236,7 @@ Paigow = {
 		if (poker.straight_flush) {
 			bonus = 'straight flush';
 			// 1st card is ace or 2nd card is a king, then its a royal flush
-			if (Card.getName(back[0]) == 'ace' || Card.getName(back[1]) == 'king') {
+			if (Card.getName(result.back[0]) == 'ace' || Card.getName(result.back[1]) == 'king') {
 				bonus = 'royal flush';
 			}
 		} else if (poker.quads) {
@@ -270,6 +252,10 @@ Paigow = {
  			if (poker.pairs) {
 				bonus = 'full house';
 			}
+			// trips with trips yields full house
+			if (poker.trips) {
+				bonus = 'full house';
+			}
 			// trips with joker yields 4 of a kind
 			if (poker.joker) {
 				bonus = '4 of kind';
@@ -280,19 +266,84 @@ Paigow = {
 				bonus = 'full house';
 			}
 		}
-		if (bonus != '') {
-			result.bonus = bonus;
-		} else {
-			result.bonus = 'none';
+		if (typeof bonus === undefined) {
+			bonus = 'none';
 		}
+		return bonus;
+	},
+	/******************************************************************************************************************************************
+		SOLVE FUNCTIONS
+	******************************************************************************************************************************************/
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// solve for pai-gow
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	solve:function(poker) {
+		var bonus = '';
+		// quads / trips get a match final
+		var match_final = false;
+		// the result
+		var result;
+		
+		// solve for quads
+		if (poker.quads) {
+			result = this.solveQuads(poker);
+			match_final = true;
+		}
+		// solve for trips
+		if (poker.trips && !match_final) {
+			result = this.solveTrips(poker);
+			match_final = true;
+		}
+		// solve for pairs
+		if (poker.pairs && !match_final) {
+			result = this.solvePairs(poker);
+		}
+
+		// the straight result
+		var s_result;
+		// the flush result
+		var f_result;
+		// solve for straight
+		if (poker.straights) {
+			result = this.solveStraight(poker);
+			s_result = result;
+		}
+		// solve for flush
+		if (poker.flush) {
+			result = this.solveFlush(poker);
+			f_result = result;
+		}
+		// compare the straight & flush and decide a winner
+		if (poker.straights && poker.flush) {
+			result = this.compareResults(s_result,f_result);
+		}
+//		console.log('final: ',result);
+		// solve for straight flush
+		if (poker.straight_flush) {
+			var old_result = result;
+			var new_result = this.solveStraightFlush(poker);
+			result = this.compareResults(old_result,new_result);
+		}
+//		console.log('final: ',result);
+
+		// no result from anything above, solve for nothing
+		if (poker.nothing) {
+			// no result, solve for nothing
+			result = this.solveNothing(poker);
+		}
+
+		// set the description
+		var desc = this.setDescription(result);
+		result.desc = desc;
+
+		// set the bonus
+		var bonus = this.setBonus(poker,result);
+		result.bonus = bonus;
 		
 		// debug text
 		var debug = '';
 		if (match_final) {
 			debug += '{match final} ';
-		}
-		if (override && (poker.straight || poker.flush)) {
-			debug += '[override] ';
 		}
 		debug += 'rule: '+result.rule+'\n';
 		debug += 'bonus: '+result.bonus+'\n';
@@ -302,8 +353,9 @@ Paigow = {
 		
 		return result;
 	},
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// nothing
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	solveNothing:function(poker) {
 		var cards = poker.cards;
 		var joker = poker.joker;
@@ -324,7 +376,9 @@ Paigow = {
 		return {hair,back,rule};
 	},
 	
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// pairs
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	solvePairs:function(poker) {
 		var cards = poker.cards;
 		var joker = poker.joker;
@@ -468,8 +522,9 @@ Paigow = {
 
 		return {hair,back,rule,brief};
 	},
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////	
 	// trips
+	///////////////////////////////////////////////////////////////////////////////////////////////////	
 	solveTrips:function(poker) {
 		var cards = poker.cards;
 		var joker = poker.joker;
@@ -574,8 +629,9 @@ Paigow = {
 		
 		return {hair,back,rule,brief};
 	},
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////	
 	// quads
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	solveQuads:function(poker) {
 		var cards = poker.cards;
 		var joker = poker.joker;
@@ -676,8 +732,9 @@ Paigow = {
 
 		return {hair,back,rule,brief};
 	},
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// solve straight
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	solveStraight:function(poker) {
 		var straights = poker.straights;
 		var cards = poker.cards;
@@ -786,8 +843,8 @@ Paigow = {
 					// pairs present
 					if (poker.pairs) {
 						rule = 'straight:1-pair';
-//						console.log('pairs present: ',poker.pairs.length);
 						// one pair present
+//						console.log('pairs present: ',poker.pairs.length);
 						if (poker.pairs.length == 1) {
 							var pair = poker.pairs[0];
 //							console.log('pair: ',pair);
@@ -836,7 +893,7 @@ Paigow = {
 				break;
 		}
 		// result present means the hand was set from another function
-		if (result) {
+		if (typeof result !== 'undefined') {
 //			console.log('set hand from from outside function');
 			hair = result.hair;
 			back = result.back;
@@ -848,8 +905,9 @@ Paigow = {
 		
 		return {hair,back,rule,brief};
 	},
-	
+	///////////////////////////////////////////////////////////////////////////////////////////////////	
 	// flush
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	solveFlush:function(poker) {
 		var cards = poker.cards;
 		var joker = poker.joker;
@@ -931,42 +989,17 @@ Paigow = {
 				break;
 		}
 		// result present means the hand was set from another function
-		if (result) {
+		if (typeof result !== 'undefined') {
 			hair = result.hair;
 			back = result.back;
 			rule = result.rule;
 			brief = result.brief;
 		}
-
-		var override = false;
-
-		// straight is also present so need to compare
-		if (poker.result) {
-			var result = poker.result;
-			
-			// straight hair is bigger, use straight
-			if (Card.getRank(result.hair[0]) > Card.getRank(hair[0])) {
-				override = true;
-			}
-			// 1st hair cards are equal compare the 2nd ones
-			if (Card.getRank(result.hair[0]) == Card.getRank(hair[0])) {
-				if (Card.getRank(result.hair[1]) > Card.getRank(hair[1])) {
-					override = true;
-				}
-			}
-			// 2nd flush hair card is joker means pair so use flush
-			if (Card.getName(hair[1]) == 'joker') {
-				override = false;
-			}
-			// flush hair is paired up so use the flush
-			if (Card.getName(hair[0]) == Card.getName(hair[1])) {
-				override = false;
-			}
-		}
-		
-		return {hair,back,rule,brief,override};
+		return {hair,back,rule,brief};
 	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// straight flush
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	solveStraightFlush:function(poker) {
 		var straight_flushes = poker.straight_flush;
 		var cards = poker.cards;
@@ -1106,7 +1139,7 @@ Paigow = {
 				break;
 		}
 		// result present means the hand was set from another function
-		if (result) {
+		if (typeof result !== 'undefined') {
 			hair = result.hair;
 			back = result.back;
 			rule = result.rule;

@@ -31,7 +31,16 @@
 	******************************************************************************************************************************************/
 	var game = new Phaser.Game(1550,5300,Phaser.CANVAS, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
 
-	
+	/*
+	game.stage.scale.startFullScreen();
+	game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+	game.stage.scale.setShowAll();
+	game.scale.minWidth = 320;
+	game.scale.minHeight = 480;
+	game.scale.maxWidth = 768;
+	game.scale.maxHeight = 1152;
+	game.scale.refresh();
+	*/
 	// debug hand creator
 	var DEBUG_COUNT = 25;
 	var DEBUG_MAIN = 'random';
@@ -120,6 +129,10 @@
 		CREATE
 	******************************************************************************************************************************************/
 	function create() {
+		this.scale.scaleMode = Phaser.ScaleManager.AUTO;
+		this.scale.pageAlignHorizontally = true;
+		this.scale.pageAlignVertically = true;
+//		this.scale.setScreenSize(true);
 		/*
 			create some groups
 		*/
@@ -304,7 +317,9 @@
 	/******************************************************************************************************************************************
 		MAIN MENU STUFF
 	******************************************************************************************************************************************/
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// game information
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnGameInfo() {
 		// clear any cards / timers etc
 		fnResetBoard();
@@ -322,7 +337,9 @@
 		var txt = 'This is where i\'ll put information about the game of pai-gow';
 		game_info_box.text = txt;
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// learn some pai-gow
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnGameLearn() {
 		// clear any cards / timers etc
 		fnResetBoard();
@@ -381,7 +398,9 @@
 		game_info_box.text = txt;
 		hand_info_box.text = 'progress to next level after 10 hands';
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// practice hands
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnGamePractice() {
 		fnResetBoard();
 		// show the learn group
@@ -408,7 +427,9 @@
 		txt += 'if you wish to practice a specific type of hand select it from the buttons on the right';
 		game_info_box.text = txt;
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// practice comparing hands
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnGameCompare() {
 		fnResetBoard();
 		// hide the learn group
@@ -424,7 +445,9 @@
 		
 		fnCompareHand();
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// speed test
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnGameSpeed() {
 		fnResetBoard();
 		// hide the learn group
@@ -438,7 +461,9 @@
 		game_info_box.text = 'coming soon';
 		game_mode = 'speed';
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// as many hands as you can
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnGameTimed() {
 		fnResetBoard();
 		// hide the learn group
@@ -453,9 +478,11 @@
 		game_mode = 'timed';
 	}
 	/******************************************************************************************************************************************
-		LEARN / PRACTICE MODE STUFF
+		GAME RELATED FUNCTIONS
 	******************************************************************************************************************************************/
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// select a level
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnLevelSelect(btn) {
 		// learn mode mastered then return
 		if (game_learn_main_level == 'mastered') {
@@ -494,7 +521,9 @@
 			}
 		}
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// show an example hand
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnShowExample() {
 		fnResetBoard();
 		game_info_box.text = Paigow.rules[game_learn_main_level][game_learn_sub_level];
@@ -524,7 +553,9 @@
 		hand_info_box.text = 'hand becomes '+hand.paigow.desc+'\nclick the '+game_learn_sub_level+' button to try again';
 		fnDisplayHouseWay(hand);
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// progress a level
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnLevelProgress() {
 		fnResetBoard();
 
@@ -565,9 +596,9 @@
 		},this);
 		game_info_box.text = 'Congratultions you passed that level!\nClick the '+game_learn_sub_level+' button to continue';
 	}
-	/******************************************************************************************************************************************
-		COMPARE MODE
-	******************************************************************************************************************************************/
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// compare 2 hands?
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnCompareHand(btn) {
 		deck = Deck.create('standard',true,1);
 		var hand = Hand.create(deck.splice(0,7));
@@ -580,10 +611,9 @@
 		hand.paigow = Paigow.solve(hand.poker);
 		fnDisplayBankHand(hand);
 	}
-	/******************************************************************************************************************************************
-		GENERIC GAME FUNCTIONS
-	******************************************************************************************************************************************/
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// start a speed or timed game
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnStartGame() {
 		fnResetBoard();
 		// hide the start button
@@ -616,7 +646,9 @@
 		
 		fnNextHand();
 	}
-	// show a hand
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// deal with the next hand
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnNextHand(data) {
 		btn_next.visible = false;
 		
@@ -678,7 +710,8 @@
 					chance = Math.random()*100;
 				}
 				// a specific hand to play with
-//				var set = ["nine_club","nine_heart","nine_diamond","nine_spade","jack_diamond","eight_club","seven_diamond"];
+				// display broken
+//				var set = ["queen_club","nine_heart","eight_club","seven_club","five_club","four_heart","joker_one"];
 //				hand = Hand.create(set);
 				hand = Hand.create(Poker.create(game_practice_main_level,chance,str[0]));
 			} else {
@@ -693,7 +726,9 @@
 		hand.paigow = Paigow.solve(hand.poker);
 		fnDisplayNormalWay(hand);
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// handle selection of hair cards
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function selectHair(card,pointer) {
 		// this card already selected, so unselect and remove it
 		if (hair_chosen.indexOf(card) != -1) {
@@ -713,13 +748,14 @@
 			hair_chosen.splice(0,1); 
 		}
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// check hair selection for correctness
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function checkHair(hair_chosen) {
 		// chosen hair cards
 		var chosen = [hair_chosen[0].key,hair_chosen[1].key];
 		// actual hair cards
 		var hair = hand.paigow.hair;
-console.log(hand);
 		// required is true by default
 		var required = true;
 		// hair is more than 2 cards and 1st one does not match 2nd one
@@ -756,7 +792,36 @@ console.log(hand);
 			hair_chosen.splice(0,1);
 		}
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// game over do stuff
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	function fnGameOver() {
+		btn_next.visible = false;
+		group_cards.destroy();
+		
+		// learn mode then display grats and return
+		if (game_mode == 'learn') {
+			btn_example.visible = false;
+			game_learn_main_level = 'mastered';
+			game_info_box.text = 'Congratulations you have mastered the game of pai-gow!';
+			hand_info_box.text = 'Wooooo!!!';
+			return;
+		}
+		var txt = 'Game Over!!!\n';
+		if (game_mode == 'timed') {
+			txt += 'You got '+hand_count+' hands correct!\n\n';
+		}
+		txt += 'Click start to go again!';
+		game_info_box.text = txt;
+		hand_info_box.text = '';
+		btn_start.visible = true;
+	}
+	/******************************************************************************************************************************************
+		DISPLAY FUNCTIONS
+	******************************************************************************************************************************************/
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to disply the hand normally
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnDisplayNormalWay(hand,opt){
 		// destroy the 'cards' layout
 		group_cards.destroy();
@@ -810,7 +875,9 @@ console.log(hand);
 			}
 		}
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to display the hand set correctly
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnDisplayHouseWay(hand,chosen) {
 		// destroy the 'cards' layout
 		group_cards.destroy();
@@ -891,7 +958,9 @@ console.log(hand);
 			group_cards.add(card);
 		}
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to display the bank hand
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnDisplayBankHand(hand) {
 
 		var spacer = 190;
@@ -931,32 +1000,9 @@ console.log(hand);
 			group_cards.add(card);
 		}
 	}
-	// game over do stuff
-	function fnGameOver() {
-		btn_next.visible = false;
-		group_cards.destroy();
-		
-		// learn mode then display grats and return
-		if (game_mode == 'learn') {
-			btn_example.visible = false;
-			game_learn_main_level = 'mastered';
-			game_info_box.text = 'Congratulations you have mastered the game of pai-gow!';
-			hand_info_box.text = 'Wooooo!!!';
-			return;
-		}
-		var txt = 'Game Over!!!\n';
-		if (game_mode == 'timed') {
-			txt += 'You got '+hand_count+' hands correct!\n\n';
-		}
-		txt += 'Click start to go again!';
-		game_info_box.text = txt;
-		hand_info_box.text = '';
-		btn_start.visible = true;
-	}
-	/******************************************************************************************************************************************
-		DISPLAY FUNCTIONS
-	******************************************************************************************************************************************/
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// update the clock
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function updateClock(dir) {
 		var finish;
 		var reset;
@@ -978,7 +1024,9 @@ console.log(hand);
 			clock_info_box.text = 'clock\n' + clock;
 		}
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// update stats
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnUpdateStats() {
 		var txt = 'stats\n';
 		txt += 'hands: '+hand_count+'\n';
@@ -988,7 +1036,9 @@ console.log(hand);
 	/******************************************************************************************************************************************
 		GENERIC UTILITIES
 	******************************************************************************************************************************************/
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// function to create a button
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function createButton(txt,callback,arg) {
 		var sprite = game.add.sprite(0,0);
 		var gfx = game.add.graphics(0,0);
@@ -1007,7 +1057,9 @@ console.log(hand);
 		
 		return sprite;
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// reset everything
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnResetBoard() {
 		// destroy the 'debug' layout
 		group_debug.destroy();
@@ -1030,7 +1082,9 @@ console.log(hand);
 		game_info_box.text = '';
 		hand_info_box.text = '';
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// get the difference between 2 arrays
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function arrayDiff(big,small) {
 		var diff = [];
 		big.forEach(function(key) {
@@ -1044,7 +1098,9 @@ console.log(hand);
 	/******************************************************************************************************************************************
 		DEBUG FUNCTIONS
 	******************************************************************************************************************************************/
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// create multiple hands of paigow
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function debugCreateMultiple(sprite,pointer) {
 		fnResetBoard();
 		// hide the start / next / example buttons
@@ -1231,6 +1287,20 @@ console.log(hand);
 				should have king and both 9's in the hair
 			var set = ["king_club","queen_club","jack_heart","ten_diamond","nine_heart","nine_club","eight_heart"];
 			*/
+			/* FIXED
+				incorrectly set as 7,6 - ace (joker) high flush
+				should be pair 3, ten high straight
+			var set = ["ten_club","nine_club","eight_club","seven_heart","six_spade","three_club","joker_one"];
+			*/
+			/* FIXED
+				incorrectly set as pair / pair
+				should be pair 8, nine high straight (bonus: straight-flush)
+			var set = ["nine_diamond","eight_diamond","eight_spade","seven_diamond","six_diamond","five_heart","joker_one"];
+			*/
+			/* FIXED
+				hand set correctly, desc straight-flush not set
+			var set = ["king_diamond","seven_spade","six_spade","five_spade","four_spade","three_spade","joker_one"];
+			*/
 			
 			//
 			//
@@ -1241,6 +1311,7 @@ console.log(hand);
 				hand contains a flush, automatic check in Poker.create() should rebuild the hand until there is no flush
 			*/
 //			var set = ["jack_heart","jack_diamond","ten_heart","ten_diamond","nine_heart","eight_heart","joker_one"];
+
 
 			//
 			//
