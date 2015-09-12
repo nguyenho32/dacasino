@@ -4,11 +4,9 @@
 	<meta charset="UTF-8" />
 	<title>Da Casino</title>
 	<script type="text/javascript" src="js/phaser.js"></script>
-	<script type="text/javascript" src="js/Card.js"></script>
-	<script type="text/javascript" src="js/Deck.js"></script>
+	<script type="text/javascript" src="js/Cards.js"></script>
 	<script type="text/javascript" src="js/Poker.js"></script>
 	<script type="text/javascript" src="js/Paigow.js"></script>
-	<script type="text/javascript" src="js/Hand.js"></script>
 	
 
 	<style type="text/css">
@@ -20,6 +18,11 @@
 			text-align: center;
 			width: 50px;
 		}
+		#gamebox {
+			width:1000px;
+			height: 5300px;
+			border: 25px solid navy;
+		}
 	</style>
 </head>
 
@@ -29,7 +32,7 @@
 	/******************************************************************************************************************************************
 		GLOBAL STUFF
 	******************************************************************************************************************************************/
-	var game = new Phaser.Game(1000,5300,Phaser.CANVAS, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
+	var game = new Phaser.Game(1500,5300,Phaser.CANVAS, 'gamebox', { preload: preload, create: create, update: update, render: render }, true);
 
 	/*
 	game.stage.scale.startFullScreen();
@@ -534,7 +537,7 @@
 		} else {
 			chance = 0;
 		}
-		hand = Hand.create(Poker.create(game_learn_main_level,chance,str[0]));
+		hand = Cards.handCreate(Poker.create(game_learn_main_level,chance,str[0]));
 
 		// solve for poker
 		hand.poker = Poker.solve(hand.sorted);
@@ -543,7 +546,7 @@
 		// loop and display the hands
 		var cards = hand.shuffled;
 		for (var i=0;i<hand.original.length;i++) {
-			var card = Card.create({card:cards[i],clickable:false});
+			var card = Cards.cardCreate({card:cards[i],clickable:false});
 			if (card) {
 				card.x = HAND_X+i*135;
 				card.y = HAND_Y;
@@ -601,12 +604,12 @@
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	function fnCompareHand(btn) {
 		deck = Deck.create('standard',true,1);
-		var hand = Hand.create(deck.splice(0,7));
+		var hand = Cards.handCreate(deck.splice(0,7));
 		hand.poker = Poker.solve(hand.sorted);
 		hand.paigow = Paigow.solve(hand.poker);
 		fnDisplayHouseWay(hand);
 
-		var hand = Hand.create(deck.splice(0,7));
+		var hand = Cards.handCreate(deck.splice(0,7));
 		hand.poker = Poker.solve(hand.sorted);
 		hand.paigow = Paigow.solve(hand.poker);
 		fnDisplayBankHand(hand);
@@ -684,7 +687,7 @@
 		
 		// speed game then use a normal deck, otherwise just spawn hands
 		if (game_mode == 'speed') {
-			hand = Hand.create(deck.splice(0,7));
+			hand = Cards.handCreate(deck.splice(0,7));
 			if (deck.length < 7) {
 				fnGameOver();
 			}
@@ -697,7 +700,7 @@
 				} else {
 					chance = 0;
 				}
-				hand = Hand.create(Poker.create(game_learn_main_level,chance,str[0]));
+				hand = Cards.handCreate(Poker.create(game_learn_main_level,chance,str[0]));
 			} else if (game_mode == 'practice') {
 				var str = game_practice_sub_level.split('+');
 				var chance;
@@ -711,12 +714,12 @@
 				}
 				// a specific hand to play with
 				// display broken
-//				var set = ["queen_club","nine_heart","eight_club","seven_club","five_club","four_heart","joker_one"];
-//				hand = Hand.create(set);
-				hand = Hand.create(Poker.create(game_practice_main_level,chance,str[0]));
+				var set = ["king_heart","queen_diamond","nine_spade","seven_spade","six_spade","five_spade","two_spade"];
+				hand = Cards.handCreate(set);
+//				hand = Cards.handCreate(Poker.create(game_practice_main_level,chance,str[0]));
 			} else {
 				var type = 'random'
-				hand = Hand.create(Poker.create('random',50,'random'));
+				hand = Cards.handCreate(Poker.create('random',50,'random'));
 			}
 		}
 
@@ -759,7 +762,7 @@
 		// required is true by default
 		var required = true;
 		// hair is more than 2 cards and 1st one does not match 2nd one
-		if (hair.length > 2 && Card.getName(hair[0]) != Card.getName(hair[1])) {
+		if (hair.length > 2 && Cards.getName(hair[0]) != Cards.getName(hair[1])) {
 			if (chosen.indexOf(hair[0]) == -1) {
 				required = false;
 			}
@@ -834,7 +837,7 @@
 			// loop and display the hands
 			for (var i=0;i<hand.original.length;i++) {
 				var sorted = hand.sorted;
-				var card = Card.create({card:sorted[i],clickable:false});
+				var card = Cards.cardCreate({card:sorted[i],clickable:false});
 				if (card) {
 					card.x = HAND_X+i*130;
 					card.y = HAND_Y+(200*n);
@@ -866,7 +869,7 @@
 			// no options, display normally
 			var cards = hand.shuffled;
 			for (var i=0;i<hand.original.length;i++) {
-				var card = Card.create({card:cards[i],clickable:true,callback:selectHair});
+				var card = Cards.cardCreate({card:cards[i],clickable:true,callback:selectHair});
 				if (card) {
 					card.x = HAND_X+i*135;
 					card.y = HAND_Y;
@@ -889,11 +892,11 @@
 		}
 		var hair = (!chosen) ? hand.paigow.hair : chosen;
 		// if 1st hair is joker then reverse
-		if (Card.getName(hair[0]) == 'joker') {
+		if (Cards.isJoker(hair[0])) {
 			hair.reverse();
 		}
 		// if 1st hair is lower than 2nd (due to selected)
-		if (Card.getRank(hair[0]) < Card.getRank(hair[1])) {
+		if (Cards.getRank(hair[0]) < Cards.getRank(hair[1])) {
 			hair.reverse();
 		}
 		// setup the back
@@ -907,14 +910,14 @@
 			if (hand.paigow.hair.length > 2) {
 				// hair bigger than 2 always means pair / trip / quad / joker so use the first hair card
 				var name;
-				if (Card.getName(hair[0]) == Card.getName(hair[1])) {
-					name = Card.getName(hair[0]);
+				if (Cards.getName(hair[0]) == Cards.getName(hair[1])) {
+					name = Cards.getName(hair[0]);
 				} else {
-					name = Card.getName(hair[1]);
+					name = Cards.getName(hair[1]);
 				}
 				// find the position of the card to replace
 				for (var i=0; i<back.length;i++) {
-					if (Card.getName(back[i]) == name) {
+					if (Cards.getName(back[i]) == name) {
 						if (extras.length > 0) {
 							back[i] = extras[0];
 							extras.splice(0,1);
@@ -926,7 +929,7 @@
 		var spacer = 190;
 		var cards = hand.shuffled;
 		for (var i=0;i<hand.original.length;i++) {
-			var card = Card.create({card:cards[i],clickable:false});
+			var card = Cards.cardCreate({card:cards[i],clickable:false});
 			if (card.key == hair[0]) {
 				card.x = 10;
 				card.y = HAND_Y;
@@ -968,7 +971,7 @@
 		var back = hand.paigow.back;;
 		var cards = hand.sorted;
 		for (var i=0;i<hand.original.length;i++) {
-			var card = Card.create({card:cards[i],clickable:false});
+			var card = Cards.cardCreate({card:cards[i],clickable:false});
 			if (card.key == hair[0]) {
 				card.x = 10;
 				card.y = BANK_Y;
@@ -1119,7 +1122,7 @@
 
 		// show the deck
 		for (var i=0;i<deck.length;i++) {
-			var card = Card.create({card:deck[i]});
+			var card = Cards.cardCreate({card:deck[i]});
 			group.addChild(card);
 			card.x = 5+i*25;
 		}
@@ -1136,7 +1139,7 @@
 			if (!DEBUG_SUB) {
 				DEBUG_SUB = 'random';
 			}
-			var hand = Hand.create(Poker.create(DEBUG_MAIN,DEBUG_JOKER,DEBUG_SUB));
+			var hand = Cards.handCreate(Poker.create(DEBUG_MAIN,DEBUG_JOKER,DEBUG_SUB));
 			main_info_box.text = 'creating '+DEBUG_COUNT+' '+DEBUG_MAIN+' - '+DEBUG_SUB+' hands';
 
 			//**********************************************************************************************************
@@ -1310,7 +1313,7 @@
 			/*
 				hand contains a flush, automatic check in Poker.create() should rebuild the hand until there is no flush
 			*/
-//			var set = ["jack_heart","jack_diamond","ten_heart","ten_diamond","nine_heart","eight_heart","joker_one"];
+			var set = ["jack_heart","jack_diamond","ten_heart","ten_diamond","nine_heart","eight_heart","joker_one"];
 
 
 			//
@@ -1318,7 +1321,7 @@
 			//
 			//**********************************************************************************************************
 			if (typeof set !== 'undefined') {
-				var hand = Hand.create(set);
+				var hand = Cards.handCreate(set);
 			}
 			//
 			//

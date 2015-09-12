@@ -83,24 +83,24 @@ Paigow = {
 		// result1 brief is not 'straight' or 'flush' means result1 came from outside solution
 		if (result1.brief == 'straight' || result1.brief =='flush') {
 			// result1 hair is paired up so use result1
-			if (Card.getName(result1.hair[0]) == Card.getName(result1.hair[1])) {
+			if (Cards.getName(result1.hair[0]) == Cards.getName(result1.hair[1])) {
 //				console.log('result1 paired up');
 				override = true;
 			}
 			// 2nd card of result2 hair is a joker means pair so use result1
-			if (Card.getName(result1.hair[1]) == 'joker') {
+			if (Cards.isJoker(result1.hair[1])) {
 //				console.log('result1 paired up');
 				override = true;
 			}
 		}
 		// not paired and result1 hair is bigger, use result1
-		if (Card.getRank(result1.hair[0]) > Card.getRank(result2.hair[0])) {
+		if (Cards.getRank(result1.hair[0]) > Cards.getRank(result2.hair[0])) {
 //			console.log('result1 hair bigger');
 			override = true;
 		}
 		// not paired and 1st hair cards are equal compare the 2nd ones
-		if (Card.getRank(result1.hair[0]) == Card.getRank(result2.hair[0])) {
-			if (Card.getRank(result1.hair[1]) > Card.getRank(result2.hair[1])) {
+		if (Cards.getRank(result1.hair[0]) == Cards.getRank(result2.hair[0])) {
+			if (Cards.getRank(result1.hair[1]) > Cards.getRank(result2.hair[1])) {
 //				console.log('result1 2nd hair bigger');
 				override = true;
 			}
@@ -108,12 +108,12 @@ Paigow = {
 		// result2 brief is not 'straight' or 'flush' means result1 came from outside solution
 		if (result2.brief == 'straight' || result2.brief == 'flush' || result2.brief == 'straight-flush') {
 			// result2 hair is paired up so use result2
-			if (Card.getName(result2.hair[0]) == Card.getName(result2.hair[1])) {
+			if (Cards.getName(result2.hair[0]) == Cards.getName(result2.hair[1])) {
 //				console.log('result2 paired up');
 				override = false;
 			}
 			// 2nd result2 hair card is joker means pair so use result2
-			if (Card.getName(result2.hair[1]) == 'joker') {
+			if (Cards.isJoker(result2.hair[1])) {
 //				console.log('result2 paired up');
 				override = false;
 			}
@@ -139,84 +139,84 @@ Paigow = {
 		var desc_back = '';
 		var hair_pair = false;
 		// both hair cards match, pair on top
-		if (Card.getName(hair[0]) == Card.getName(hair[1])) {
-			desc_hair = 'pair of '+Card.getName(hair[0]);
+		if (Cards.getName(hair[0]) == Cards.getName(hair[1])) {
+			desc_hair = 'pair of '+Cards.getName(hair[0]);
 			hair_pair = true;
 		} else {
-			desc_hair = Card.getName(hair[0])+', '+Card.getName(hair[1]);
+			desc_hair = Cards.getName(hair[0])+', '+Cards.getName(hair[1]);
 		}
-		if (Card.getRank(hair[0]) < Card.getRank(hair[1])) {
-			desc_hair = Card.getName(hair[1])+', '+Card.getName(hair[0]);
+		if (Cards.getRank(hair[0]) < Cards.getRank(hair[1])) {
+			desc_hair = Cards.getName(hair[1])+', '+Cards.getName(hair[0]);
 		}
 		// if the 1st card is a joker, reverse the hair
-		if (Card.getName(hair[0]) == 'joker') {
+		if (Cards.isJoker(hair[0])) {
 			hair.reverse();
 		}
 		// if the 2nd card is a joker then pair up the hair
-		if (Card.getName(hair[1]) == 'joker') {
-			desc_hair = 'pair of '+Card.getName(hair[0]);
+		if (Cards.isJoker(hair[1])) {
+			desc_hair = 'pair of '+Cards.getName(hair[0]);
 			hair_pair = true;
 		}
 		// the back
 		switch(result.brief) {
 			case '1-pair':
-				desc_back = 'pair of '+Card.getName(back[0]);
+				desc_back = 'pair of '+Cards.getName(back[0]);
 				break;
 			case '2-pair':
-				desc_back = '2-pair behind '+Card.getName(back[0])+' & '+Card.getName(back[2]);
+				desc_back = '2-pair behind '+Cards.getName(back[0])+' & '+Cards.getName(back[2]);
 				break;
 			case 'trips':
 				// trip aces get split so its a pair behind
-				if (Card.getName(back[0]) == 'ace' && Card.getName(back[1]) == 'ace' && Card.getName(back[2]) != 'ace') {
-					desc_back = 'pair '+Card.getName(back[0]);
+				if (Cards.getName(back[0]) == 'ace' && Cards.getName(back[1]) == 'ace' && Cards.getName(back[2]) != 'ace') {
+					desc_back = 'pair '+Cards.getName(back[0]);
 				} else {
-					desc_back = 'trip '+Card.getName(back[0]);
+					desc_back = 'trip '+Cards.getName(back[0]);
 				}
 				break;
 			case 'straight':
-				desc_back = Card.getName(back[0])+' high straight';
+				desc_back = Cards.getName(back[0])+' high straight';
 				break;
 			case 'flush':
-				desc_back = Card.getName(back[0])+' high flush';
+				desc_back = Cards.getName(back[0])+' high flush';
 				break;
 			case 'full house':
-				desc_back = 'full house '+Card.getName(back[0])+'s over '+Card.getName(back[3])+'s';
+				desc_back = 'full house '+Cards.getName(back[0])+'s over '+Cards.getName(back[3])+'s';
 				break;
 			case 'quads':
-				desc_back = 'quad '+Card.getName(back[0])+'s';
+				desc_back = 'quad '+Cards.getName(back[0])+'s';
 				break;
 			case 'straight-flush':
-				desc_back = Card.getName(back[0])+' high straight flush';
+				desc_back = Cards.getName(back[0])+' high straight flush';
 				// replace joker high with <card> high
-				if (Card.getName(back[0]) == 'joker' && result.brief == 'straight-flush') {
-					var index = Card.names.indexOf(Card.getName(back[1]));
-					var str = Card.names[index+1];
+				if (Cards.isJoker(back[0]) && result.brief == 'straight-flush') {
+					var index = Cards.names.indexOf(Cards.getName(back[1]));
+					var str = Cards.names[index+1];
 					desc_back = desc_back.replace('joker',str);
 				}
 				// 1st card is ace or 2nd card is a king, then its a royal flush
-				if (Card.getName(back[0]) == 'ace' || Card.getName(back[1]) == 'king') {
+				if (Cards.getName(back[0]) == 'ace' || Cards.getName(back[1]) == 'king') {
 					desc_back = 'royal flush';
 				}
 				break;
 			case '5 kind':
-				desc_back = '5 of a kind '+Card.getName(back[0])+'s';
+				desc_back = '5 of a kind '+Cards.getName(back[0])+'s';
 				break;
 			default:
-				if (Card.getName(back[1]) != 'joker') {
-					desc_back = Card.getName(back[0])+' high';
+				if (!Cards.isJoker(back[1])) {
+					desc_back = Cards.getName(back[0])+' high';
 				} else {
-					desc_back = 'pair of '+Card.getName(back[0]);
+					desc_back = 'pair of '+Cards.getName(back[0]);
 				}
 				break;
 		}
 		// replace joker high with ace high in flushes
-		if (Card.getName(back[0]) == 'joker' && result.brief == 'flush') {
+		if (Cards.isJoker(back[0]) && result.brief == 'flush') {
 			desc_back = desc_back.replace('joker','ace');
 		}
 		// replace joker high with <card> high
-		if (Card.getName(back[0]) == 'joker' && result.brief == 'straight') {
-			var index = Card.names.indexOf(Card.getName(back[1]));
-			var str = Card.names[index+1];
+		if (Cards.isJoker(back[0]) && result.brief == 'straight') {
+			var index = Cards.names.indexOf(Cards.getName(back[1]));
+			var str = Cards.names[index+1];
 			desc_back = desc_back.replace('joker',str);
 		}
 		
@@ -236,7 +236,7 @@ Paigow = {
 		if (poker.straight_flush) {
 			bonus = 'straight flush';
 			// 1st card is ace or 2nd card is a king, then its a royal flush
-			if (Card.getName(result.back[0]) == 'ace' || Card.getName(result.back[1]) == 'king') {
+			if (Cards.getName(result.back[0]) == 'ace' || Cards.getName(result.back[1]) == 'king') {
 				bonus = 'royal flush';
 			}
 		} else if (poker.quads) {
@@ -424,12 +424,12 @@ Paigow = {
 					break;
 				}
 				var high_card = extras[0];
-				var high_rank = Card.getRank(high_card);
-				var high_name = Card.getName(high_card);
+				var high_rank = Cards.getRank(high_card);
+				var high_name = Cards.getName(high_card);
 				
 				var pair_card = pair1[0];
-				var pair_rank = Card.getRank(pair_card);
-				var pair_name = Card.getName(pair_card);
+				var pair_rank = Cards.getRank(pair_card);
+				var pair_name = Cards.getName(pair_card);
 				if (joker) {
 					rule = 'pairs:2-pair+joker';
 					// high card is 3 ranks above high pair, make 3-pairs
@@ -458,7 +458,7 @@ Paigow = {
 						case 'ten':
 						case 'nine':
 							// if high card is an ace, then 2-pair behind
-							if (high_rank >= Card.getRank('ace')) {
+							if (high_rank >= Cards.getRank('ace')) {
 								hair = [extras[0],extras[1]];
 								back = [pair1[0],pair1[1],pair2[0],pair2[1],extras[2]];
 								brief = '2-pair';
@@ -473,7 +473,7 @@ Paigow = {
 						case 'seven':
 						case 'six':
 							// if high card is an ace, then 2-pair behind
-							if (high_rank >= Card.getRank('king')) {
+							if (high_rank >= Cards.getRank('king')) {
 								hair = [extras[0],extras[1]];
 								back = [pair1[0],pair1[1],pair2[0],pair2[1],extras[2]];
 								brief = '2-pair';
@@ -488,7 +488,7 @@ Paigow = {
 						case 'four':
 						case 'three':
 							// if high card is an ace, then 2-pair behind
-							if (high_rank >= Card.getRank('queen')) {
+							if (high_rank >= Cards.getRank('queen')) {
 								hair = [extras[0],extras[1]];
 								back = [pair1[0],pair1[1],pair2[0],pair2[1],extras[2]];
 								brief = '2-pair';
@@ -504,7 +504,7 @@ Paigow = {
 			case 1:
 				if (joker) {
 					// high card is lower than pair, put in front with joker
-					if (Card.getRank(extras[0]) < Card.getRank(all[0])) {
+					if (Cards.getRank(extras[0]) < Cards.getRank(all[0])) {
 						hair = [extras[0],extras[4]];
 						back = [all[0],all[1],extras[1],extras[2],extras[3]];
 					} else {
@@ -552,7 +552,7 @@ Paigow = {
 				rule = 'trips:trips';
 				hair = trip1;
 				// trip card is higher than the remainder then put in front of it
-				if (Card.getRank(trip1[0]) > Card.getRank(extras[0])) {
+				if (Cards.getRank(trip1[0]) > Cards.getRank(extras[0])) {
 					back = [trip2[0],trip2[1],trip2[2],trip1[2],extras[0]];
 				} else {
 					// otherwise put at the end
@@ -587,7 +587,7 @@ Paigow = {
 					} else {
 						if (joker) {
 							// if high card is above pair, put in front with joker and full house behind
-							if (Card.getRank(extras[0]) > Card.getRank(pair1[0])) {
+							if (Cards.getRank(extras[0]) > Cards.getRank(pair1[0])) {
 								hair = [extras[0],extras[1]];
 								back = [trip1[0],trip1[1],trip1[2],pair1[0],pair1[1]];
 								rule = 'trips:1-pair+joker';
@@ -614,7 +614,7 @@ Paigow = {
 						back = [trip1[0],trip1[1],trip1[2],extras[1],extras[2]];
 					} else {
 						// trip aces split
-						if (Card.getName(trip1[0]) == 'ace') {
+						if (Cards.getName(trip1[0]) == 'ace') {
 							hair = [extras[0],trip1[0],trip1[1],trip1[2]];
 							back = [trip1[1],trip1[2],extras[1],extras[2],extras[3]];
 						} else {
@@ -659,7 +659,7 @@ Paigow = {
 			if (joker) {
 				rule = 'quads:1-pair+joker';
 				// pair is bigger than quad so make 5 of a kind
-				if (Card.getRank(pair[0]) > Card.getRank(quads[0])) {
+				if (Cards.getRank(pair[0]) > Cards.getRank(quads[0])) {
 					hair = [pair[0],pair[1]];
 					back = [quads[0],quads[1],quads[2],quads[3],extras[0]];
 					brief = '5 kind';
@@ -682,7 +682,7 @@ Paigow = {
 				back = [quads[0],quads[1],quads[2],quads[3],extras[1]];
 			} else {
 				// quads without a joker follow some rules
-				var quad_name = Card.getName(quads[0]);
+				var quad_name = Cards.getName(quads[0]);
 				switch(quad_name) {
 					// quad ace, king, queen always split
 					case 'ace':
@@ -696,7 +696,7 @@ Paigow = {
 					case 'jack':
 					case 'ten':
 					case 'nine':
-						if (Card.getRank(extras[0]) >= Card.getRank('king')) {
+						if (Cards.getRank(extras[0]) >= Cards.getRank('king')) {
 							hair = [extras[0],extras[1]];
 							back = [quads[0],quads[1],quads[2],quads[3],extras[2]];
 						} else {
@@ -709,7 +709,7 @@ Paigow = {
 					case 'eight':
 					case 'seven':
 					case 'six':
-						if (Card.getRank(extras[0]) >= Card.getRank('queen')) {
+						if (Cards.getRank(extras[0]) >= Cards.getRank('queen')) {
 							hair = [extras[0],extras[1]];
 							back = [quads[0],quads[1],quads[2],quads[3],extras[2]];
 						} else {
@@ -778,7 +778,7 @@ Paigow = {
 						// joker part of either set of extras means natural straight
 						if (extras1.indexOf('joker_one') != -1 || extras2.indexOf('joker_one') != -1) {
 							// if the first set of extras is a pair then use that one
-							if (Card.getName(extras1[0]) == Card.getName(extras1[1])) {
+							if (Cards.getName(extras1[0]) == Cards.getName(extras1[1])) {
 								hair = extras1;
 								back = straight1;
 							} else {
@@ -792,7 +792,7 @@ Paigow = {
 						}
 					} else {
 						// if the first set of extras is a pair then use that one
-						if (Card.getName(extras1[0]) == Card.getName(extras1[1])) {
+						if (Cards.getName(extras1[0]) == Cards.getName(extras1[1])) {
 							hair = extras1;
 							back = straight1;
 						} else {
@@ -814,9 +814,9 @@ Paigow = {
 						back = straight2;
 					}
 					// joker is 2nd card in both extras means both are paired up
-					if (Card.getName(extras1[1]) == 'joker' && Card.getName(extras2[1]) == 'joker') {
+					if (Cards.isJoker(extras[1]) && Cards.isJoker(extras[2])) {
 						// first extras is higher use that one
-						if (Card.getRank(extras1[0]) > Card.getRank(extras2[0])) {
+						if (Cards.getRank(extras1[0]) > Cards.getRank(extras2[0])) {
 							hair = extras1;
 							back = straight1;
 						} else {
@@ -1043,7 +1043,7 @@ Paigow = {
 						// joker part of either set of extras means natural straight_flush
 						if (extras1.indexOf('joker_one') != -1 || extras2.indexOf('joker_one') != -1) {
 							// if the first set of extras is a pair then use that one
-							if (Card.getName(extras1[0]) == Card.getName(extras1[1])) {
+							if (Cards.getName(extras1[0]) == Cards.getName(extras1[1])) {
 								hair = extras1;
 								back = straight_flush1;
 							} else {
@@ -1057,7 +1057,7 @@ Paigow = {
 						}
 					} else {
 						// if the first set of extras is a pair then use that one
-						if (Card.getName(extras1[0]) == Card.getName(extras1[1])) {
+						if (Cards.getName(extras1[0]) == Cards.getName(extras1[1])) {
 							hair = extras1;
 							back = straight_flush1;
 						} else {

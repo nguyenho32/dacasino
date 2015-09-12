@@ -23,9 +23,9 @@ Poker = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	sort:function(array) {
 		var sorted = [];
-		for (var k=0; k<Card.names.length;k++) {
-			for (var i=0; i<Card.suits.length; i++) {
-				var check = Card.names[k]+'_'+Card.suits[i];
+		for (var k=0; k<Cards.names.length;k++) {
+			for (var i=0; i<Cards.suits.length; i++) {
+				var check = Cards.names[k]+'_'+Cards.suits[i];
 				if (array.indexOf(check) != -1) {
 					sorted.push(check);
 				}
@@ -124,8 +124,8 @@ Poker = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	createNatural:function(type,opt) {
 		var hand = [];
-		var suits = Card.suits.slice();
-		var names = Card.names.slice();
+		var suits = Cards.suits.slice();
+		var names = Cards.names.slice();
 		// do a random insert
 		if (opt == 'random') {
 			var opts = ['0-pair','1-pair','2-pair','trips'];
@@ -213,7 +213,7 @@ Poker = {
 				if (hand.length == 5) {
 					name = match[Math.round(Math.random()*(match.length-1))];
 				} else {
-					name = Card.getName(hand[hand.length-1]);
+					name = Cards.getName(hand[hand.length-1]);
 				}
 			}
 			// the card we have generated
@@ -252,8 +252,8 @@ Poker = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	createQuads:function(opt) {
 		var hand = [];
-		var suits = Card.suits.slice();
-		var names = Card.names.slice();
+		var suits = Cards.suits.slice();
+		var names = Cards.names.slice();
 		// do a random insert
 		if (opt == 'random') {
 			var opts = ['0-pair','1-pair','trips'];
@@ -291,7 +291,7 @@ Poker = {
 			// insert trips
 			if (opt == 'trips') {
 				if (hand.length != 4) {
-					name = Card.getName(hand[hand.length-1]);
+					name = Cards.getName(hand[hand.length-1]);
 				}
 			}
 			var card = name+'_'+suit;
@@ -310,8 +310,8 @@ Poker = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	createTrips:function(opt) {
 		var hand = [];
-		var suits = Card.suits.slice();
-		var names = Card.names.slice();
+		var suits = Cards.suits.slice();
+		var names = Cards.names.slice();
 		// do a random insert
 		if (opt == 'random') {
 			var opts = ['0-pair','1-pair','2-pair','trips'];
@@ -357,7 +357,7 @@ Poker = {
 			// insert trips
 			if (opt == 'trips') {
 				if (hand.length == 4 || hand.length == 5) {
-					name = Card.getName(hand[hand.length-1]);
+					name = Cards.getName(hand[hand.length-1]);
 				}
 				// prevent quads
 				if (hand.length == 6) {
@@ -398,8 +398,8 @@ Poker = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	createPairs:function(opt) {
 		var hand = [];
-		var suits = Card.suits.slice();
-		var names = Card.names.slice();
+		var suits = Cards.suits.slice();
+		var names = Cards.names.slice();
 		// do a random insert
 		if (opt == 'random') {
 			var opts = ['1-pair','2-pair','3-pair'];
@@ -477,8 +477,8 @@ Poker = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	createNothing:function() {
 		var hand = [];
-		var suits = Card.suits.slice();
-		var names = Card.names.slice();
+		var suits = Cards.suits.slice();
+		var names = Cards.names.slice();
 
 		// build the the hand
 		var match = [];
@@ -610,8 +610,8 @@ Poker = {
 		// array of names
 		var flush_names = [];
 		for (var i=0; i<flush.length; i++) {
-			var suit = Card.getSuit(flush[i]);
-			var name = Card.getName(flush[i]);
+			var suit = Cards.getSuit(flush[i]);
+			var name = Cards.getName(flush[i]);
 			flush_names.push(name);
 			
 			if (suit != 'one' && !master) {
@@ -629,14 +629,14 @@ Poker = {
 			// loop the straight and match names to the flush
 			for (var n=0; n<straight.length; n++) {
 				// match this item in the straight to something in the flush_names
-				if (flush_names.indexOf(Card.getName(straight[n])) != -1) {
+				if (flush_names.indexOf(Cards.getName(straight[n])) != -1) {
 //					console.log('this item of the straight is in the flush names...');
 					// now see if the whole thing matches
 					if (flush.indexOf(straight[n]) != -1) {
 //						console.log('full match adding to straight-flush...',straight[n]);
 						sf.push(straight[n]);
 					} else {
-						var card = Card.getName(straight[n])+'_'+master;
+						var card = Cards.getName(straight[n])+'_'+master;
 //						console.log('not a full match, checking for other match...',card);
 						if (cards.indexOf(card) != -1) {
 //							console.log('other match found...');
@@ -655,7 +655,7 @@ Poker = {
 			if (sf.length == 4 && joker && available) {
 //				console.log('adding joker');
 				// top card not an ace, put joker on top
-				if (Card.getName(sf[0]) != 'ace') {
+				if (Cards.getName(sf[0]) != 'ace') {
 //					console.log('added to the top');
 					sf.unshift('joker_one');
 				} else {
@@ -664,7 +664,7 @@ Poker = {
 						var card = sf[k];
 						var next = sf[k+1];
 						// place joker if necessary
-						if (Card.getRank(card) != Card.getRank(next) +1) {
+						if (Cards.getRank(card) != Cards.getRank(next) +1) {
 							sf.splice(k+1,0,'joker_one');
 							break;
 						}
@@ -693,7 +693,7 @@ Poker = {
 			// joker is available
 			var joker_available = (joker_present) ? true : false;
 			// last time running loop and this card not a 5 no reason to continue
-			if (i == 3 && Card.getName(cards[i]) != 'five') {
+			if (i == 3 && Cards.getName(cards[i]) != 'five') {
 				break;
 			}
 			// add this item to the straight
@@ -702,16 +702,16 @@ Poker = {
 			for (var k=i+1; k<cards.length; k++) {
 				// this card
 				var card = cards[k];
-				var this_rank = Card.getRank(card);
+				var this_rank = Cards.getRank(card);
 				// last item in straight
 				var last = straight[straight.length-1];
-				var last_rank = Card.getRank(last);
+				var last_rank = Cards.getRank(last);
 
 				// this rank is one less than last rank
 				if (this_rank == last_rank-1) {
 					straight.push(card);
 					// 5 card straight with available joker and natural pair at the bottom
-					if (straight.length == 5 && joker_available && Card.getName(card) == Card.getName(cards[k+1])) {
+					if (straight.length == 5 && joker_available && Cards.getName(card) == Cards.getName(cards[k+1])) {
 						// otherwise put in the front
 						var new_straight = straight.slice();
 						new_straight.unshift('joker_one');
@@ -726,7 +726,7 @@ Poker = {
 						// straight length less than 4
 						if (straight.length < 4) {
 							// first card in straight is 5, this card is 3 and we have ace + joker make a wheel
-							if (straight.length == 3 && Card.getName(straight[0]) == 'five' && Card.getName(straight[2]) == 'three' && Card.getName(cards[0]) == 'ace') {
+							if (straight.length == 3 && Cards.getName(straight[0]) == 'five' && Cards.getName(straight[2]) == 'three' && Cards.getName(cards[0]) == 'ace') {
 								joker_available = false;
 								straight.push('joker_one');
 								straight.push(cards[0]);
@@ -746,7 +746,7 @@ Poker = {
 					}
 				}
 				// straight is 4 cards long, top card in straight is 5, last card is a 2 and ace present so make a wheel
-				if (straight.length == 4 && Card.getName(straight[0]) == 'five' && Card.getName(card) == 'two' && Card.getName(cards[0]) == 'ace') {
+				if (straight.length == 4 && Cards.getName(straight[0]) == 'five' && Cards.getName(card) == 'two' && Cards.getName(cards[0]) == 'ace') {
 					straight.push(cards[0]);
 				}
 				// straight more than 5 for some reason, so cut the end off 
@@ -763,7 +763,7 @@ Poker = {
 			if (straight.length == 4 && joker_present && joker_available) {
 				joker_available = false;
 				// if top card is an ace, then put in the back
-				if (Card.getName(straight[0]) == 'ace') {
+				if (Cards.getName(straight[0]) == 'ace') {
 					straight.push('joker_one');
 				} else {
 					// otherwise put in the front
@@ -779,12 +779,12 @@ Poker = {
 				var this_straight = straights[i];
 				var next_straight = straights[i-1];
 				// if the 1st cards match then get rid of it
-				if (Card.getName(this_straight[0]) == Card.getName(next_straight[0])) {
+				if (Cards.getName(this_straight[0]) == Cards.getName(next_straight[0])) {
 					straights.splice(i-1,1);
 					continue;
 				}
 				// first card is joker, then match up the 2nd cards
-				if (Card.getName(this_straight[0]) == 'joker' && Card.getName(this_straight[1]) == Card.getName(next_straight[1])) {
+				if (Cards.isJoker(this_straight[0]) && Cards.getName(this_straight[1]) == Cards.getName(next_straight[1])) {
 					straights.splice(i,1);
 				}
 			}
@@ -803,7 +803,7 @@ Poker = {
 		// 5 card minimum for flush
 		var count = (cards.indexOf('joker_one') > 0) ? 4 : 5;
 		for (var i=0;i<cards.length;i++) {
-			switch(Card.getSuit(cards[i])) {
+			switch(Cards.getSuit(cards[i])) {
 				case 'heart':
 					hearts.push(cards[i]);
 					if (hearts.length >= count) {
@@ -835,7 +835,7 @@ Poker = {
 		// joker present so place it correctly
 		if (count == 4 && flush.length > 0) {
 			// top card not an ace, put joker on top
-			if (Card.getName(flush[0]) != 'ace') {
+			if (Cards.getName(flush[0]) != 'ace') {
 				flush.unshift('joker_one');
 			} else {
 				// sub loop goes through whats left
@@ -845,7 +845,7 @@ Poker = {
 					var next = flush[i+1];
 
 					// place joker if necessary
-					if (Card.getRank(card) != Card.getRank(next) +1) {
+					if (Cards.getRank(card) != Cards.getRank(next) +1) {
 						flush.splice(i+1,0,'joker_one');
 						break;
 					}
