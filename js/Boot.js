@@ -18,7 +18,7 @@ var Casino = {
 	
 	game:{
 		thing:{},
-		mode:'compare',
+		mode:'practice',
 		hair_chosen:[],
 		hand_data:{},
 		group_player:{},
