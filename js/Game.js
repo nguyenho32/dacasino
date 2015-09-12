@@ -796,41 +796,45 @@ Casino.Game.prototype = {
 				}
 			}
 		}
-		var HAND_Y = 50;
-		var spacer = 190;
+		var scale = 0.75;
+		var bank_x = 0;
+		var bank_y = 40;
+		var space_x = 100;
+		var space_y = 135;
 		var cards = hand.shuffled;
 		// finally create the actual cards for display
 		for (var i=0;i<cards.length;i++) {
 			var key = cards[i]
 			var card = this.add.sprite(0,0,'cards',key);
+			card.scale.setTo(scale,scale);
 			card.key = key;
 			if (card.key == hair[0]) {
-				card.x = 10;
-				card.y = HAND_Y;
+				card.x = bank_x;
+				card.y = bank_y;
 			}
 			if (card.key == hair[1]) {
-				card.x = 140;
-				card.y = HAND_Y;
+				card.x = bank_x+space_x*1;
+				card.y = bank_y;
 			}
 			if (card.key == back[0]) {
-				card.x = 10;
-				card.y = HAND_Y+spacer;
+				card.x = bank_x;
+				card.y = bank_y+space_y;
 			}
 			if (card.key == back[1]) {
-				card.x = 140;
-				card.y = HAND_Y+spacer;
+				card.x = bank_x+space_x*1;
+				card.y = bank_y+space_y;
 			}
 			if (card.key == back[2]) {
-				card.x = 270;
-				card.y = HAND_Y+spacer;
+				card.x = bank_x+space_x*2;
+				card.y = bank_y+space_y;
 			}
 			if (card.key == back[3]) {
-				card.x = 400;
-				card.y = HAND_Y+spacer;
+				card.x = bank_x+space_x*3;
+				card.y = bank_y+space_y;
 			}
 			if (card.key == back[4]) {
-				card.x = 530;
-				card.y = HAND_Y+spacer;
+				card.x = bank_x+space_x*4;
+				card.y = bank_y+space_y;
 			}
 			this.group_player.add(card);
 		}
@@ -853,45 +857,49 @@ Casino.Game.prototype = {
 		hand.poker = Poker.solve(hand.sorted);
 		hand.paigow = Paigow.solve(hand.poker);
 
-		var BANK_Y = 400;
-		var spacer = 190;
+		var scale = 0.7;
+		var bank_x = 530;
+		var bank_y = 40;
+		var space_x = 90;
+		var space_y = 130;
 		var hair = hand.paigow.hair;
 		var back = hand.paigow.back;;
 		var cards = hand.sorted;
 		for (var i=0;i<hand.original.length;i++) {
 			var key = hand.original[i]
 			var card = this.add.sprite(0,0,'cards',key);
+			card.scale.setTo(scale,scale);
 			card.key = key;
 //			card.inputEnabled = true;
 //			card.input.useHandCursor = true;
 //			card.events.onInputDown.add(Cards.cardClicked,card);
 			if (card.key == hair[0]) {
-				card.x = 10;
-				card.y = BANK_Y;
+				card.x = bank_x;
+				card.y = bank_y;
 			}
 			if (card.key == hair[1]) {
-				card.x = 140;
-				card.y = BANK_Y;
+				card.x = bank_x+space_x*1;
+				card.y = bank_y;
 			}
 			if (card.key == back[0]) {
-				card.x = 10;
-				card.y = BANK_Y+spacer;
+				card.x = bank_x;
+				card.y = bank_y+space_y;
 			}
 			if (card.key == back[1]) {
-				card.x = 140;
-				card.y = BANK_Y+spacer;
+				card.x = bank_x+space_x*1;
+				card.y = bank_y+space_y;
 			}
 			if (card.key == back[2]) {
-				card.x = 270;
-				card.y = BANK_Y+spacer;
+				card.x = bank_x+space_x*2;
+				card.y = bank_y+space_y;
 			}
 			if (card.key == back[3]) {
-				card.x = 400;
-				card.y = BANK_Y+spacer;
+				card.x = bank_x+space_x*3;
+				card.y = bank_y+space_y;
 			}
 			if (card.key == back[4]) {
-				card.x = 530;
-				card.y = BANK_Y+spacer;
+				card.x = bank_x+space_x*4;
+				card.y = bank_y+space_y;
 			}
 			this.group_bank.add(card);
 		}
