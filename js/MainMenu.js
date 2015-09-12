@@ -2,14 +2,21 @@ Casino.MainMenu = function(game) {};
 Casino.MainMenu.prototype = {
 	create: function() {
 		// create buttons for the main menu
-		var menu = ["info","learn","practice","compare","speed","timed","debug"]
+		var menu = ["info","learn","practice","compare","speed","timed","debug"];
+		var sprite = this.add.sprite(0,0);
+		var width;
 		for (var i=0; i<menu.length; i++) {
 			var btn = this.createButton(menu[i],this.startGame);
 			btn.key = menu[i];
-			btn.x = 0 + (i*115);
+			btn.x = 0 + i*115;
 			btn.y = 0;
+			console.log(btn.key,btn.x);
+			sprite.addChild(btn);
 		}
-
+		console.log(Casino._WIDTH / 2);
+		console.log(sprite.getChildAt(0));
+		sprite.x = (Casino._WIDTH / 2) - (menu.length*113 / 2);
+		
 		// create a text box for game related information
 		var sprite = this.add.sprite(0,0);
 		var gfx = this.add.graphics(0,0);
@@ -73,24 +80,13 @@ Casino.MainMenu.prototype = {
 		stat_info_box = this.add.text(600, 70, txt, style);
 		stat_info_box.anchor.setTo(0.5,0);
 		sprite.addChild(stat_info_box);
+		sprite.x = (Casino._WIDTH / 2) - (sprite.getChildAt(0).width / 2);
 		// place the information area
-		sprite.x = 10;
 		sprite.y = 40;
-
-
-		/*
-		this.gameTitle = this.add.sprite(Casino._WIDTH*0.5, 40, 'title');
-		this.gameTitle.anchor.set(0.5,0);
-		this.startButton = this.add.button(Casino._WIDTH*0.5, 200, 'button-start', this.startGame, this, 2, 0, 1);
-		this.startButton.anchor.set(0.5,0);
-		this.startButton.input.useHandCursor = true;
-		*/
-
-		// button to "read the article"
 	},
 	startGame: function(pointer) {
 		console.log(pointer.key);
-//		this.game.state.start('Howto');
+		this.game.state.start('Game');
 	},
 	createButton: function(txt,callback,arg) {
 		var sprite = this.add.sprite(0,0);

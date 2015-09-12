@@ -1,6 +1,6 @@
 var Casino = {
-	_WIDTH: 1000,
-	_HEIGHT: 480,
+	_WIDTH: 1280,
+	_HEIGHT: 800,
 
 		/*
 		color scheme - brown
