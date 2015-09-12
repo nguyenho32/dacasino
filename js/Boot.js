@@ -1,5 +1,5 @@
 var Casino = {
-	_WIDTH: 320,
+	_WIDTH: 1000,
 	_HEIGHT: 480,
 
 		/*
