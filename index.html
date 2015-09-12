@@ -7,7 +7,12 @@
 	<script type="text/javascript" src="js/Cards.js"></script>
 	<script type="text/javascript" src="js/Poker.js"></script>
 	<script type="text/javascript" src="js/Paigow.js"></script>
-	
+
+	<script type="text/javascript" src="js/Boot.js"></script>
+	<script type="text/javascript" src="js/Preloader.js"></script>
+	<script type="text/javascript" src="js/MainMenu.js"></script>
+	<script type="text/javascript" src="js/Howto.js"></script>
+	<script type="text/javascript" src="js/Game.js"></script>
 
 	<style type="text/css">
 		body {
@@ -27,7 +32,18 @@
 </head>
 
 <body>
+<script>
+(function() {
+	var game = new Phaser.Game(800,600,Phaser.CANVAS,'game');
+	game.state.add('Boot',Casino.Boot);
+	game.state.add('Preloader',Casino.Preloader);
+	game.state.add('MainMenu',Casino.MainMenu);
+	game.state.add('Game',Casino.Game);
+	game.state.start('Boot');
+}());
+</script>
 
+<!--
 <script>
 	/******************************************************************************************************************************************
 		GLOBAL STUFF
@@ -1365,5 +1381,6 @@
 
 	}
 </script>
+-->
 </body>
 </html>
