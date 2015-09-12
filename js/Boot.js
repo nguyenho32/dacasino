@@ -13,8 +13,18 @@ var Casino = {
 	// information background
 	_INFO_BG: 0x604409,
 	// information text
-	_INFO_TXT: '#F4D38D'
+	_INFO_TXT: '#F4D38D',
 
+	
+	game:{
+		thing:{},
+		mode:'compare',
+		hair_chosen:[],
+		hand_data:{},
+		group_player:{},
+		group_bank:{},
+		level:{main:'random',sub:'random+random'}
+	}
 };
 Casino.Boot = function(game) {};
 Casino.Boot.prototype = {

@@ -1,24 +1,146 @@
 Casino.Game = function(game) {};
 Casino.Game.prototype = {
-	group_bank:{},
-	group_player:{},
-	
+	btn_next:{},
+	btnDisplay:function(opt) {
+		switch(opt) {
+			case 'next':
+				this.btn_next.visible = true;
+				break;
+			default:
+				this.btn_next.visible = false;
+				this.btn_help.visible = false;
+				break;
+		}
+	},
+	// text stuff
+	txtMainInfo:function(str,opt) {
+		var txt = this.txt_main_info;
+		if (opt) {
+			txt.text = txt.text+' '+str;
+		} else {
+			txt.text = str;
+		}
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// clock stuff
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	txt_clock:{},
+	updateClock:function(dir) {
+		var finish;
+		var reset;
+		var clock = this.clock;
+		if (dir == 'down') {
+			this.clock -= 1;
+			finish = 0;
+			reset = 30;
+		} else {
+			this.clock += 1;
+			finish = 30;
+			reset = 0;
+		}
+		if (this.clock === finish) {
+			this.clock = reset;
+			this.txt_clock.text = "done"
+			this.time.events.remove(this.clockEvent);
+			this.gameEnd();
+		} else {
+			this.txt_clock.text = 'clock:' + this.clock;
+		}
+	},
+	/*
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// update stats
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	function fnUpdateStats() {
+		var txt = 'stats\n';
+		txt += 'hands: '+hand_count+'\n';
+		txt += 'tries: '+hand_tries+'\n';
+		stat_info_box.text = txt;
+	}
+	*/
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// creation
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	create:function() {
+		// holy fuckity fuck!!!
+		Casino.game.thing = this;
+		// create some display groups
+		Casino.game.group_bank = Casino.game.thing.add.group();
+		Casino.game.group_player = Casino.game.thing.add.group();
+		this.clock = 0;
+		this.clockEvent;
+		/*
+			top ui elements
+		*/
 		// button for returning to the menu
 		var btn = this.createButton('menu',this.mainMenu);
 		btn.key = 'menu';
 		btn.x = 0;
 		btn.y = 0;
+		// button for starting a game
+		var btn = this.createButton('start',this.btnHandler);
+		this.btn_start = btn;
+		btn.key = 'start';
+		btn.x = 890;
+		btn.y = 0;
+		// create a text box for game related information
+		var sprite = Casino.game.thing.add.sprite(0,0);
+		sprite.x = 120;
+		sprite.y = 0;
+		var gfx = Casino.game.thing.add.graphics(0,0);
+		gfx.beginFill(Casino._INFO_BG,1);
+		gfx.drawRect(0,0,760,25);
+		sprite.addChild(gfx);
+		var style = { font: '12pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: false };
+		var txt = 'mode: '+Casino.game.mode;
+		this.txt_main_info = Casino.game.thing.add.text(5, 5, txt, style);	
+		sprite.addChild(this.txt_main_info);
 
+		/*
+			bottom ui elements
+		*/
+		// button to get help
+		var btn = this.createButton('help',this.btnHandler);
+		this.btn_help = btn;
+		btn.key = 'help';
+		btn.x = 0;
+		btn.y = 375;
+		// button for getting the next hand
+		var btn = this.createButton('next',this.btnHandler);
+		this.btn_next = btn;
+		btn.key = 'next';
+		btn.x = 890;
+		btn.y = 375;
+		// create a text box for stat related information
+		var sprite = Casino.game.thing.add.sprite(0,0);
+		sprite.x = 120;
+		sprite.y = 375;
+		var gfx = Casino.game.thing.add.graphics(0,0);
+		gfx.beginFill(Casino._INFO_BG,1);
+		gfx.drawRect(0,0,760,25);
+		sprite.addChild(gfx);
+		// stat information box
+		var style = { font: '12pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: true, wordWrapWidth: 400 };
+		var txt = 'total hands: 0 || tries per hand: ';
+		stat_info_box = Casino.game.thing.add.text(5, 5, txt, style);
+		sprite.addChild(stat_info_box);
+
+		// clock information box
+		var gfx = Casino.game.thing.add.graphics(0,0);
+//		gfx.beginFill(0xCC0000,1);
+//		gfx.drawRect(630,0,130,25);
+//		sprite.addChild(gfx);
+		var style = { font: '12pt Courier', fill: Casino._INFO_TXT, align: 'right', wordWrap: true, wordWrapWidth: 160 };
+		var txt = 'clock: 00:00:00';
+		this.txt_clock = Casino.game.thing.add.text(610, 5, txt, style);
+		sprite.addChild(this.txt_clock);
 
 		// group for holding player stuff
-		this.group_player = this.add.group();
+		this.group_player = Casino.game.thing.add.group();
 		// group for holding bank stuff
-		this.group_bank = this.add.group();
+		this.group_bank = Casino.game.thing.add.group();
 
+		/*
 		// button for showing normal way
 		var btn = this.createButton('normal',this.btnDisplayHand);
 		btn.key = 'normal';
@@ -34,78 +156,26 @@ Casino.Game.prototype = {
 		btn.key = 'compare';
 		btn.x = 500;
 		btn.y = 0;
-		/*
-		// create a text box for game related information
-		var sprite = this.add.sprite(0,0);
-		var gfx = this.add.graphics(0,0);
-		gfx.beginFill(Casino._INFO_BG,1);
-		gfx.drawRect(0,0,650,200);
-		sprite.addChild(gfx);
-		// main information box
-		var gfx = this.add.graphics(0,0);
-		gfx.beginFill(0x0000CC,1);
-		gfx.drawRect(0,0,550,25);
-		sprite.addChild(gfx);
-		var style = { font: '12pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: false };
-		var txt = 'Welcome to Da Casino (alpha 1.0)'
-		main_info_box = this.add.text(0, 0, txt, style);	
-		sprite.addChild(main_info_box);
-		// game information box (show rules and stuff)
-		var gfx = this.add.graphics(0,0);
-		gfx.beginFill(0x00CCCC,1);
-		gfx.drawRect(0,25,550,90);
-		sprite.addChild(gfx);
-		var style = { font: '10pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: true, wordWrapWidth: 550 };
-		var txt = 'Click a button above to begin'
-		game_info_box = this.add.text(0, 25, txt, style);	
-		sprite.addChild(game_info_box);
-		// hand information box
-		var gfx = this.add.graphics(0,0);
-		gfx.beginFill(0x00CC00,1);
-		gfx.drawRect(0,120,550,80);
-		sprite.addChild(gfx);
-		var style = { font: '10pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: true, wordWrapWidth: 550 };
-		var txt = '\nrule:\nbonus:\ndesc:';
-		hand_info_box = this.add.text(0,120, txt, style);
-		sprite.addChild(hand_info_box);
-		// clock information box
-		var gfx = this.add.graphics(0,0);
-		gfx.beginFill(0xCC0000,1);
-		gfx.drawRect(550,0,100,70);
-		sprite.addChild(gfx);
-		var style = { font: '10pt Courier', fill: Casino._INFO_TXT, align: 'center', wordWrap: true, wordWrapWidth: 100 };
-		var txt = 'clock'
-		clock_info_box = this.add.text(600, 0, txt, style);
-		clock_info_box.anchor.setTo(0.5,0);
-		sprite.addChild(clock_info_box);
-		// stat information box
-		var gfx = this.add.graphics(0,0);
-		gfx.beginFill(0xCC00CC,1);
-		gfx.drawRect(550,70,100,130);
-		sprite.addChild(gfx);
-		var style = { font: '10pt Courier', fill: Casino._INFO_TXT, align: 'center', wordWrap: true, wordWrapWidth: 100 };
-		var txt = 'stats'
-		stat_info_box = this.add.text(600, 70, txt, style);
-		stat_info_box.anchor.setTo(0.5,0);
-		sprite.addChild(stat_info_box);
-		// place the information area
-		sprite.x = 10;
-		sprite.y = 40;
 		*/
+		
+		this.initMode(Casino.game.mode);
+		this.btnDisplay('hide');
 	},
-	btnDisplayHand: function (btn) {
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// button handler
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	btnHandler: function (btn) {
 		var key = btn.key;
 		switch(key) {
-			case 'houseway':
-				var hand = this.createHand();
-				this.displayHouseWay(hand);
-			break;
-			case 'compare':
-				this.displayCompareHands();
+			case 'next':
+				this.gameCreateHand();
 				break;
+			case 'start':
+				this.gameStart();
+				break;
+			case 'help':
 			default:
-				var hand = this.createHand();
-				this.displayNormalWay(hand);
+				console.log('btnHandler broke: ',key);
 			break;
 		}
 	},
@@ -113,15 +183,14 @@ Casino.Game.prototype = {
 	// create a button
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	createButton: function(txt,callback,arg) {
-		console.log('creating: ',txt,callback,arg);
-		var sprite = this.add.sprite(0,0);
-		var gfx = this.add.graphics(0,0);
+		var sprite = Casino.game.thing.add.sprite(0,0);
+		var gfx = Casino.game.thing.add.graphics(0,0);
 		gfx.beginFill(Casino._BTN_BG,1);
 		gfx.drawRect(0,0,113,25);
 		gfx.name = 'graphic';
 		sprite.addChild(gfx);
 		var style = { font: '12pt Courier', fill: Casino._BTN_TXT, align: 'center', wordWrap: true, wordWrapWidth: 100 };
-		var text = this.add.text(50, 4, txt, style);	
+		var text = Casino.game.thing.add.text(50, 4, txt, style);	
 		text.anchor.setTo(0.5,0);
 		text.inputEnabled = true;
 		sprite.addChild(text);
@@ -144,171 +213,298 @@ Casino.Game.prototype = {
 	/******************************************************************************************************************************************
 		MAIN MENU STUFF
 	******************************************************************************************************************************************/
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// game information
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	gameInfo:function() {
-		// clear any cards / timers etc
-		fnResetBoard();
-		// hide the learn group
-		group_buttons_level.visible = false;
-		// hide the compare group
-		group_buttons_compare.visible = false;
-		// hide the start / next / example buttons
-		btn_start.visible = false;
-		btn_next.visible = false;
-		btn_example.visible = false;
-		// set the message
-		main_info_box.text = 'Welcome to Da Casino (alpha 1.0)';
-		// give some helpful info
-		var txt = 'This is where i\'ll put information about the game of pai-gow';
-		game_info_box.text = txt;
+	initMode:function (init) {
+		// all ui elements created now initialize the game
+		switch(Casino.game.mode) {
+			case 'learn':
+				console.log('modeLearn');
+				this.txtMainInfo('- learn how to play pai-gow','a');
+				/*
+				// clear any cards / timers etc
+				fnResetBoard();
+				if (game_learn_main_level == 'mastered') {
+					var txt = 'You have already mastered the game of pai-gow\n';
+					txt += 'Select another option from above to continue your mastery';
+					game_info_box.text = txt;
+					return;
+				}
+				// show the learn group
+				group_buttons_level.visible = true;
+				// hide the start / next / example buttons
+				btn_start.visible = false;
+				btn_next.visible = false;
+				btn_example.visible = false;
+				// set the game mode
+				game_mode = 'learn';
+				// set the main level
+				if (!game_learn_main_level) {
+					game_learn_main_level = 'pai-gow';
+				}
+				// set the sub level
+				if (!game_learn_sub_level) {
+					game_learn_sub_level = 'nothing';
+				}
+
+				// main keys + index
+				var main_keys = Object.keys(Paigow.rules);
+				var main_index = main_keys.indexOf(game_learn_main_level);
+				// sub keys + index
+				var sub_keys = Object.keys(Paigow.rules[game_learn_main_level]);
+				var sub_index = sub_keys.indexOf(game_learn_sub_level);
+
+				group_buttons_level.visible = true;
+				group_buttons_level.forEach(function(btn) {
+					btn.visible = false;
+					// this buttons key is the same or less than the main index
+					if (main_keys.indexOf(btn.main_key) <= main_index) {
+						// button has no sub key then show it
+						if (!btn.sub_key) {
+							btn.visible = true;
+						}
+						// this buttons sub key is the same or less than sub index
+						if (sub_keys.indexOf(btn.sub_key) <= sub_index) {
+							btn.visible = true;
+						}
+					}
+				},this);
+
+				// set the message
+				this.txt_main_info.text = 'learn how to play pai-gow';
+				// give some helpful info
+				var txt = 'click the \''+game_learn_sub_level+'\' button in the \''+game_learn_main_level+'\' row on your right to begin\n';
+				txt += 'once the game begins, click the \'start\' button to start setting hands\n';
+				txt += 'click the \'example\' button if you get stuck\n';
+				game_info_box.text = txt;
+				hand_info_box.text = 'progress to next level after 10 hands';
+				*/
+				break;
+			case 'practice':
+				this.txtMainInfo('- practice setting random hands','a');
+				Casino.game.level.main = 'random';
+				Casino.game.level.sub = 'random+random';
+				break;
+			case 'compare':
+				this.txtMainInfo('- practice comparing hands','a');
+				break;
+			case 'speed':
+				console.log('modeSpeed');
+				this.txtMainInfo('- take a speed test','a');
+				break;
+			case 'timed':
+				this.txtMainInfo('- how many hands can you read in 30 seconds','a');
+				// hide the next button
+				this.btn_next.visible = false;
+				break;
+			case 'debug':
+				this.debugCreateMultiple();
+				break;
+		}
 	},
-	/*
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// learn some pai-gow
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function fnGameLearn() {
-		// clear any cards / timers etc
-		fnResetBoard();
-		if (game_learn_main_level == 'mastered') {
-			var txt = 'You have already mastered the game of pai-gow\n';
-			txt += 'Select another option from above to continue your mastery';
-			game_info_box.text = txt;
-			return;
-		}
-		// show the learn group
-		group_buttons_level.visible = true;
-		// hide the start / next / example buttons
-		btn_start.visible = false;
-		btn_next.visible = false;
-		btn_example.visible = false;
-		// set the game mode
-		game_mode = 'learn';
-		// set the main level
-		if (!game_learn_main_level) {
-			game_learn_main_level = 'pai-gow';
-		}
-		// set the sub level
-		if (!game_learn_sub_level) {
-			game_learn_sub_level = 'nothing';
-		}
-
-		// main keys + index
-		var main_keys = Object.keys(Paigow.rules);
-		var main_index = main_keys.indexOf(game_learn_main_level);
-		// sub keys + index
-		var sub_keys = Object.keys(Paigow.rules[game_learn_main_level]);
-		var sub_index = sub_keys.indexOf(game_learn_sub_level);
-
-		group_buttons_level.visible = true;
-		group_buttons_level.forEach(function(btn) {
-			btn.visible = false;
-			// this buttons key is the same or less than the main index
-			if (main_keys.indexOf(btn.main_key) <= main_index) {
-				// button has no sub key then show it
-				if (!btn.sub_key) {
-					btn.visible = true;
-				}
-				// this buttons sub key is the same or less than sub index
-				if (sub_keys.indexOf(btn.sub_key) <= sub_index) {
-					btn.visible = true;
-				}
-			}
-		},this);
-
-		// set the message
-		main_info_box.text = 'learn how to play pai-gow';
-		// give some helpful info
-		var txt = 'click the \''+game_learn_sub_level+'\' button in the \''+game_learn_main_level+'\' row on your right to begin\n';
-		txt += 'once the game begins, click the \'start\' button to start setting hands\n';
-		txt += 'click the \'example\' button if you get stuck\n';
-		game_info_box.text = txt;
-		hand_info_box.text = 'progress to next level after 10 hands';
-	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// practice hands
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function fnGamePractice() {
-		fnResetBoard();
-		// show the learn group
-		group_buttons_level.visible = true;
-		// show the start button, hide the next / example buttons
-		btn_start.visible = true;
-		btn_next.visible = false;
-		btn_example.visible = false;
-
-		game_mode = 'practice';
-		
-		game_practice_main_level = 'random';
-		game_practice_sub_level = 'random+random';
-
-		// show all the learn buttons
-		group_buttons_level.forEach(function(btn) {
-			btn.visible = true;
-		},this);
-		
-		// set the message
-		main_info_box.text = 'practice setting random hands';
-		// give some helpful info
-		var txt = 'click the \'start\' button to begin practicing randomized hands\n';
-		txt += 'if you wish to practice a specific type of hand select it from the buttons on the right';
-		game_info_box.text = txt;
-	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// practice comparing hands
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function fnGameCompare() {
-		fnResetBoard();
-		// hide the learn group
-		group_buttons_level.visible = false;
-		// hide the start / next / example buttons
-		btn_start.visible = false;
-		btn_next.visible = false;
-		btn_example.visible = false;
-
-		main_info_box.text = 'practice comparing hands';
-		game_info_box.text = 'coming soon';
-		game_mode = 'compare';
-		
-		fnCompareHand();
-	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// speed test
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function fnGameSpeed() {
-		fnResetBoard();
-		// hide the learn group
-		group_buttons_level.visible = false;
-		// hide the start / next / example buttons
-		btn_start.visible = false;
-		btn_next.visible = false;
-		btn_example.visible = false;
-
-		main_info_box.text = 'read and compare hands as fast as you can';
-		game_info_box.text = 'coming soon';
-		game_mode = 'speed';
-	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// as many hands as you can
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function fnGameTimed() {
-		fnResetBoard();
-		// hide the learn group
-		group_buttons_level.visible = false;
-		// show the start button
-		btn_start.visible = true;
-		// hide the next / example buttons
-		btn_next.visible = false;
-		btn_example.visible = false;
-
-		main_info_box.text = 'how many hands can you read in 30 seconds';
-		game_mode = 'timed';
-	}
-	*/
 	/******************************************************************************************************************************************
 		GAME RELATED FUNCTIONS
 	******************************************************************************************************************************************/
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// start a game
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	gameStart:function() {
+		this.displayReset();
+		
+		switch(Casino.game.mode) {
+			case 'learn':
+				console.log('set things up for learn mode');
+				break;
+			case 'practice':
+				this.gameCreateHand();
+				break;
+			case 'compare':
+				this.gameCompareHands();
+				break;
+			case 'speed':
+				console.log('set things up for learn mode');
+				break;
+			case 'timed':
+				this.clock = 30;
+				this.clockEvent = this.time.events.loop(Phaser.Timer.SECOND,this.updateClock,this,'down');
+				this.gameCreateHand();
+				break;
+		}
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// compare 2 hands?
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	gameCompareHands:function() {
+		// create a deck
+		var deck = Cards.deckCreate('standard',true,1);
+
+		// first show the hand normally
+
+		// hand set then show the next hand
+		
+		// this hand set now show both hands
+		var hand = Cards.handCreate(deck.splice(0,7));
+		hand.poker = Poker.solve(hand.sorted);
+		hand.paigow = Paigow.solve(hand.poker);
+		this.displayHand({type:'houseway',opt:{mode:'small',hand:hand}});
+
+		var hand = Cards.handCreate(deck.splice(0,7));
+		hand.poker = Poker.solve(hand.sorted);
+		hand.paigow = Paigow.solve(hand.poker);
+		this.displayHand({type:'bank',reset:'none',opt:{hand:hand}});
+
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// create and display a hand of cards
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	gameCreateHand:function() {
+		var type = 'random'
+		
+		var hand;
+		switch(Casino.game.mode) {
+			case 'learn':
+				var str = game_learn_sub_level.split('+');
+				var chance;
+				if (str[1] == 'joker') {
+					chance = 100;
+				} else {
+					chance = 0;
+				}
+				hand = Cards.handCreate(Poker.create(game_learn_main_level,chance,str[0]));
+				break;
+			case 'practice':
+				var str = Casino.game.level.sub.split('+');
+				var chance;
+				if (str[1] == 'joker') {
+					chance = 100;
+				} else {
+					chance = 0;
+				}
+				if (str[1] == 'random') {
+					chance = Math.random()*100;
+				}
+				// a specific hand to play with
+				// display broken
+//				var set = ["king_heart","queen_diamond","nine_spade","seven_spade","six_spade","five_spade","two_spade"];
+//				hand = Cards.handCreate(set);
+				hand = Cards.handCreate(Poker.create(Casino.game.level.main,chance,str[0]));
+			
+				break;
+			case 'timed':
+				hand = Cards.handCreate(Poker.create('random',50,'random'));
+				break;
+			default:
+				var type = 'random'
+				hand = Cards.handCreate(Poker.create('random',50,'random'));
+				break;
+		}
+		// create an array to hold chosen hair cards
+		Casino.game.hair_chosen = [];
+		// solve for poker
+		hand.poker = Poker.solve(hand.sorted);
+		// solve for pai-gow
+		hand.paigow = Paigow.solve(hand.poker);
+		// set the hand data
+		Casino.game.hand_data = hand;
+		// display the hand
+		Casino.game.thing.displayHand({type:'normal',opt:{hand:hand}});
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// handle selection of hair cards
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	gameSelectHair:function(card) {
+		var hair_chosen = Casino.game.hair_chosen;
+		// this card already selected, so unselect and remove it
+		if (hair_chosen.indexOf(card) != -1) {
+			card.y += 15;
+			hair_chosen.splice(hair_chosen.indexOf(card),1); 
+		} else {
+			card.y -= 15;
+			hair_chosen.push(card);
+		}
+		// selected 2 cards, check hair for correctness
+		if (hair_chosen.length == 2) {
+			that.prototype.gameCheckHair(hair_chosen);
+		}
+		// if hair not correct we are here so unselect the first in line
+		if (hair_chosen.length > 2) {
+			hair_chosen[0].y += 15;
+			hair_chosen.splice(0,1); 
+		}
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// check hair selection for correctness
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	gameCheckHair:function(hair_chosen) {
+		var hand = Casino.game.hand_data;
+
+		// chosen hair cards
+		var chosen = [hair_chosen[0].key,hair_chosen[1].key];
+		// actual hair cards
+		var hair = hand.paigow.hair;
+		// required is true by default
+		var required = true;
+		// hair is more than 2 cards and 1st one does not match 2nd one
+		if (hair.length > 2 && Cards.getName(hair[0]) != Cards.getName(hair[1])) {
+			if (chosen.indexOf(hair[0]) == -1) {
+				required = false;
+			}
+		}
+		if (required && (hair.indexOf(chosen[0]) != -1 && hair.indexOf(chosen[1]) != -1)) {
+			var txt = 'You chose the correct hair!\n';
+			txt += 'rule: '+hand.paigow.rule+'\n';
+			txt += 'bonus: '+hand.paigow.bonus+'\n';
+			txt += 'desc: '+hand.paigow.desc+'\n'
+			// place the cards
+			console.log('set the hand houseway');
+			this.displayHand({type:'houseway',opt:{hand:hand}});
+			Casino.game.thing.btnDisplay('next');
+		} else {
+			/*
+			hand_tries++;
+			fnUpdateStats();
+			if (hand_tries > 5) {
+				var txt = 'slow down & try reading the rule above again!\n';
+				txt += '* sometimes straights / flushes sneak into hands they shouldnt *\n';
+				txt += '* this is especially a problem with joker hands *';
+				txt += '* will be fixed in the next few days *';
+				hand_info_box.text = txt;
+			} else {
+				hand_info_box.text = 'Hair incorrect, try again :(';
+			}
+			*/
+			// reset the chosen hair cards
+			Casino.game.hair_chosen[0].y += 15;
+			Casino.game.hair_chosen.splice(0,1); 
+			Casino.game.hair_chosen[0].y += 15;
+			Casino.game.hair_chosen.splice(0,1);
+		}
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// end a game
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	gameEnd:function() {
+		console.log('gameEnd');
+		/*
+		btn_next.visible = false;
+		group_cards.destroy();
+		
+		// learn mode then display grats and return
+		if (game_mode == 'learn') {
+			btn_example.visible = false;
+			game_learn_main_level = 'mastered';
+			game_info_box.text = 'Congratulations you have mastered the game of pai-gow!';
+			hand_info_box.text = 'Wooooo!!!';
+			return;
+		}
+		var txt = 'Game Over!!!\n';
+		if (game_mode == 'timed') {
+			txt += 'You got '+hand_count+' hands correct!\n\n';
+		}
+		txt += 'Click start to go again!';
+		game_info_box.text = txt;
+		hand_info_box.text = '';
+		btn_start.visible = true;
+		*/
+	},
 	/*
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// select a level
@@ -426,226 +622,6 @@ Casino.Game.prototype = {
 		},this);
 		game_info_box.text = 'Congratultions you passed that level!\nClick the '+game_learn_sub_level+' button to continue';
 	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// compare 2 hands?
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function fnCompareHand(btn) {
-		deck = Deck.create('standard',true,1);
-		var hand = Cards.handCreate(deck.splice(0,7));
-		hand.poker = Poker.solve(hand.sorted);
-		hand.paigow = Paigow.solve(hand.poker);
-		fnDisplayHouseWay(hand);
-
-		var hand = Cards.handCreate(deck.splice(0,7));
-		hand.poker = Poker.solve(hand.sorted);
-		hand.paigow = Paigow.solve(hand.poker);
-		fnDisplayBankHand(hand);
-	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// start a speed or timed game
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function fnStartGame() {
-		fnResetBoard();
-		// hide the start button
-		btn_start.visible = false;
-
-		// learn game then show the rule
-		if (game_mode == 'learn') {
-			game_info_box.text = Paigow.rules[game_learn_main_level][game_learn_sub_level];
-		}
-		// practice mode then show what type of hand we are going to make
-		if (game_mode == 'practice') {
-			game_info_box.text = 'Creating hands of type: '+game_practice_main_level+' - '+game_practice_sub_level;
-		}
-		// speed game create a deck for use throughout
-		if (game_mode == 'speed') {
-			deck = Deck.create('standard',true,1);
-			clock_info_box.text = 'clock\n0';
-			clock = 0;
-			clockEvent = game.time.events.loop(Phaser.Timer.SECOND,updateClock,this,'up');
-		}
-		// timed game use a 30 second clock
-		if (game_mode == 'timed') {
-			clock_info_box.text = 'clock\n30';
-			clock = 30;
-			clockEvent = game.time.events.loop(Phaser.Timer.SECOND,updateClock,this,'down');
-		}
-		if (game_mode != 'learn') {
-			hand_count = 0;
-		}
-		
-		fnNextHand();
-	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// deal with the next hand
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function fnNextHand(data) {
-		btn_next.visible = false;
-		
-		// learn mode so handle things
-		if (game_mode == 'learn') {
-			// 10 hands then move onto the next level
-			if (hand_count > 10) {
-				game_level_complete = true;
-			}
-			// level complete so move onto the next one
-			if (game_level_complete) {
-				fnLevelProgress();
-				return;			
-			}
-		}
-		
-		main_info_box.text = 'click the cards you think belong in the hair';
-		hand_info_box.text = '';
-
-		// reset hand tries
-		hand_tries = 0;
-		// update the stat box
-		fnUpdateStats();
-		// increase hand count
-		hand_count += 1;
-
-		// create an array to hold chosen hair cards
-		hair_chosen = [];
-		// destroy the 'cards' layout
-		group_cards.destroy();
-		// create the 'cards' layout
-		group_cards = game.add.group();
-		
-		// speed game then use a normal deck, otherwise just spawn hands
-		if (game_mode == 'speed') {
-			hand = Cards.handCreate(deck.splice(0,7));
-			if (deck.length < 7) {
-				fnGameOver();
-			}
-		} else {
-			if (game_mode == 'learn') {
-				var str = game_learn_sub_level.split('+');
-				var chance;
-				if (str[1] == 'joker') {
-					chance = 100;
-				} else {
-					chance = 0;
-				}
-				hand = Cards.handCreate(Poker.create(game_learn_main_level,chance,str[0]));
-			} else if (game_mode == 'practice') {
-				var str = game_practice_sub_level.split('+');
-				var chance;
-				if (str[1] == 'joker') {
-					chance = 100;
-				} else {
-					chance = 0;
-				}
-				if (str[1] == 'random') {
-					chance = Math.random()*100;
-				}
-				// a specific hand to play with
-				// display broken
-				var set = ["king_heart","queen_diamond","nine_spade","seven_spade","six_spade","five_spade","two_spade"];
-				hand = Cards.handCreate(set);
-//				hand = Cards.handCreate(Poker.create(game_practice_main_level,chance,str[0]));
-			} else {
-				var type = 'random'
-				hand = Cards.handCreate(Poker.create('random',50,'random'));
-			}
-		}
-
-		// solve for poker
-		hand.poker = Poker.solve(hand.sorted);
-		// solve for pai-gow
-		hand.paigow = Paigow.solve(hand.poker);
-		fnDisplayNormalWay(hand);
-	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// handle selection of hair cards
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function selectHair(card,pointer) {
-		// this card already selected, so unselect and remove it
-		if (hair_chosen.indexOf(card) != -1) {
-			card.y += 15;
-			hair_chosen.splice(hair_chosen.indexOf(card),1); 
-		} else {
-			card.y -= 15;
-			hair_chosen.push(card);
-		}
-		// selected 2 cards, check hair for correctness
-		if (hair_chosen.length == 2) {
-			checkHair(hair_chosen);
-		}
-		// if hair not correct we are here so unselect the first in line
-		if (hair_chosen.length > 2) {
-			hair_chosen[0].y += 15;
-			hair_chosen.splice(0,1); 
-		}
-	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// check hair selection for correctness
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function checkHair(hair_chosen) {
-		// chosen hair cards
-		var chosen = [hair_chosen[0].key,hair_chosen[1].key];
-		// actual hair cards
-		var hair = hand.paigow.hair;
-		// required is true by default
-		var required = true;
-		// hair is more than 2 cards and 1st one does not match 2nd one
-		if (hair.length > 2 && Cards.getName(hair[0]) != Cards.getName(hair[1])) {
-			if (chosen.indexOf(hair[0]) == -1) {
-				required = false;
-			}
-		}
-		if (required && (hair.indexOf(chosen[0]) != -1 && hair.indexOf(chosen[1]) != -1)) {
-			var txt = 'You chose the correct hair!\n';
-			txt += 'rule: '+hand.paigow.rule+'\n';
-			txt += 'bonus: '+hand.paigow.bonus+'\n';
-			txt += 'desc: '+hand.paigow.desc+'\n'
-			// place the cards
-			fnDisplayHouseWay(hand,chosen);
-			hand_info_box.text = txt;
-			btn_next.visible = true;
-		} else {
-			hand_tries++;
-			fnUpdateStats();
-			if (hand_tries > 5) {
-				var txt = 'slow down & try reading the rule above again!\n';
-				txt += '* sometimes straights / flushes sneak into hands they shouldnt *\n';
-				txt += '* this is especially a problem with joker hands *';
-				txt += '* will be fixed in the next few days *';
-				hand_info_box.text = txt;
-			} else {
-				hand_info_box.text = 'Hair incorrect, try again :(';
-			}
-			// reset the chosen hair cards
-			hair_chosen[0].y += 15;
-			hair_chosen.splice(0,1); 
-			hair_chosen[0].y += 15;
-			hair_chosen.splice(0,1);
-		}
-	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// game over do stuff
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function fnGameOver() {
-		btn_next.visible = false;
-		group_cards.destroy();
-		
-		// learn mode then display grats and return
-		if (game_mode == 'learn') {
-			btn_example.visible = false;
-			game_learn_main_level = 'mastered';
-			game_info_box.text = 'Congratulations you have mastered the game of pai-gow!';
-			hand_info_box.text = 'Wooooo!!!';
-			return;
-		}
-		var txt = 'Game Over!!!\n';
-		if (game_mode == 'timed') {
-			txt += 'You got '+hand_count+' hands correct!\n\n';
-		}
-		txt += 'Click start to go again!';
-		game_info_box.text = txt;
-		hand_info_box.text = '';
-		btn_start.visible = true;
-	},
 	*/
 	/******************************************************************************************************************************************
 		DISPLAY FUNCTIONS
@@ -654,49 +630,64 @@ Casino.Game.prototype = {
 		switch(opt) {
 			case 'player':
 				// destroy the 'player' layout
-				this.group_player.destroy();
-				// create the 'player' layout
-				this.group_player = this.add.group();
+				Casino.game.group_player.destroy();
 				break;
 			case 'bank':
 				// destroy the 'bank' layout
-				this.group_bank.destroy();
-				// create the 'bank' layout
-				this.group_bank = this.add.group();
+				Casino.game.group_bank.destroy();
 				break;
 			case 'both':
 				// destroy the 'player' layout
-				this.group_player.destroy();
-				// create the 'player' layout
-				this.group_player = this.add.group();
-				// destroy the 'bank' layout
-				this.group_bank.destroy();
-				// create the 'bank' layout
-				this.group_bank = this.add.group();
+				Casino.game.group_player.destroy();
+				Casino.game.group_bank.destroy();
+				break;
+		}
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// silly function to display a hand
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	displayHand:function(opts){
+		// reset the player and bank groups
+		if (opts.reset !== 'none') {
+			console.log('reset');
+			this.displayReset('both');
+		}
+		switch(opts.type) {
+			case 'bank':
+				this.displayBankHand(opts.opt);
+				break;
+			case 'houseway':
+				this.displayHouseWay(opts.opt);
+				break;
+			default:
+				this.displayNormalWay(opts.opt);
 				break;
 		}
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to disply the hand normally
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	displayNormalWay:function(hand,opt){
-		// reset the player and bank groups
-		this.displayReset('both');
+	displayNormalWay:function(opts){
+		// create the 'player' layout
+		Casino.game.group_player = Casino.game.thing.add.group();
 
-		console.log(hand);
-		console.log(opt);
+		var hand = opts.hand;
 		var cards = hand.shuffled;
+		var card_x = 30;
+		var card_y = 180;
+		var spacer_x = 135;
 		for (var i=0;i<hand.shuffled.length;i++) {
 			var key = hand.shuffled[i]
-			var card = this.add.sprite(0,0,'cards',key);
+			var card = Casino.game.thing.add.sprite(0,0,'cards',key);
 			card.key = key;
 			card.inputEnabled = true;
 			card.input.useHandCursor = true;
-//			card.events.onInputDown.add(Cards.cardClicked,card);
+			card.events.onInputDown.add(this.gameSelectHair,card);
+//			card.events.onInputDown.add(function() {this.gameSelectHair(key)},this);
 			if (card) {
-				card.x = 10+i*135;
-				card.y = 100;
-				this.group_player.add(card);
+				card.x = card_x+i*spacer_x;
+				card.y = card_y;
+				Casino.game.group_player.add(card);
 			}
 		}
 		/*
@@ -706,7 +697,7 @@ Casino.Game.prototype = {
 			// loop and display the hands
 			for (var i=0;i<hand.shuffled.length;i++) {
 				var key = hand.shuffled[i]
-				var card = this.add.sprite(0,0,'cards',key);
+				var card = Casino.game.thing.add.sprite(0,0,'cards',key);
 				card.key = key;
 				console.log(key);
 				if (card) {
@@ -740,7 +731,7 @@ Casino.Game.prototype = {
 			// no options, display normally
 			var cards = hand.shuffled;
 			for (var i=0;i<hand.original.length;i++) {
-				var card = Cards.cardCreate({card:cards[i],clickable:true,callback:selectHair});
+				var card = Cards.cardCreate({card:cards[i],clickable:true,callback:gameSelectHair});
 				if (card) {
 					card.x = HAND_X+i*135;
 					card.y = HAND_Y;
@@ -753,14 +744,14 @@ Casino.Game.prototype = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to display the hand set correctly
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	displayHouseWay:function(hand,chosen) {
-		// reset the player and bank groups
-		this.displayReset('both');
+	displayHouseWay:function(opts) {
+		Casino.game.group_player = Casino.game.thing.add.group();
 
-		if (chosen) {
-			var extras = arrayDiff(hand.paigow.hair,chosen);
+		var hand = opts.hand;
+		if (opts.chosen) {
+			var extras = arrayDiff(hand.paigow.hair,opts.chosen);
 		}
-		var hair = (!chosen) ? hand.paigow.hair : chosen;
+		var hair = (!opts.chosen) ? hand.paigow.hair : opts.chosen;
 		// if 1st hair is joker then reverse
 		if (Cards.isJoker(hair[0])) {
 			hair.reverse();
@@ -772,7 +763,7 @@ Casino.Game.prototype = {
 		// setup the back
 		var back;
 		// default back comes from paigow data
-		if (!chosen) {
+		if (!opts.chosen) {
 			back = hand.paigow.back;
 		} else {
 			back = hand.paigow.back;
@@ -796,70 +787,82 @@ Casino.Game.prototype = {
 				}
 			}
 		}
-		var scale = 0.75;
-		var bank_x = 0;
-		var bank_y = 40;
-		var space_x = 100;
-		var space_y = 135;
+		if (opts.mode != 'small') {
+			var scale = 0.90;
+			var hand_x = 5;
+			var hand_y = 50;
+			var space_x = 115;
+			var space_y = 160;
+		} else {
+			var scale = 0.7;
+			var hand_x = 5;
+			var hand_y = 75;
+			var space_x = 90;
+			var space_y = 130;
+		}
 		var cards = hand.shuffled;
 		// finally create the actual cards for display
 		for (var i=0;i<cards.length;i++) {
 			var key = cards[i]
-			var card = this.add.sprite(0,0,'cards',key);
+			var card = Casino.game.thing.add.sprite(0,0,'cards',key);
 			card.scale.setTo(scale,scale);
 			card.key = key;
 			if (card.key == hair[0]) {
-				card.x = bank_x;
-				card.y = bank_y;
+				card.x = hand_x;
+				card.y = hand_y;
 			}
 			if (card.key == hair[1]) {
-				card.x = bank_x+space_x*1;
-				card.y = bank_y;
+				card.x = hand_x+space_x*1;
+				card.y = hand_y;
 			}
 			if (card.key == back[0]) {
-				card.x = bank_x;
-				card.y = bank_y+space_y;
+				card.x = hand_x;
+				card.y = hand_y+space_y;
 			}
 			if (card.key == back[1]) {
-				card.x = bank_x+space_x*1;
-				card.y = bank_y+space_y;
+				card.x = hand_x+space_x*1;
+				card.y = hand_y+space_y;
 			}
 			if (card.key == back[2]) {
-				card.x = bank_x+space_x*2;
-				card.y = bank_y+space_y;
+				card.x = hand_x+space_x*2;
+				card.y = hand_y+space_y;
 			}
 			if (card.key == back[3]) {
-				card.x = bank_x+space_x*3;
-				card.y = bank_y+space_y;
+				card.x = hand_x+space_x*3;
+				card.y = hand_y+space_y;
 			}
 			if (card.key == back[4]) {
-				card.x = bank_x+space_x*4;
-				card.y = bank_y+space_y;
+				card.x = hand_x+space_x*4;
+				card.y = hand_y+space_y;
 			}
-			this.group_player.add(card);
+			Casino.game.group_player.add(card);
 		}
+		// create a text box for hand related information
+		var sprite = Casino.game.thing.add.sprite(0,0);
+		sprite.x = hand_x+space_x*2;
+		sprite.y = hand_y;
+		var gfx = Casino.game.thing.add.graphics(0,0);
+		gfx.beginFill(Casino._INFO_BG,1);
+		gfx.drawRect(0,0,space_x*3-5,space_y-5);
+		sprite.addChild(gfx);
+		var style = { font: '10pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: true, wordWrapWidth: space_x*3-5 };
+		var txt = 'rule: '+hand.paigow.rule+'\n';
+		txt += 'bonus: '+hand.paigow.bonus+'\n';
+		txt += 'desc: '+hand.paigow.desc+'\n'
+		var text = Casino.game.thing.add.text(0,0, txt, style);	
+		sprite.addChild(text);
+		Casino.game.group_player.add(sprite);
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to display the bank hand
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	displayCompareHands:function() {
-		// reset the player and bank groups
-		this.displayReset('both');
+	displayBankHand:function(opts) {
+		Casino.game.group_bank = Casino.game.thing.add.group();
 
-		var deck = Cards.deckCreate('standard',true,1);
-		var hand = Cards.handCreate(deck.splice(0,7));
-		hand.poker = Poker.solve(hand.sorted);
-		hand.paigow = Paigow.solve(hand.poker);
-		console.log(hand);
-		this.displayHouseWay(hand);
-
-		var hand = Cards.handCreate(deck.splice(0,7));
-		hand.poker = Poker.solve(hand.sorted);
-		hand.paigow = Paigow.solve(hand.poker);
-
+		var hand = opts.hand;
 		var scale = 0.7;
-		var bank_x = 530;
-		var bank_y = 40;
+		var hand_x = 545;
+		var hand_y = 75;
 		var space_x = 90;
 		var space_y = 130;
 		var hair = hand.paigow.hair;
@@ -867,122 +870,62 @@ Casino.Game.prototype = {
 		var cards = hand.sorted;
 		for (var i=0;i<hand.original.length;i++) {
 			var key = hand.original[i]
-			var card = this.add.sprite(0,0,'cards',key);
+			var card = Casino.game.thing.add.sprite(0,0,'cards',key);
 			card.scale.setTo(scale,scale);
 			card.key = key;
 //			card.inputEnabled = true;
 //			card.input.useHandCursor = true;
 //			card.events.onInputDown.add(Cards.cardClicked,card);
 			if (card.key == hair[0]) {
-				card.x = bank_x;
-				card.y = bank_y;
+				card.x = hand_x;
+				card.y = hand_y;
 			}
 			if (card.key == hair[1]) {
-				card.x = bank_x+space_x*1;
-				card.y = bank_y;
+				card.x = hand_x+space_x*1;
+				card.y = hand_y;
 			}
 			if (card.key == back[0]) {
-				card.x = bank_x;
-				card.y = bank_y+space_y;
+				card.x = hand_x;
+				card.y = hand_y+space_y;
 			}
 			if (card.key == back[1]) {
-				card.x = bank_x+space_x*1;
-				card.y = bank_y+space_y;
+				card.x = hand_x+space_x*1;
+				card.y = hand_y+space_y;
 			}
 			if (card.key == back[2]) {
-				card.x = bank_x+space_x*2;
-				card.y = bank_y+space_y;
+				card.x = hand_x+space_x*2;
+				card.y = hand_y+space_y;
 			}
 			if (card.key == back[3]) {
-				card.x = bank_x+space_x*3;
-				card.y = bank_y+space_y;
+				card.x = hand_x+space_x*3;
+				card.y = hand_y+space_y;
 			}
 			if (card.key == back[4]) {
-				card.x = bank_x+space_x*4;
-				card.y = bank_y+space_y;
+				card.x = hand_x+space_x*4;
+				card.y = hand_y+space_y;
 			}
-			this.group_bank.add(card);
+			Casino.game.group_bank.add(card);
 		}
 		/*
 		// create a text box for menu related information
-		var sprite = this.add.sprite(0,0);
-		var gfx = this.add.graphics(0,0);
+		var sprite = Casino.game.thing.add.sprite(0,0);
+		var gfx = Casino.game.thing.add.graphics(0,0);
 		gfx.beginFill(Casino._INFO_BG,1);
 		gfx.drawRect(0,0,375,175);
 		sprite.addChild(gfx);
 		var style = { font: '12pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: true, wordWrapWidth: 650 };
 		var txt = 'Welcome to Da Casino (alpha 1.0)'
-		main_info_box = this.add.text(0, 0, txt, style);	
-		sprite.addChild(main_info_box);
+		this.txt_main_info = Casino.game.thing.add.text(0, 0, txt, style);	
+		sprite.addChild(this.txt_main_info);
 		sprite.x = 275;
 		// place the information area
 		sprite.y = 40;
 		*/
 	},
-	/*
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// update the clock
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function updateClock(dir) {
-		var finish;
-		var reset;
-		if (dir == 'down') {
-			clock -= 1;
-			finish = 0;
-			reset = 30;
-		} else {
-			clock += 1;
-			finish = 30;
-			reset = 0;
-		}
-		if (clock === finish) {
-			clock = reset;
-			clock_info_box.text = "done"
-			game.time.events.remove(clockEvent);
-			fnGameOver();
-		} else {
-			clock_info_box.text = 'clock\n' + clock;
-		}
-	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// update stats
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function fnUpdateStats() {
-		var txt = 'stats\n';
-		txt += 'hands: '+hand_count+'\n';
-		txt += 'tries: '+hand_tries+'\n';
-		stat_info_box.text = txt;
-	}
-	*/
 	/******************************************************************************************************************************************
 		GENERIC UTILITIES
 	******************************************************************************************************************************************/
 	/*
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// reset everything
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function fnResetBoard() {
-		// destroy the 'debug' layout
-		group_debug.destroy();
-		// create the 'debug' layout
-		group_debug = game.add.group();
-		
-		// destroy the 'cards' layout
-		group_cards.destroy();
-		// create the 'cards' layout
-		group_cards = game.add.group();
-		
-		// reset the chosen hair cards
-		hair_chosen = [];
-		
-		// reset the clock event
-		if (clockEvent) {
-			game.time.events.remove(clockEvent);
-			clock_info_box.text = 'clock';
-		}
-		game_info_box.text = '';
-		hand_info_box.text = '';
-	}
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// get the difference between 2 arrays
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1040,7 +983,7 @@ Casino.Game.prototype = {
 				DEBUG_SUB = 'random';
 			}
 			var hand = Cards.handCreate(Poker.create(DEBUG_MAIN,DEBUG_JOKER,DEBUG_SUB));
-			main_info_box.text = 'creating '+DEBUG_COUNT+' '+DEBUG_MAIN+' - '+DEBUG_SUB+' hands';
+			this.txt_main_info.text = 'creating '+DEBUG_COUNT+' '+DEBUG_MAIN+' - '+DEBUG_SUB+' hands';
 
 			//**********************************************************************************************************
 			//
@@ -1261,7 +1204,7 @@ Casino.Game.prototype = {
 	// start a game
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	mainMenu: function(pointer) {
-		console.log('Game.MainMenu(): ',pointer.key);
 		this.game.state.start('MainMenu');
 	}
 };
+that = Casino.Game;

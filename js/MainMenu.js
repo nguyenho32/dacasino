@@ -32,7 +32,7 @@ Casino.MainMenu.prototype = {
 		sprite.addChild(main_info_box);
 		sprite.x = 275;
 		// place the information area
-		sprite.y = 40;
+		sprite.y = 30;
 		
 		this.createHand();
 	},
@@ -72,7 +72,7 @@ Casino.MainMenu.prototype = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	displayHand:function(hand) {
 
-		var BANK_Y = 40;
+		var BANK_Y = 30;
 		var spacer = 190;
 		var hair = hand.paigow.hair;
 		var back = hand.paigow.back;;
@@ -112,15 +112,18 @@ Casino.MainMenu.prototype = {
 				card.x = 530;
 				card.y = BANK_Y+spacer;
 			}
-//			group_cards.add(card);
 		}
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// start a game
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	startGame: function(pointer) {
-		console.log('MainMenu.startGame(): ',pointer.key);
-		this.game.state.start('Game');
+		if (pointer.key != 'info') {
+			Casino.game.mode = pointer.key;
+			this.game.state.start('Game');
+		} else {
+			console.log('do info stuff');
+		}
 	}
 };
 
