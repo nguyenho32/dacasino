@@ -70,65 +70,9 @@ var Cards = {
 		CARD SPECIFIC STUFF
 	******************************************************************************************************************************************/
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// create a card
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	cardCreate:function(opt) {
-		
-		if (!opt) {
-			console.log('no options');
-			return;
-		} else {
-			if (opt.card) {
-				var full = opt.card;
-			} else {
-				console.log('no card to create');
-				return;
-			}
-		}
-		/*
-		// value of the card
-		var value = this.values[this.names.indexOf(name)];
-		// rank of the card
-		var rank = this.names.indexOf(name)+2;
-		if (name == 'joker') {
-			value = 15;
-			rank = 15;
-		}
-		// data for this card
-		var data = {name:name,suit:suit,rank:rank,value:value};
-*/
-		// create the card
-		var card = game.add.sprite(0,0,'cards',full);
-		// make this card useful
-		if (opt.clickable) {
-			card.inputEnabled = true;
-			card.input.useHandCursor = true;
-			if (opt.callback) {
-				callback = opt.callback;
-			} else {
-				callback = this.clicked;
-			}
-			card.events.onInputDown.add(callback,card);
-		}
-//		card.data = data;
-
-/*
-		// the back of the card
-		var back = group.create(0,0,'cards','back');
-		group.back = back;
-
-		// return the card
-		group.showCard = this.showCard;
-*/
-		card.selected = false;
-		card.key = full;
-		return card;
-	},
-	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// click a card
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	cardClicked:function(card,pointer) {
-		console.log(card);
 		if (card.selected) {
 			card.selected = false;
 			card.y += 5;
@@ -136,24 +80,7 @@ var Cards = {
 			card.selected = true;
 			card.y -= 5;
 		}
-		// for now we are going off the parent.back.alpha
-		/*
-		if (img.parent.back.alpha != 1) {
-			console.log(img.data);
-		}
-		*/
 	},
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// show / hide a card
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	cardShow:function() {
-		if (this.back.alpha != 1) {
-			this.back.alpha = 1;
-		} else {
-			this.back.alpha = 0;
-		}
-	},
-
 	/******************************************************************************************************************************************
 		DECK SPECIFIC STUFF
 	******************************************************************************************************************************************/

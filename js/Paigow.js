@@ -814,7 +814,7 @@ Paigow = {
 						back = straight2;
 					}
 					// joker is 2nd card in both extras means both are paired up
-					if (Cards.isJoker(extras[1]) && Cards.isJoker(extras[2])) {
+					if (Cards.isJoker(extras1[1]) && Cards.isJoker(extras2[1])) {
 						// first extras is higher use that one
 						if (Cards.getRank(extras1[0]) > Cards.getRank(extras2[0])) {
 							hair = extras1;

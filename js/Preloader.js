@@ -8,6 +8,6 @@ Casino.Preloader.prototype = {
 		this.load.atlas('cards', 'assets/full-deck-with-joker.png','assets/full-deck-with-joker.json');
 	},
 	create: function() {
-		this.game.state.start('MainMenu');
+		this.game.state.start('Game');
 	}
 };
