@@ -1,6 +1,6 @@
 var Casino = {
-	_WIDTH: 1280,
-	_HEIGHT: 800,
+	_WIDTH: 1000,
+	_HEIGHT: 400,
 
 		/*
 		color scheme - brown
@@ -14,6 +14,14 @@ var Casino = {
 	_INFO_BG: 0x604409,
 	// information text
 	_INFO_TXT: '#F4D38D',
+	// stat box bg
+	_STAT_BG: 0x604409,
+	// stat box txt
+	_STAT_TXT: '#F4D38D',
+	// message box bg
+	_MESSAGE_BG: 0x604409,
+	// message box txt
+	_MESSAGE_TXT: '#F4D38D',
 
 	
 	game:{
@@ -23,6 +31,10 @@ var Casino = {
 		hand_data:{},
 		group_player:{},
 		group_bank:{},
+		hand:{
+			count:0,
+			tries:0
+		},
 		level:{main:'random',sub:'random+random'}
 	}
 };
