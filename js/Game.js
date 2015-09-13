@@ -17,12 +17,15 @@ Casino.Game.prototype = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	btnDisplay:function(opt) {
 		switch(opt) {
+			case 'option':
+				this.btn_option.visible = true;
+				break;
 			case 'next':
 				this.btn_next.visible = true;
 				break;
 			default:
 				this.btn_next.visible = false;
-				this.btn_help.visible = false;
+				this.btn_option.visible = false;
 				break;
 		}
 	},
@@ -138,10 +141,10 @@ Casino.Game.prototype = {
 		/*
 			bottom ui elements
 		*/
-		// button to get help
-		var btn = this.createButton('help',this.btnHandler);
-		this.btn_help = btn;
-		btn.key = 'help';
+		// button for options
+		var btn = this.createButton('option',this.btnHandler);
+		this.btn_option = btn;
+		btn.key = 'option';
 		btn.x = 0;
 		btn.y = 375;
 		// button for getting the next hand
@@ -206,6 +209,7 @@ Casino.Game.prototype = {
 		
 		this.initMode(Casino.game.mode);
 		this.btnDisplay('hide');
+		this.btnDisplay('option');
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// button handler
@@ -220,7 +224,11 @@ Casino.Game.prototype = {
 			case 'start':
 				this.gameStart();
 				break;
-			case 'help':
+			case 'option':
+				if (Casino.game.mode == 'learn') {
+					this.game.state.start('LearnMenu');
+				}
+				break;
 			default:
 				console.log('btnHandler broke: ',key);
 			break;
@@ -265,6 +273,7 @@ Casino.Game.prototype = {
 		switch(Casino.game.mode) {
 			case 'learn':
 				this.updateText({box:'main',str:'- learn how to play pai-gow       (click start to continue)   --->'});
+				
 				/*
 				// clear any cards / timers etc
 				fnResetBoard();
@@ -679,6 +688,9 @@ Casino.Game.prototype = {
 	/******************************************************************************************************************************************
 		DISPLAY FUNCTIONS
 	******************************************************************************************************************************************/
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// silly function to reset the display
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	displayReset:function(opt) {
 		switch(opt) {
 			case 'player':
@@ -719,6 +731,18 @@ Casino.Game.prototype = {
 				break;
 		}
 	},
+	createCard:function(key) {
+		var that = Casino.game.thing;
+		var card = that.add.sprite();
+		var shadow = that.add.sprite(-1, -2,'cards',key);
+		shadow.scale.setTo(1.025);
+		shadow.tint = 0x000000;
+		shadow.alpha = 0.8;
+		card.addChild(shadow);
+		var actual = that.add.sprite(0,0,'cards',key);
+		card.addChild(actual);
+		return card;
+	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to disply the hand normally
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -733,68 +757,17 @@ Casino.Game.prototype = {
 		var spacer_x = 135;
 		for (var i=0;i<hand.shuffled.length;i++) {
 			var key = hand.shuffled[i]
-			var card = Casino.game.thing.add.sprite(0,0,'cards',key);
+			var card = that.prototype.createCard(key);
 			card.key = key;
 			card.inputEnabled = true;
 			card.input.useHandCursor = true;
 			card.events.onInputDown.add(this.gameSelectHair,card);
-//			card.events.onInputDown.add(function() {this.gameSelectHair(key)},this);
 			if (card) {
 				card.x = card_x+i*spacer_x;
 				card.y = card_y;
 				Casino.game.group_player.add(card);
 			}
 		}
-		/*
-		// opt is set means we are doing debug stuff
-		if (opt) {
-			var n = (!opt.row) ? 0 : opt.row;
-			// loop and display the hands
-			for (var i=0;i<hand.shuffled.length;i++) {
-				var key = hand.shuffled[i]
-				var card = Casino.game.thing.add.sprite(0,0,'cards',key);
-				card.key = key;
-				console.log(key);
-				if (card) {
-					card.x = HAND_X+i*130;
-					card.y = HAND_Y+(200*n);
-				}
-				group_debug.add(card);
-			}
-			// add some information for debugging yeah baby!
-			// create a text box for game related information
-			var sprite = game.add.sprite(0,0);
-			var gfx = game.add.graphics(0,0);
-			gfx.beginFill(INFO_BG,1);
-			gfx.drawRect(0,0,600,175);
-			sprite.addChild(gfx);
-			var style = { font: '10pt Courier', fill: INFO_TXT, align: 'left', wordWrap: true, wordWrapWidth: 600 };
-			// no pai-gow info, show poker debug
-//			var	str = (!hand.paigow) ? hand.poker.debug : hand.paigow.debug;
-			// show both debug
-			var str = '';
-			if (hand.type && hand.opt) {
-				str += 'created: '+hand.type+' - '+hand.opt+'\n';
-			}
-			str += hand.paigow.debug;
-			var text = game.add.text(0,0, str, style);	
-			sprite.addChild(text);
-			group_debug.add(sprite);
-			sprite.x = 920;
-			sprite.y = HAND_Y+(200*n);
-		} else {
-			// no options, display normally
-			var cards = hand.shuffled;
-			for (var i=0;i<hand.original.length;i++) {
-				var card = Cards.cardCreate({card:cards[i],clickable:true,callback:gameSelectHair});
-				if (card) {
-					card.x = HAND_X+i*135;
-					card.y = HAND_Y;
-				}
-				group_cards.add(card);
-			}
-		}
-		*/
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to display the hand set correctly
@@ -859,7 +832,7 @@ Casino.Game.prototype = {
 		// finally create the actual cards for display
 		for (var i=0;i<cards.length;i++) {
 			var key = cards[i]
-			var card = Casino.game.thing.add.sprite(0,0,'cards',key);
+			var card = that.prototype.createCard(key);
 			card.scale.setTo(scale,scale);
 			card.key = key;
 			if (card.key == hair[0]) {
@@ -925,7 +898,7 @@ Casino.Game.prototype = {
 		var cards = hand.sorted;
 		for (var i=0;i<hand.original.length;i++) {
 			var key = hand.original[i]
-			var card = Casino.game.thing.add.sprite(0,0,'cards',key);
+			var card = that.prototype.createCard(key);
 			card.scale.setTo(scale,scale);
 			card.key = key;
 			if (card.key == hair[0]) {
@@ -958,278 +931,24 @@ Casino.Game.prototype = {
 			}
 			Casino.game.group_bank.add(card);
 		}
-		/*
-		// create a text box for menu related information
+		// create a text box for hand related information
 		var sprite = Casino.game.thing.add.sprite(0,0);
 		var gfx = Casino.game.thing.add.graphics(0,0);
 		gfx.beginFill(Casino._INFO_BG,1);
-		gfx.drawRect(0,0,375,175);
+		gfx.drawRect(0,0,space_x*3-5,space_y-5);
 		sprite.addChild(gfx);
-		var style = { font: '12pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: true, wordWrapWidth: 650 };
-		var txt = 'Welcome to Da Casino (alpha 1.0)'
-		this.txt_main_info = Casino.game.thing.add.text(0, 0, txt, style);	
-		sprite.addChild(this.txt_main_info);
-		sprite.x = 275;
-		// place the information area
-		sprite.y = 40;
-		*/
-	},
-	/******************************************************************************************************************************************
-		DEBUG FUNCTIONS
-	******************************************************************************************************************************************/
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// create multiple hands of paigow
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	debugCreateMultiple:function(sprite,pointer) {
-//		fnResetBoard();
-		// hide the start / next / example buttons
-		/*
-		btn_start.visible = false;
-		btn_next.visible = false;
-		btn_example.visible = false;
-		
-		// hide the level / compare buttons
-		group_buttons_level.visible = false;
-		group_buttons_compare.visible = false;
-*/
+		var style = { font: '10pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: true, wordWrapWidth: space_x*3-5 };
+		var txt = 'bank hand:\n';
+		txt += 'rule: '+hand.paigow.rule+'\n';
+		txt += 'bonus: '+hand.paigow.bonus+'\n';
+		txt += 'desc: '+hand.paigow.desc+'\n'
+		var text = Casino.game.thing.add.text(0,0, txt, style);	
+		sprite.addChild(text);
+		Casino.game.group_player.add(sprite);
+		sprite.x = hand_x+space_x*2;
+		sprite.y = hand_y;
 
-		/*
-		// create a shuffled deck for use in our game
-		deck = Deck.create('standard',true,1);
-
-		// show the deck
-		for (var i=0;i<deck.length;i++) {
-			var card = Cards.cardCreate({card:deck[i]});
-			group.addChild(card);
-			card.x = 5+i*25;
-		}
-		*/
-		// create some hands
-		if (!DEBUG_COUNT) {
-			DEBUG_COUNT = 25;
-		}
-		for (var n=0;n<DEBUG_COUNT;n++) {
-			// create a specific type of hand
-			if (!DEBUG_MAIN) {
-				DEBUG_MAIN = 'random';
-			}
-			if (!DEBUG_SUB) {
-				DEBUG_SUB = 'random';
-			}
-			var hand = Cards.handCreate(Poker.create(DEBUG_MAIN,DEBUG_JOKER,DEBUG_SUB));
-			this.txt_main_info.text = 'creating '+DEBUG_COUNT+' '+DEBUG_MAIN+' - '+DEBUG_SUB+' hands';
-
-			//**********************************************************************************************************
-			//
-			//	This section for hands that are not being set correctly
-			//
-			//
-			/* FIXED
-				wheel straight w/ joker
-			var set = ["ace_diamond","seven_diamond","six_heart","five_heart","four_spade","two_club","joker_one"];
-			*/
-			// wheel straights w/joker
-			/* FIXED
-				not finding the joker high straight? joker,queen,10,9,8...but this would make it 9,8 straight instead of
-				pair of 9, queen high straight. So this hand is correct
-			var set = ["queen_heart","jack_spade","ten_club","nine_spade","nine_heart","eight_club","joker_one"];
- 			*/
-			/* FIXED
-				reading the 6 high straight twice (due to the pairs)
-			var set = ["seven_heart","six_heart","six_club","five_club","four_diamond","two_spade","joker_one"];
-			*/
-			/* FIXED
-				this hand should be pair with a joker high straight
-			var set = ["seven_diamond","six_heart","five_heart","four_club","three_diamond","three_club","joker_one"];
-			*/
-			/* FIXED
-				this hand should be pair queen straight
-				jack, 10, 9, joker, 7
-			var set = ["queen_spade","queen_diamond","jack_club","ten_diamond","nine_heart","seven_heart","joker_one"];
-			*/
-			/* FIXED
-				this hand should be pair king natural straight
-			var set = ["king_club","nine_spade","eight_spade","seven_heart","six_diamond","five_club","joker_one"];
-			*/
-			/* FIXED
-				this is broken for some reason
-				should be pair queen / natural straight
-				hair should contain queen-diamond, queen-heart, joker
-			var set = ["queen_club","queen_diamond","jack_heart","ten_club","nine_spade","eight_diamond","joker_one"];
-			*/
-			/* FIXED
-				incorrectly set as 9, 8 - 7 high straight (7,6,5,joker,3)
-				should be pair 3 - 9 high natural straight
-				bonus of straight not being set
-			var set = ["nine_club","eight_diamond","seven_heart","six_club","five_diamond","three_club","joker_one"];
-			*/
-			/* FIXED
-				incorrectly set as jack,nine - 10 high straight
-				should be pair / pair 9's & jacks
-				bonus of straight not being set
-			var set = ["jack_heart","ten_heart","nine_heart","nine_club","eight_club","six_spade","joker_one"];
-			*/
-			/* FIXED
-				this correctly set as pair / pair jacks & queens
-				bonus of straight not being set
-			var set = ["queen_diamond","jack_club","jack_diamond","ten_club","nine_club","five_heart","joker_one"];
-			*/
-			/* FIXED
-				correctly set as this hand is pair 5, nine high straight
-				needs to have the trip 5's in the hair
-			var set = ["eight_heart","seven_heart","six_club","five_heart","five_club","five_diamond","joker_one"];
-			*/
-			/* FIXED
-				bugs out 
-				should be queen, jack...joker, 9, 8, 7, 6
-			var set = ["queen_club", "jack_diamond", "nine_heart", "eight_spade", "seven_club", "six_club", "joker_one"];
-			*/
-			/* FIXED
-				hand is incorrectly set 8,4 - flush
-				should be set full house solvePair
-			var set = ["ten_diamond","eight_spade","eight_diamond","four_spade","four_diamond","three_diamond","joker_one"];
-			*/
-			/* FIXED
-				hand incorrectly set as 5, 4 - queen high straight flush
-				should be queen 5, jack high flush (with straight-flush bonus)
-			var set = ["queen_club","jack_club","ten_club","nine_club","eight_club","five_heart","four_club"];
-			*/
-			/* FIXED
-				hand incorrectly set as jack, 6 - pair of 3
-				should be pair 3 flush, with a straight-flush bonus
-			var set = ["jack_club","six_club","five_club","four_club","three_heart","three_club","two_club"];
-			*/
-			/* FIXED
-				hand correctly set as as pair 9, jack high straight flush
-				bonus incorrect as 4 of a kind, should be straight flush
-				description reads joker high straight flush
-			var set = ["ten_spade","nine_spade","nine_heart","nine_club","eight_spade","seven_spade","joker_one"];
-			*/
-			/* FIXED
-				hand correctly set as pair 6, 6 high straight flush
-				need to remove the 6 spade from possible hair
-			var set = ["six_spade","six_heart","five_spade","four_spade","three_spade","two_spade","joker_one"];
-			*/
-			/* FIXED
-				hand incorrectly set 10,7 pair of 6
-				should be 10, 6 - 7 high straight flush
-			var set = ["ten_club","seven_diamond","six_spade","six_diamond","five_diamond","four_diamond","three_diamond"];
-			*/
-			/* FIXED
-				hand correctly set, not setting as straight flush
-			var set = ["eight_heart","seven_spade","six_spade","five_spade","five_diamond","four_spade","three_spade"];
-			*/
-			/* FIXED
-				hand correctly set pair king, queen high flush
-				bonus straight flush not set
-			var set = ["king_club","queen_heart","jack_heart","ten_heart","nine_heart","six_heart","joker_one"];
-			*/
-			/* FIXED
-				hand incorrectly set 7,2 - ace high flush
-				should be pair 2 / pair ace (solvePair)
-			var set = ["ace_heart","ten_heart","seven_club","four_heart","two_spade","two_heart","joker_one"];
-			*/
-			/* FIXED
-				hand correctly set pair king, quad 2's
-				need to put trip kings in the hair
-			var set = ["king_spade","king_heart","king_club","two_heart","two_club","two_diamond","joker_one"];
-			*/
-			/* FIXED
-				hand incorrectly set pair six, jack high straight
-				should be pair jack, 10 high straight
-//			var set = ["jack_diamond","ten_diamond","nine_club","eight_club","seven_diamond","six_club","joker_one"];
-			*/
-			/* FIXED
-				hand set correctly, possible hair not correct
-				should be trip queens
-			var set = ["queen_heart","queen_club","queen_diamond","two_spade","two_heart","two_club","two_diamond"];
-			*/
-			/* FIXED
-				hand set almost correctly, desc incorrect
-				should be ace (joker) high flush
-			var set = ["queen_club","nine_heart","nine_club","five_club","three_club","two_club","joker_one"];
-			// this is almost the same thing, should put the natural in front with joker based flush behind
-			var set = ["ace_spade","ace_heart","jack_spade","seven_spade","five_spade","four_spade","joker_one"];
-			*/
-			/*
-				hand set correctly, hair incorrect
-				should be five_diamond, followed by both nines (five is required)
-			var set = ["jack_club","ten_club","nine_spade","nine_diamond","eight_heart","seven_heart","five_diamond"];
-			*/
-			/* FIXED
-				hand set incorrectly
-				should be pair 8 (natural) with joker based flush behind
-			var set = ["king_heart","jack_heart","nine_heart","eight_spade","eight_club","six_heart","joker_one"];
-			var set = ["king_heart","jack_heart","nine_heart","eight_diamond","eight_club","six_heart","five_heart"];
-			*/
-			/* FIXED
-				hand set correctly
-				should have king and both 9's in the hair
-			var set = ["king_club","queen_club","jack_heart","ten_diamond","nine_heart","nine_club","eight_heart"];
-			*/
-			/* FIXED
-				incorrectly set as 7,6 - ace (joker) high flush
-				should be pair 3, ten high straight
-			var set = ["ten_club","nine_club","eight_club","seven_heart","six_spade","three_club","joker_one"];
-			*/
-			/* FIXED
-				incorrectly set as pair / pair
-				should be pair 8, nine high straight (bonus: straight-flush)
-			var set = ["nine_diamond","eight_diamond","eight_spade","seven_diamond","six_diamond","five_heart","joker_one"];
-			*/
-			/* FIXED
-				hand set correctly, desc straight-flush not set
-			var set = ["king_diamond","seven_spade","six_spade","five_spade","four_spade","three_spade","joker_one"];
-			*/
-			
-			//
-			//
-			//
-			//**********************************************************************************************************
-			//
-			/*
-				hand contains a flush, automatic check in Poker.create() should rebuild the hand until there is no flush
-			*/
-			var set = ["jack_heart","jack_diamond","ten_heart","ten_diamond","nine_heart","eight_heart","joker_one"];
-
-
-			//
-			//
-			//
-			//**********************************************************************************************************
-			if (typeof set !== 'undefined') {
-				var hand = Cards.handCreate(set);
-			}
-			//
-			//
-			//
-			// solve for poker
-//			console.log('hand: ',n,hand);
-			hand.poker = Poker.solve(hand.sorted);
-//			console.log('hand poker: ',n,hand.poker)
-			// solve for pai-gow
-			hand.paigow = Paigow.solve(hand.poker);
-//			console.log('hand paigow: ',n,hand.paigow);
-			// display the hand (debug);
-			this.displayNormalWay(hand,{debug:true,row:n});
-			
-			// break out of the loop if we are setting 1 hand
-			if (typeof set !== 'undefined') {
-				break;
-			}
-		}
-
-/*		
-		// match the hand to an exist card on the screen so we can move it (do this instead of creating a new one each time)
-		var num = 0;
-		group.forEach(function(card) {
-			if (hand.indexOf(card.key) != -1) {
-				card.x = 5+135*num;
-				card.y = 200;
-				num++;
-			}
-		},this);
-*/
+		// create a text box for menu related information
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// return to main menu

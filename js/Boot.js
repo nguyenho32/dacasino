@@ -7,21 +7,21 @@ var Casino = {
 	*/
 	// background-color: #AA8639;
 	// button background
-	_BTN_BG: 0x85631C,
+	_BTN_BG: 0x191816,
 	// button text
-	_BTN_TXT: '#F4D38D',
+	_BTN_TXT: '#E2DEDB',
 	// information background
-	_INFO_BG: 0x604409,
+	_INFO_BG: 0x191816,
 	// information text
-	_INFO_TXT: '#F4D38D',
+	_INFO_TXT: '#E2DEDB',
 	// stat box bg
-	_STAT_BG: 0x604409,
+	_STAT_BG: 0x191816,
 	// stat box txt
-	_STAT_TXT: '#F4D38D',
+	_STAT_TXT: '#E2DEDB',
 	// message box bg
-	_MESSAGE_BG: 0x604409,
+	_MESSAGE_BG: 0x191816,
 	// message box txt
-	_MESSAGE_TXT: '#F4D38D',
+	_MESSAGE_TXT: '#E2DEDB',
 
 	
 	game:{
@@ -50,5 +50,6 @@ Casino.Boot.prototype = {
 			this.game.scale.pageAlignVertically = true;
 			this.game.scale.setScreenSize(true);
 			this.game.state.start('Preloader');	
+			this.game.stage.backgroundColor = '#FFFFFF';
 		}
 };

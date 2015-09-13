@@ -11,15 +11,15 @@ Casino.MainMenu.prototype = {
 		for (var i=0; i<menu.length; i++) {
 			var btn = this.createButton(menu[i],this.startGame);
 			btn.key = menu[i];
-			btn.x = 0 + i*115;
+			if (i == menu.length-1) {
+				btn.x = Casino._WIDTH - 115;
+			} else {
+				btn.x = 0 + i*115;
+			}
 			btn.y = 0;
-//			console.log(btn.key,btn.x);
 			sprite.addChild(btn);
 		}
-//		console.log(Casino._WIDTH / 2);
-//		console.log(sprite.getChildAt(0));
-//		sprite.x = (Casino._WIDTH / 2) - (menu.length*113 / 2);
-		
+
 		// create a text box for menu related information
 		var sprite = this.add.sprite(0,0);
 		var gfx = this.add.graphics(0,0);
@@ -78,8 +78,15 @@ Casino.MainMenu.prototype = {
 		var back = hand.paigow.back;;
 		var cards = hand.sorted;
 		for (var i=0;i<hand.original.length;i++) {
-			var key = hand.original[i]
-			var card = this.add.sprite(0,0,'cards',key);
+			var key = hand.original[i];
+			var card = this.add.sprite();
+			var shadow = this.add.sprite(-1, -2,'cards',key);
+			shadow.scale.setTo(1.025);
+			shadow.tint = 0x000000;
+			shadow.alpha = 0.8;
+			card.addChild(shadow);
+			var actual = this.add.sprite(0,0,'cards',key);
+			card.addChild(actual);
 			card.key = key;
 //			card.inputEnabled = true;
 //			card.input.useHandCursor = true;
@@ -118,11 +125,16 @@ Casino.MainMenu.prototype = {
 	// start a game
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	startGame: function(pointer) {
-		if (pointer.key != 'info') {
-			Casino.game.mode = pointer.key;
-			this.game.state.start('Game');
-		} else {
-			console.log('do info stuff');
+		Casino.game.mode = pointer.key;
+		switch(pointer.key) {
+			case 'debug': this.game.state.start('Debug');
+			break;
+			case 'info': console.log('do info stuff');
+			break;
+			case 'learn': this.game.state.start('LearnMenu');
+			break;
+			default: this.game.state.start('Game');
+			break;
 		}
 	}
 };

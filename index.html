@@ -11,13 +11,15 @@
 	<script type="text/javascript" src="js/Boot.js"></script>
 	<script type="text/javascript" src="js/Preloader.js"></script>
 	<script type="text/javascript" src="js/MainMenu.js"></script>
+	<script type="text/javascript" src="js/LearnMenu.js"></script>
 	<script type="text/javascript" src="js/Howto.js"></script>
 	<script type="text/javascript" src="js/Game.js"></script>
+	<script type="text/javascript" src="js/Debug.js"></script>
 
 	<style type="text/css">
 		body {
 			margin: 0;
-			background-color: #AA8639;
+			background-color: #E2DEDB;
 		}
 	</style>
 </head>
@@ -29,7 +31,9 @@
 	game.state.add('Boot',Casino.Boot);
 	game.state.add('Preloader',Casino.Preloader);
 	game.state.add('MainMenu',Casino.MainMenu);
+	game.state.add('LearnMenu',Casino.LearnMenu);
 	game.state.add('Game',Casino.Game);
+	game.state.add('Debug',Casino.Debug);
 	game.state.start('Boot');
 }());
 </script>
