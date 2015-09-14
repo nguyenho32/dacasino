@@ -220,7 +220,7 @@ Casino.Game.prototype = {
 	checkGameStatus:function() {
 		// progress a level in learn mode
 		if (Casino.game.mode == 'learn') {
-			if (Casino.game.hand.count < 2) {
+			if (Casino.game.hand.count < 10) {
 				this.gameCreateHand();
 			} else {
 				this.levelProgress();
