@@ -35,7 +35,8 @@ var Casino = {
 			count:0,
 			tries:0
 		},
-		level:{main:'pai-gow',sub:'nothing'}
+		level:{main:'pai-gow',sub:'nothing'},
+		practice_mode:{main:'random',sub:'random+random'},
 	}
 };
 Casino.Boot = function(game) {};

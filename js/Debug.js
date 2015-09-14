@@ -10,6 +10,18 @@ Casino.Debug.prototype = {
 		btn.key = 'menu';
 		btn.x = 0;
 		btn.y = 0;
+		/*
+		// button for creating a single debug hand
+		var btn = this.createButton('single',this.mainMenu);
+		btn.key = 'single';
+		btn.x = 240;
+		btn.y = 0;
+		// button for creating multiple debug hands
+		var btn = this.createButton('multiple',this.mainMenu);
+		btn.key = 'multiple';
+		btn.x = 500;
+		btn.y = 0;
+		*/
 	},
 	/******************************************************************************************************************************************
 		DEBUG FUNCTIONS
@@ -231,9 +243,9 @@ Casino.Debug.prototype = {
 
 
 			/*
-				display broken - ace is not being place
+				display broken - ace is not being placed
 			*/
-			var set = ["ace_heart","ace_spade","nine_diamond","five_heart","four_club","three_diamond","two_diamond"];
+//			var set = ["ace_heart","ace_spade","nine_diamond","five_heart","four_club","three_diamond","two_diamond"];
 
 			//
 			//

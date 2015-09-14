@@ -9,14 +9,10 @@ Casino.MainMenu.prototype = {
 		var sprite = this.add.sprite(0,0);
 		var width;
 		for (var i=0; i<menu.length; i++) {
-			var btn = this.createButton(menu[i],this.startGame);
+			var btn = this.createButton(menu[i],this.btnHandler);
 			btn.key = menu[i];
-			if (i == menu.length-1) {
-				btn.x = Casino._WIDTH - 115;
-			} else {
-				btn.x = 0 + i*115;
-			}
-			btn.y = 0;
+			btn.x = 750;
+			btn.y = 40+i*50;
 			sprite.addChild(btn);
 		}
 
@@ -26,9 +22,12 @@ Casino.MainMenu.prototype = {
 		gfx.beginFill(Casino._INFO_BG,1);
 		gfx.drawRect(0,0,375,175);
 		sprite.addChild(gfx);
-		var style = { font: '12pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: true, wordWrapWidth: 650 };
-		var txt = 'Welcome to Da Casino (alpha 1.0)'
-		main_info_box = this.add.text(0, 0, txt, style);	
+		var style = { font: '11pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: true, wordWrapWidth: 370 };
+		var txt = 'Welcome to Da Casino (beta 2.0)\n\n';
+		txt += '*** this is a work in progress ***\n';
+		txt += 'some of the rules might not make sense they will be rewritten soon\n\n';
+		txt += 'select an option from the menu to your right';
+		main_info_box = this.add.text(4, 4, txt, style);	
 		sprite.addChild(main_info_box);
 		sprite.x = 275;
 		// place the information area
@@ -122,14 +121,15 @@ Casino.MainMenu.prototype = {
 		}
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// start a game
+	// button handler
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	startGame: function(pointer) {
+	btnHandler: function(pointer) {
 		Casino.game.mode = pointer.key;
 		switch(Casino.game.mode) {
 			case 'debug': this.game.state.start('Debug');
 			break;
 			case 'info': console.log('do info stuff');
+				this.createHand();
 			break;
 			case 'learn': this.game.state.start('LearnMenu');
 			break;

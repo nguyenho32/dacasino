@@ -4,12 +4,12 @@ Paigow = {
 	******************************************************************************************************************************************/
 	rules:{
 		'pai-gow':{
-			'nothing':'When the hand contains no pairs, trips, quads, straights or flushes. Put the 2nd & 3rd highest cards in the hair',
+			'nothing':'When the hand contains no pairs, trips, quads, straights or flushes. Put the 2nd & 3rd highest cards in front',
 			'+joker':'When the hand contains no pairs, trips, quads, straights or flushes and you have a joker. Put the 1st and 3rd highest cards in the front and use the joker to make a pair with the 2nd high card'
 		},
 		'pairs':{
 			'1-pair':'When the hand contains a pair, place the 1st & 2nd highest non-pair cards in hair',
-			'2-pair':'When the hand contains 2 pairs...',
+			'2-pair':'When the hand contains 2 pairs and the high pair is Ace, King, or Queen then put the low pair in front\notherwise use the following chart:\nHigh pair: Jack, 10, 9 requires Ace or better to play 2 pair behind, otherwise low pair in front\nHigh Pair: 8, 7, 6 requires King or better to play 2 pair behind, otherwise low pair in front\nHigh Pair: 5 and below requires Queen or better to play 2 pair behind, otherwise low pair in front\n',
 			'3-pair':'When the hand contains 3 pairs, place the highest pair in hair',
 			'1-pair+joker':'When the hand contains 1 pair & joker. If the highest non-pair card is higher than the pair, put the pair in front and the high card + joker as a pair behind. Otherwise Put the high card + joker in front as a pair with the natural pair behind',
 			'2-pair+joker':'When the hand contains 2 pair & joker. If the highest non-pair card is 3 ranks above the highest pair, put it in front with the joker to make 3 pairs. Otherwise put the high pair and front and use the joker to make trips behind',
@@ -435,7 +435,7 @@ Paigow = {
 					// high card is 3 ranks above high pair, make 3-pairs
 					if (high_rank > pair_rank+2) {
 						hair = [extras[0],extras[2]];
-						back = [pair1[0],pair1[1],pair2[0],pair2[1],extras[0]];
+						back = [pair1[0],pair1[1],pair2[0],pair2[1],extras[1]];
 						brief = '2-pair';
 					} else {
 						//  otherwise make trips

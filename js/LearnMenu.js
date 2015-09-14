@@ -5,12 +5,20 @@ Casino.LearnMenu.prototype = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	create: function() {
 		
+		this.clock = 0;
+		this.clockEvent;
 		// active button color
-		this.btn_active = 0x000000;
+		this.btn_color_active = 0x000000;
 		// inactive button color
-		this.btn_inactive = 0xCCCCCC;
+		this.btn_color_inactive = 0xCCCCCC;
+		this.buttons = {};
 		this.group = this.add.group();
 		this.cards = this.add.group();
+		
+		// current main level
+		this.current_main;
+		// current sub_level
+		this.current_sub;
 		
 		// button for returning to the menu
 		var btn = this.createButton({name:'menu',callback:this.btnHandler});
@@ -18,30 +26,49 @@ Casino.LearnMenu.prototype = {
 		btn.y = 0;
 		// button for starting a game
 		var btn = this.createButton({name:'start',callback:this.btnHandler});
-		this.btn_start = btn;
+		this.buttons['start'] = btn;
 		btn.key = 'start';
 		btn.x = 890;
-		btn.y = 0;
+		btn.y = 375;
 		// button for options
 		var btn = this.createButton({name:'option',callback:this.btnHandler});
-		this.btn_option = btn;
+		this.buttons['option'] = btn;
 		btn.key = 'option';
 		btn.x = 0;
 		btn.y = 375;
 		// create a text box for game related information
 		var sprite = this.add.sprite(0,0);
-		sprite.x = 120;
-		sprite.y = 0;
 		var gfx = this.add.graphics(0,0);
 		gfx.beginFill(Casino._INFO_BG,1);
 		gfx.drawRect(0,0,760,25);
 		sprite.addChild(gfx);
 		var style = { font: '12pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: false };
-		var txt = 'learn the game of pai-gow poker (click start to practice setting hands)   --->';
+		var txt = '';
+		if (Casino.game.toast) {
+			Casino.game.toast = false;
+			txt = 'congrats!!! new level: '+Casino.game.level.main+' - '+Casino.game.level.sub;
+		} else {
+			txt = 'current level: '+Casino.game.level.main+' - '+Casino.game.level.sub+'              (click a level button for examples)';
+		}
 		this.txt_main_info = this.add.text(5, 5, txt, style);	
 		sprite.addChild(this.txt_main_info);
+		sprite.x = 120;
+		sprite.y = 0;
 
-		// create buttons for the main menu
+		// create a text box for stat related information
+		var sprite = this.add.sprite(0,0);
+		var gfx = this.add.graphics(0,0);
+		gfx.beginFill(Casino._INFO_BG,1);
+		gfx.drawRect(0,0,760,25);
+		sprite.addChild(gfx);
+		var style = { font: '12pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: false };
+		var txt = '<--- click to return to this menu            click to begin setting hands --->';
+		this.txt_main_info = this.add.text(5, 5, txt, style);	
+		sprite.addChild(this.txt_main_info);		
+		sprite.x = 120;
+		sprite.y = 375;
+
+		// create buttons for the levels
 //		var sprite = this.add.sprite(0,0);
 		var width;
 		var i = 0;
@@ -50,7 +77,7 @@ Casino.LearnMenu.prototype = {
 			var btn = this.createButton({name:key,callback:this.btnHandler,size:'large',learn:true});
 			btn.main_key = key;
 			btn.x = 20 +(i*135);
-			btn.y = 35;
+			btn.y = 30;
 			var n = 1;
 			this.group.add(btn);
 			for (var sub in Paigow.rules[key]) {
@@ -59,7 +86,7 @@ Casino.LearnMenu.prototype = {
 				btn.main_key = key;
 				btn.sub_key = sub;
 				btn.x = n*135-30;
-				btn.y = 70;
+				btn.y = 60;
 				n++;
 				this.group.add(btn);
 			}
@@ -80,58 +107,36 @@ Casino.LearnMenu.prototype = {
 		var sub_keys = Object.keys(Paigow.rules[Casino.game.level.main]);
 		var sub_index = sub_keys.indexOf(Casino.game.level.sub);
 
-		this.group.forEach(function(btn) {
-			btn.disabled = true;
-			btn.visible = true;
-			// this buttons key is the same or less than the main index
-			if (main_keys.indexOf(btn.main_key) <= main_index) {
-				// button has no sub key then show it
-				if (!btn.sub_key) {
-					btn.disabled = false;
-					btn.off.visible = false;
-				} else {
-					btn.disabled = true;
-					btn.off.visible = true;
-				}
-				// this buttons sub key is the same or less than sub index
-				if (sub_keys.indexOf(btn.sub_key) <= sub_index) {
-					btn.disabled = false;
-					btn.off.visible = false;
-				} else {
-					btn.disabled = true;
-					btn.off.visible = true;
-				}
-			}
-		},this);
-
 		// create a text box for messages
 		var sprite = this.add.sprite(0,0);
 		var gfx = this.add.graphics(0,0);
 		gfx.beginFill(Casino._INFO_BG,1);
-		gfx.drawRect(0,0,960,75);
+		gfx.drawRect(0,0,900,120);
 		sprite.addChild(gfx);
 		var style = { font: '10pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: true, wordWrapWidth: 960 };
 		this.message_box = this.add.text(0, 0, '', style);	
 		sprite.addChild(this.message_box);
-		sprite.x = 20;
-		// place the information area
-		sprite.y = 105;
-		this.messageBox('Welcome to Learn Mode. Click a button above to begin.');
+		sprite.x = 50;
+		sprite.y = 95;
 
-		this.showGroup('none');
+		this.showGroup(Casino.game.level.main);
+		this.current_main = Casino.game.level.main;
+		this.current_sub = Casino.game.level.sub;
+		this.messageBox(Paigow.rules[Casino.game.level.main][Casino.game.level.sub]);
+		this.createExampleHand(Casino.game.level.main,Casino.game.level.sub);
 	},
 	messageBox(str) {
 		this.message_box.text = str;
 	},
-	createExampleHand:function() {
-		var str = Casino.game.level.sub.split('+');
+	createExampleHand:function(main,sub) {
+		var str = sub.split('+');
 		var chance;
 		if (str[1] == 'joker') {
 			chance = 100;
 		} else {
 			chance = 0;
 		}
-		hand = Cards.handCreate(Poker.create(Casino.game.level.main,chance,str[0]));
+		hand = Cards.handCreate(Poker.create(main,chance,str[0]));
 		// create an array to hold chosen hair cards
 		Casino.game.hair_chosen = [];
 		// solve for poker
@@ -170,24 +175,22 @@ Casino.LearnMenu.prototype = {
 
 		var hand = opts.hand;
 		var cards = hand.shuffled;
-		var card_x = 30;
-		var card_y = 190;
-		var spacer_x = 135;
+		var scale = 0.75;
+		var card_x = 85;
+		var card_y = 240;
+		var spacer_x = 105;
 		for (var i=0;i<hand.shuffled.length;i++) {
 			var key = hand.shuffled[i]
 			var card = this.createCard(key);
+			card.scale.setTo(scale);
+			card.key = key;
+			card.x = card_x+i*spacer_x;
+			card.y = card_y;
 			if (hand.paigow.hair.indexOf(key) != -1) {
+				card.y -=20;
 				card.outline.visible = true;
 			}
-			card.key = key;
-//			card.inputEnabled = true;
-//			card.input.useHandCursor = true;
-//			card.events.onInputDown.add(this.gameSelectHair,card);
-			if (card) {
-				card.x = card_x+i*spacer_x;
-				card.y = card_y;
-				this.cards.add(card);
-			}
+			this.cards.add(card);
 		}
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -205,7 +208,7 @@ Casino.LearnMenu.prototype = {
 		sprite.addChild(gfx);
 		if (opts.learn) {
 			var gfx = this.add.graphics(0,0);
-			gfx.beginFill(this.btn_inactive,1);
+			gfx.beginFill(this.btn_color_inactive,1);
 			gfx.drawRect(0,0,btn_width,25);
 			sprite.addChild(gfx);
 			sprite.off = gfx;
@@ -223,37 +226,64 @@ Casino.LearnMenu.prototype = {
 		
 		return sprite;
 	},
-	showGroup:function(sub) {
-		if (sub != 'none') {
-			var super_keys = Object.keys(Paigow.rules[sub]);
-		}
-		// main keys + index
-		var main_keys = Object.keys(Paigow.rules);
-		var main_index = main_keys.indexOf(Casino.game.level.main);
-		// sub keys + index
-		var sub_keys = Object.keys(Paigow.rules[Casino.game.level.main]);
-		var sub_index = sub_keys.indexOf(Casino.game.level.sub);
+	showGroup:function(main) {
+		var super_keys = Object.keys(Paigow.rules);
+		var current_level = Casino.game.level.main
+		var current_index = super_keys.indexOf(current_level);
+
+		// main keys / index + sub index
+		var main_keys = Object.keys(Paigow.rules[main]);
+		var main_index = super_keys.indexOf(main);
+		var sub_index = main_keys.indexOf(Casino.game.level.sub);
 
 		this.group.forEach(function(btn) {
 			btn.visible = false;
+			btn.inputEnabled = false;
+			btn.input.useHandCursor = false;
+			btn.off.visible = true;
 			// always show the main buttons
 			if (!btn.sub_key) {
 				btn.visible = true;
-			}
-			// show the sub group
-			if (btn.main_key == sub && super_keys.indexOf(btn.sub_key) != -1) {
-				btn.visible = true;
-			}
-			/*
-			// this buttons sub key is the same or less than sub index
-			if (sub_keys.indexOf(btn.sub_key) <= sub_index) {
-				btn.disabled = false;
+				btn.inputEnabled = true;
+				btn.input.useHandCursor = true;
 				btn.off.visible = false;
 			} else {
-				btn.disabled = true;
-				btn.off.visible = true;
+				// deal with sub buttons that are not part of the main_keys
+				if (main_keys.indexOf(btn.sub_key) == -1) {
+					btn.visible = false;
+				}
+				if (main_index > current_index) {
+					if (btn.main_key == main) {
+						btn.visible = true;
+						btn.off.visible = true;
+					}
+					// do nothing				
+				} else if (main_index < current_index) {
+					if (btn.main_key == main) {
+						btn.visible = true;
+						btn.off.visible = false;
+					}
+					btn.inputEnabled = true;
+					btn.input.useHandCursor = true;
+				} else {
+					// otherwise the index matches
+					if (btn.main_key == main) {
+						btn.visible = true;
+					}
+					if (main_keys.indexOf(btn.sub_key) != -1) {
+						btn.off.visible = true;
+						// this buttons sub key is the same or less than sub index
+						if (main_keys.indexOf(btn.sub_key) <= sub_index) {
+							btn.disabled = false;
+							btn.inputEnabled = true;
+							btn.input.useHandCursor = true;
+							btn.off.visible = false;
+						} else {
+							btn.disabled = true;
+						}
+					}
+				}
 			}
-			*/
 		},this);
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -268,21 +298,30 @@ Casino.LearnMenu.prototype = {
 				if (!btn.disabled) {
 					// no sub key means main button
 					if (!btn.sub_key) {
-						var str = 'Click the '+Casino.game.level.sub+' button above to start learning '+btn.main_key+' type hands\n'
-						str += 'this will display a hand of that type, cards highlighted in red are the possible hair cards\n';
-						str += 'click the button again to show another example\n';
-						this.messageBox(str);
 						this.showGroup(btn.main_key);
+						this.current_main = btn.main_key;
+						var super_keys = Object.keys(Paigow.rules);
+						var current_level = Casino.game.level.main
+						var current_index = super_keys.indexOf(current_level);
+						var main_index = super_keys.indexOf(btn.main_key);
+						var str = '';
+						if (main_index <= current_index) {
+							str = 'select a level above';
+						} else {
+							str = 'You have not yet attained this level';
+						}
+						this.messageBox(str);
 					} else {
-						this.messageBox(Paigow.rules[Casino.game.level.main][Casino.game.level.sub]);
-						this.createExampleHand();
+						this.messageBox(Paigow.rules[this.current_main][btn.sub_key]);
+						this.createExampleHand(btn.main_key,btn.sub_key);
 					}
 				} else {
-					if (!btn.sub_key) {
-						this.messageBox('You have not yet attained this level');
-					}
+					this.messageBox('You have not yet attained this level');
 				}
 			break;
+			case 'option':
+				console.log('hahahaha');
+				break;
 			default: this.game.state.start('MainMenu');
 			break;
 		}
