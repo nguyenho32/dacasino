@@ -272,6 +272,8 @@ Casino.Game.prototype = {
 		// all ui elements created now initialize the game
 		switch(Casino.game.mode) {
 			case 'learn':
+				Casino.game.level.main = 'pai-gow';
+				Casino.game.level.sub = 'nothing';
 				this.updateText({box:'main',str:'- learn how to play pai-gow       (click start to continue)   --->'});
 				
 				/*
@@ -289,39 +291,7 @@ Casino.Game.prototype = {
 				btn_start.visible = false;
 				btn_next.visible = false;
 				btn_example.visible = false;
-				// set the game mode
-				game_mode = 'learn';
-				// set the main level
-				if (!game_learn_main_level) {
-					game_learn_main_level = 'pai-gow';
-				}
-				// set the sub level
-				if (!game_learn_sub_level) {
-					game_learn_sub_level = 'nothing';
-				}
 
-				// main keys + index
-				var main_keys = Object.keys(Paigow.rules);
-				var main_index = main_keys.indexOf(game_learn_main_level);
-				// sub keys + index
-				var sub_keys = Object.keys(Paigow.rules[game_learn_main_level]);
-				var sub_index = sub_keys.indexOf(game_learn_sub_level);
-
-				group_buttons_level.visible = true;
-				group_buttons_level.forEach(function(btn) {
-					btn.visible = false;
-					// this buttons key is the same or less than the main index
-					if (main_keys.indexOf(btn.main_key) <= main_index) {
-						// button has no sub key then show it
-						if (!btn.sub_key) {
-							btn.visible = true;
-						}
-						// this buttons sub key is the same or less than sub index
-						if (sub_keys.indexOf(btn.sub_key) <= sub_index) {
-							btn.visible = true;
-						}
-					}
-				},this);
 
 				// set the message
 				this.txt_main_info.text = 'learn how to play pai-gow';
@@ -388,84 +358,10 @@ Casino.Game.prototype = {
 				break;
 		}
 	},
-	/*
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// select a level
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function fnLevelSelect(btn) {
-		// learn mode mastered then return
-		if (game_learn_main_level == 'mastered') {
-			return;
-		}
-		// practice mode so set up so it works right
-		if (game_mode == 'practice') {
-			if (btn.sub_key) {
-				game_practice_main_level = btn.main_key;
-				game_practice_sub_level = btn.sub_key
-				// show the 'start' button
-				btn_start.visible = true;
-				// hide the 'next' button
-				btn_next.visible = false;
-				// hide the 'example' button
-				btn_example.visible = false;
-				// show the rule for this level
-				game_info_box.text = 'Creating hands of type: '+game_practice_main_level+' - '+game_practice_sub_level;
-			}
-		}
-		if (game_mode == 'learn') {
-			// only do something if a sub button was clicked
-			if(btn.sub_key) {
-				game_learn_main_level = btn.main_key;
-				game_learn_sub_level = btn.sub_key;
-				// reset the hand count
-				hand_count = 0;
-				// show the 'start' button
-				btn_start.visible = true;
-				// hide the 'next' button
-				btn_next.visible = false;
-				// show the 'example' button
-				btn_example.visible = true;
-				// show the rule for this level
-				game_info_box.text = Paigow.rules[game_learn_main_level][game_learn_sub_level];
-			}
-		}
-	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// show an example hand
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function fnShowExample() {
-		fnResetBoard();
-		game_info_box.text = Paigow.rules[game_learn_main_level][game_learn_sub_level];
-		var str = game_learn_sub_level.split('+');
-		var chance;
-		if (str[1] == 'joker') {
-			chance = 100;
-		} else {
-			chance = 0;
-		}
-		hand = Cards.handCreate(Poker.create(game_learn_main_level,chance,str[0]));
-
-		// solve for poker
-		hand.poker = Poker.solve(hand.sorted);
-		// solve for pai-gow
-		hand.paigow = Paigow.solve(hand.poker);
-		// loop and display the hands
-		var cards = hand.shuffled;
-		for (var i=0;i<hand.original.length;i++) {
-			var card = Cards.cardCreate({card:cards[i],clickable:false});
-			if (card) {
-				card.x = HAND_X+i*135;
-				card.y = HAND_Y;
-			}
-			group_cards.add(card);
-		}
-		hand_info_box.text = 'hand becomes '+hand.paigow.desc+'\nclick the '+game_learn_sub_level+' button to try again';
-		fnDisplayHouseWay(hand);
-	}
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// progress a level
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	function fnLevelProgress() {
+	levelProgress:function() {
 		fnResetBoard();
 
 		game_level_complete = false;
@@ -504,8 +400,7 @@ Casino.Game.prototype = {
 			}
 		},this);
 		game_info_box.text = 'Congratultions you passed that level!\nClick the '+game_learn_sub_level+' button to continue';
-	}
-	*/
+	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// compare 2 hands?
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -538,14 +433,14 @@ Casino.Game.prototype = {
 		var hand;
 		switch(Casino.game.mode) {
 			case 'learn':
-				var str = game_learn_sub_level.split('+');
+				var str = Casino.game.level.sub.split('+');
 				var chance;
 				if (str[1] == 'joker') {
 					chance = 100;
 				} else {
 					chance = 0;
 				}
-				hand = Cards.handCreate(Poker.create(game_learn_main_level,chance,str[0]));
+				hand = Cards.handCreate(Poker.create(Casino.game.level.main,chance,str[0]));
 				break;
 			case 'practice':
 				var str = Casino.game.level.sub.split('+');
@@ -560,9 +455,9 @@ Casino.Game.prototype = {
 				}
 				// a specific hand to play with
 				// display broken
-				var set = ["queen_club","queen_diamond","queen_heart","queen_spade","seven_club","seven_spade","joker_one"];
-				hand = Cards.handCreate(set);
-//				hand = Cards.handCreate(Poker.create(Casino.game.level.main,chance,str[0]));
+//				var set = ["queen_club","queen_diamond","queen_heart","queen_spade","seven_club","seven_spade","joker_one"];
+//				hand = Cards.handCreate(set);
+				hand = Cards.handCreate(Poker.create(Casino.game.level.main,chance,str[0]));
 			
 				break;
 			case 'timed':
@@ -663,27 +558,6 @@ Casino.Game.prototype = {
 		var str = 'Game Over!!!\n';
 		str += 'You got '+Casino.game.hand.count+' hands correct';
 		this.messageBox('show',str);
-		/*
-		btn_next.visible = false;
-		group_cards.destroy();
-		
-		// learn mode then display grats and return
-		if (game_mode == 'learn') {
-			btn_example.visible = false;
-			game_learn_main_level = 'mastered';
-			game_info_box.text = 'Congratulations you have mastered the game of pai-gow!';
-			hand_info_box.text = 'Wooooo!!!';
-			return;
-		}
-		var txt = 'Game Over!!!\n';
-		if (game_mode == 'timed') {
-			txt += 'You got '+hand_count+' hands correct!\n\n';
-		}
-		txt += 'Click start to go again!';
-		game_info_box.text = txt;
-		hand_info_box.text = '';
-		btn_start.visible = true;
-		*/
 	},
 	/******************************************************************************************************************************************
 		DISPLAY FUNCTIONS

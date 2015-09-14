@@ -26,7 +26,7 @@ var Casino = {
 	
 	game:{
 		thing:{},
-		mode:'practice',
+		mode:'learn',
 		hair_chosen:[],
 		hand_data:{},
 		group_player:{},
@@ -35,7 +35,7 @@ var Casino = {
 			count:0,
 			tries:0
 		},
-		level:{main:'random',sub:'random+random'}
+		level:{main:'pai-gow',sub:'nothing'}
 	}
 };
 Casino.Boot = function(game) {};

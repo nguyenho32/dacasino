@@ -126,7 +126,7 @@ Casino.MainMenu.prototype = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	startGame: function(pointer) {
 		Casino.game.mode = pointer.key;
-		switch(pointer.key) {
+		switch(Casino.game.mode) {
 			case 'debug': this.game.state.start('Debug');
 			break;
 			case 'info': console.log('do info stuff');
