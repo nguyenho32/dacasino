@@ -122,13 +122,11 @@ Casino.Game.prototype = {
 		*/
 		// button for returning to the menu
 		var btn = this.createButton('menu',this.mainMenu);
-		btn.key = 'menu';
 		btn.x = 0;
 		btn.y = 0;
 		// button for starting a game
 		var btn = this.createButton('start',this.btnHandler);
 		this.btn_start = btn;
-		btn.key = 'start';
 		btn.x = 890;
 		btn.y = 0;
 		// create a text box for game related information
@@ -150,13 +148,11 @@ Casino.Game.prototype = {
 		// button for options
 		var btn = this.createButton('option',this.btnHandler);
 		this.btn_option = btn;
-		btn.key = 'option';
 		btn.x = 0;
 		btn.y = 375;
 		// button for getting the next hand
 		var btn = this.createButton('next',this.btnHandler);
 		this.btn_next = btn;
-		btn.key = 'next';
 		btn.x = 890;
 		btn.y = 375;
 		// create a text box for stat related information
@@ -250,6 +246,7 @@ Casino.Game.prototype = {
 				break;
 			case 'option':
 				if (Casino.game.mode == 'learn') {
+					Casino.game.active = true;
 					this.game.state.start('LearnMenu');
 				}
 				break;
@@ -269,13 +266,14 @@ Casino.Game.prototype = {
 		gfx.name = 'graphic';
 		sprite.addChild(gfx);
 		var style = { font: '12pt Courier', fill: Casino._BTN_TXT, align: 'center', wordWrap: true, wordWrapWidth: 100 };
-		var text = Casino.game.thing.add.text(50, 4, txt, style);	
+		var text = Casino.game.thing.add.text(113/2, 4, txt, style);	
 		text.anchor.setTo(0.5,0);
 		text.inputEnabled = true;
 		sprite.addChild(text);
 		sprite.inputEnabled = true;
 		sprite.input.useHandCursor = true;
 		sprite.events.onInputDown.add(callback,this,arg);
+		sprite.key = txt;
 		
 		return sprite;
 	},
@@ -329,8 +327,10 @@ Casino.Game.prototype = {
 		
 		Casino.game.hand_data = {};
 		// reset the stats
-		Casino.game.hand.count = 0;
-		Casino.game.hand.tries = 0;
+		if (!Casino.game.active) {
+			Casino.game.hand.count = 0;
+			Casino.game.hand.tries = 0;
+		}
 		
 		switch(Casino.game.mode) {
 			case 'learn':
@@ -462,10 +462,7 @@ Casino.Game.prototype = {
 		hand.paigow = Paigow.solve(hand.poker);
 		// display the hand
 		Casino.game.thing.displayHand({type:'normal',opt:{hand:hand}});
-		// increment the hand count 
-		Casino.game.hand.count += 1;
-		// reset the tries counter
-		Casino.game.hand.tries = 0;
+
 		this.updateText({box:'stat',str:'default'});
 		// set the hand data for use throughout
 		Casino.game.hand_data = hand;
@@ -515,6 +512,10 @@ Casino.Game.prototype = {
 			}
 		}
 		if (required && (hair.indexOf(chosen[0]) != -1 && hair.indexOf(chosen[1]) != -1)) {
+			// increment the hand count 
+			Casino.game.hand.count += 1;
+			// reset the tries counter
+			Casino.game.hand.tries = 0;
 			// display the hand
 			Casino.game.thing.displayHand({type:'houseway',opt:{hand:hand,chosen:chosen}});
 			// show the 'next' button

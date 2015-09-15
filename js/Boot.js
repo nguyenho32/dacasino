@@ -31,12 +31,12 @@ var Casino = {
 		hand_data:{},
 		group_player:{},
 		group_bank:{},
-		per_level:1,
+		per_level:10,
 		hand:{
 			count:0,
 			tries:0
 		},
-		level:{main:'straight-flush',sub:'2-pair+joker'},
+		level:{main:'pai-gow',sub:'nothing'},
 		practice_mode:{main:'random',sub:'random+random'},
 	}
 };

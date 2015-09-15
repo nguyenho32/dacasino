@@ -60,7 +60,12 @@ Casino.LearnMenu.prototype = {
 		gfx.drawRect(0,0,760,25);
 		sprite.addChild(gfx);
 		var style = { font: '12pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: false };
-		var txt = '<--- click to return to this menu            click to begin setting hands --->';
+		var txt;
+		if (Casino.game.active) {
+			txt = '<--- click to return to the game';
+		} else {
+			txt = '<--- click to return to this menu            click to begin setting hands --->';
+		}
 		this.txt_main_info = this.add.text(5, 5, txt, style);	
 		sprite.addChild(this.txt_main_info);		
 		sprite.x = 120;
@@ -116,6 +121,9 @@ Casino.LearnMenu.prototype = {
 		sprite.x = 100;
 		sprite.y = 95;
 
+		if (Casino.game.active) {
+			this.buttons['start'].visible = false;
+		}
 		this.showGroup(Casino.game.level.main);
 		this.current_main = Casino.game.level.main;
 		this.current_sub = Casino.game.level.sub;
@@ -157,12 +165,12 @@ Casino.LearnMenu.prototype = {
 	},
 	createCard:function(key) {
 		var card = this.add.sprite();
-		var shadow = this.add.sprite(-1, -2,'cards',key);
+		var shadow = this.add.sprite(-2, -2,'cards',key);
 		shadow.scale.setTo(1.025);
 		shadow.tint = 0x000000;
 		shadow.alpha = 0.8;
 		card.addChild(shadow);
-		var outline = this.add.sprite(-2, -3,'cards',key);
+		var outline = this.add.sprite(-3, -3,'cards',key);
 		outline.scale.setTo(1.05);
 		outline.tint = 0xFF0000;
 		outline.alpha = 0.8;
@@ -289,7 +297,7 @@ Casino.LearnMenu.prototype = {
 					var main_index = super_keys.indexOf(btn.main_key);
 					var str = '';
 					if (main_index <= current_index) {
-						str = 'select a level above';
+						str = 'select a category from above';
 					} else {
 						str = 'You have not yet attained this level';
 					}
@@ -301,10 +309,24 @@ Casino.LearnMenu.prototype = {
 				}
 			break;
 			case 'option':
-				console.log('hahahaha');
+					if (Casino.game.active) {
+						this.game.state.start('Game');
+					} else {
+						this.clock = 3;
+						this.clockEvent = this.time.events.loop(Phaser.Timer.SECOND,this.clockHandler,this);
+						this.messageBox('you are already in the options menu, use the button to return here from the game');
+					}
 				break;
 			default: this.game.state.start('MainMenu');
 			break;
+		}
+	},
+	clockHandler:function() {
+		this.clock -= 1;
+		if (this.clock === 0) {
+			console.log(this.message_box.text);
+			this.time.events.remove(this.clockEvent);
+			this.messageBox('select a category from above');
 		}
 	}
 };

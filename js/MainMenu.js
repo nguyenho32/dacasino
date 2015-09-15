@@ -71,7 +71,7 @@ Casino.MainMenu.prototype = {
 		gfx.name = 'graphic';
 		sprite.addChild(gfx);
 		var style = { font: '12pt Courier', fill: Casino._BTN_TXT, align: 'center', wordWrap: true, wordWrapWidth: 100 };
-		var text = this.add.text(50, 4, txt, style);	
+		var text = this.add.text(113/2, 4, txt, style);	
 		text.anchor.setTo(0.5,0);
 		text.inputEnabled = true;
 		sprite.addChild(text);
