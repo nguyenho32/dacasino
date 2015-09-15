@@ -43,7 +43,7 @@
 },
 {
 	"filename": "four_diamond",
-	"frame": {"x":344,"y":48,"w":124,"h":175},
+	"frame": {"x":344.5,"y":48,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -51,7 +51,7 @@
 },
 {
 	"filename": "five_diamond",
-	"frame": {"x":476,"y":48,"w":124,"h":175},
+	"frame": {"x":477,"y":48,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -59,7 +59,7 @@
 },
 {
 	"filename": "six_diamond",
-	"frame": {"x":608,"y":48,"w":124,"h":175},
+	"frame": {"x":609,"y":48,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -67,7 +67,7 @@
 },
 {
 	"filename": "seven_diamond",
-	"frame": {"x":740,"y":48,"w":124,"h":175},
+	"frame": {"x":741.5,"y":48,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -75,7 +75,7 @@
 },
 {
 	"filename": "eight_diamond",
-	"frame": {"x":872,"y":48,"w":124,"h":175},
+	"frame": {"x":873.5,"y":48,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -83,7 +83,7 @@
 },
 {
 	"filename": "nine_diamond",
-	"frame": {"x":1004,"y":48,"w":124,"h":175},
+	"frame": {"x":1005.5,"y":48,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -91,7 +91,7 @@
 },
 {
 	"filename": "ten_diamond",
-	"frame": {"x":1136,"y":48,"w":124,"h":175},
+	"frame": {"x":1138,"y":48.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -99,7 +99,7 @@
 },
 {
 	"filename": "jack_diamond",
-	"frame": {"x":1268,"y":48,"w":124,"h":175},
+	"frame": {"x":1270.5,"y":49.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -107,7 +107,7 @@
 },
 {
 	"filename": "queen_diamond",
-	"frame": {"x":1400,"y":48,"w":124,"h":175},
+	"frame": {"x":1403,"y":49.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -115,7 +115,7 @@
 },
 {
 	"filename": "king_diamond",
-	"frame": {"x":1532,"y":48,"w":124,"h":175},
+	"frame": {"x":1535,"y":49.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -123,7 +123,7 @@
 },
 {
 	"filename": "ace_diamond",
-	"frame": {"x":1664,"y":48,"w":124,"h":175},
+	"frame": {"x":1667,"y":49.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -133,7 +133,7 @@
 
 {
 	"filename": "two_club",
-	"frame": {"x":80,"y":233,"w":124,"h":175},
+	"frame": {"x":80,"y":233.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -141,7 +141,7 @@
 },
 {
 	"filename": "three_club",
-	"frame": {"x":212,"y":233,"w":124,"h":175},
+	"frame": {"x":212,"y":233.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -149,7 +149,7 @@
 },
 {
 	"filename": "four_club",
-	"frame": {"x":344,"y":233,"w":124,"h":175},
+	"frame": {"x":344.5,"y":233.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -157,7 +157,7 @@
 },
 {
 	"filename": "five_club",
-	"frame": {"x":476,"y":233,"w":124,"h":175},
+	"frame": {"x":477,"y":233.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -165,7 +165,7 @@
 },
 {
 	"filename": "six_club",
-	"frame": {"x":608,"y":233,"w":124,"h":175},
+	"frame": {"x":609,"y":233.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -173,7 +173,7 @@
 },
 {
 	"filename": "seven_club",
-	"frame": {"x":740,"y":233,"w":124,"h":175},
+	"frame": {"x":741.5,"y":233.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -181,7 +181,7 @@
 },
 {
 	"filename": "eight_club",
-	"frame": {"x":872,"y":233,"w":124,"h":175},
+	"frame": {"x":873.5,"y":233.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -189,7 +189,7 @@
 },
 {
 	"filename": "nine_club",
-	"frame": {"x":1004,"y":233,"w":124,"h":175},
+	"frame": {"x":1005.5,"y":233.25,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -197,7 +197,7 @@
 },
 {
 	"filename": "ten_club",
-	"frame": {"x":1136,"y":233,"w":124,"h":175},
+	"frame": {"x":1137.5,"y":234,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -205,7 +205,7 @@
 },
 {
 	"filename": "jack_club",
-	"frame": {"x":1268,"y":233,"w":124,"h":175},
+	"frame": {"x":1270.5,"y":234.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -213,7 +213,7 @@
 },
 {
 	"filename": "queen_club",
-	"frame": {"x":1400,"y":233,"w":124,"h":175},
+	"frame": {"x":1400,"y":233.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -221,7 +221,7 @@
 },
 {
 	"filename": "king_club",
-	"frame": {"x":1532,"y":233,"w":124,"h":175},
+	"frame": {"x":1535,"y":234.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -229,7 +229,7 @@
 },
 {
 	"filename": "ace_club",
-	"frame": {"x":1664,"y":233,"w":124,"h":175},
+	"frame": {"x":1667,"y":235,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -240,7 +240,7 @@
 
 {
 	"filename": "two_heart",
-	"frame": {"x":80,"y":420,"w":124,"h":175},
+	"frame": {"x":80,"y":419.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -248,7 +248,7 @@
 },
 {
 	"filename": "three_heart",
-	"frame": {"x":212,"y":420,"w":124,"h":175},
+	"frame": {"x":212,"y":419.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -256,7 +256,7 @@
 },
 {
 	"filename": "four_heart",
-	"frame": {"x":344,"y":420,"w":124,"h":175},
+	"frame": {"x":344.5,"y":419.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -264,7 +264,7 @@
 },
 {
 	"filename": "five_heart",
-	"frame": {"x":476,"y":420,"w":124,"h":175},
+	"frame": {"x":476.5,"y":419.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -272,7 +272,7 @@
 },
 {
 	"filename": "six_heart",
-	"frame": {"x":608,"y":420,"w":124,"h":175},
+	"frame": {"x":609,"y":419.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -280,7 +280,7 @@
 },
 {
 	"filename": "seven_heart",
-	"frame": {"x":740,"y":420,"w":124,"h":175},
+	"frame": {"x":741.5,"y":419.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -288,7 +288,7 @@
 },
 {
 	"filename": "eight_heart",
-	"frame": {"x":872,"y":420,"w":124,"h":175},
+	"frame": {"x":873.5,"y":419.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -296,7 +296,7 @@
 },
 {
 	"filename": "nine_heart",
-	"frame": {"x":1004,"y":420,"w":124,"h":175},
+	"frame": {"x":1006,"y":419.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -304,7 +304,7 @@
 },
 {
 	"filename": "ten_heart",
-	"frame": {"x":1136,"y":420,"w":124,"h":175},
+	"frame": {"x":1138,"y":419.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -312,7 +312,7 @@
 },
 {
 	"filename": "jack_heart",
-	"frame": {"x":1268,"y":420,"w":124,"h":175},
+	"frame": {"x":1270.5,"y":419.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -320,7 +320,7 @@
 },
 {
 	"filename": "queen_heart",
-	"frame": {"x":1400,"y":420,"w":124,"h":175},
+	"frame": {"x":1403,"y":419.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -328,7 +328,7 @@
 },
 {
 	"filename": "king_heart",
-	"frame": {"x":1532,"y":420,"w":124,"h":175},
+	"frame": {"x":1535,"y":419.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -336,7 +336,7 @@
 },
 {
 	"filename": "ace_heart",
-	"frame": {"x":1664,"y":420,"w":124,"h":175},
+	"frame": {"x":1667.5,"y":419.5,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -362,7 +362,7 @@
 },
 {
 	"filename": "four_spade",
-	"frame": {"x":344,"y":605,"w":124,"h":175},
+	"frame": {"x":345,"y":605,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -370,7 +370,7 @@
 },
 {
 	"filename": "five_spade",
-	"frame": {"x":476,"y":605,"w":124,"h":175},
+	"frame": {"x":477.5,"y":605,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -378,7 +378,7 @@
 },
 {
 	"filename": "six_spade",
-	"frame": {"x":608,"y":605,"w":124,"h":175},
+	"frame": {"x":609.5,"y":605,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -386,7 +386,7 @@
 },
 {
 	"filename": "seven_spade",
-	"frame": {"x":740,"y":605,"w":124,"h":175},
+	"frame": {"x":742,"y":605,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -394,7 +394,7 @@
 },
 {
 	"filename": "eight_spade",
-	"frame": {"x":872,"y":605,"w":124,"h":175},
+	"frame": {"x":873,"y":605,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -402,7 +402,7 @@
 },
 {
 	"filename": "nine_spade",
-	"frame": {"x":1004,"y":605,"w":124,"h":175},
+	"frame": {"x":1006.5,"y":605,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -410,7 +410,7 @@
 },
 {
 	"filename": "ten_spade",
-	"frame": {"x":1136,"y":605,"w":124,"h":175},
+	"frame": {"x":1138.5,"y":605,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -418,7 +418,7 @@
 },
 {
 	"filename": "jack_spade",
-	"frame": {"x":1268,"y":605,"w":124,"h":175},
+	"frame": {"x":1270.5,"y":605,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -426,7 +426,7 @@
 },
 {
 	"filename": "queen_spade",
-	"frame": {"x":1400,"y":605,"w":124,"h":175},
+	"frame": {"x":1402,"y":605,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -434,7 +434,7 @@
 },
 {
 	"filename": "king_spade",
-	"frame": {"x":1532,"y":605,"w":124,"h":175},
+	"frame": {"x":1534.5,"y":605,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},
@@ -442,7 +442,7 @@
 },
 {
 	"filename": "ace_spade",
-	"frame": {"x":1664,"y":605,"w":124,"h":175},
+	"frame": {"x":1667.5,"y":605,"w":124,"h":175},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":124,"h":175},

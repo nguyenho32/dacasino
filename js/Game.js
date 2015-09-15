@@ -1,6 +1,8 @@
 Casino.Game = function(game) {};
 Casino.Game.prototype = {
-//	debugHand:["ace_spade","king_heart","queen_spade","jack_spade","jack_club","ten_heart","joker_one"],
+//	debugHand:["king_spade","king_heart","jack_spade","nine_heart","six_spade","five_spade","three_spade"],
+//	debugHand:["six_heart","five_club","two_club","four_heart","joker_one","three_club","two_heart"],
+	debugHand:Casino.debugHand,
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// get the difference between 2 arrays
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -19,7 +21,7 @@ Casino.Game.prototype = {
 	btnDisplay:function(opt) {
 		switch(opt) {
 			case 'option':
-				this.btn_option.visible = true;
+				this.btn_option.visible = (this.btn_option.visible) ? false : true;
 				break;
 			case 'next':
 				this.btn_next.visible = (this.btn_next.visible) ? false: true;
@@ -33,25 +35,25 @@ Casino.Game.prototype = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// update a text box
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	updateText:function(opts) {
+	updateText:function(options) {
 		var str;
 		var txt;
-		switch(opts.box) {
+		switch(options.box) {
 			case 'main':
-				var str = opts.str;
+				var str = options.str;
 				txt = this.txt_main_info;
 				break;
 			case 'stat':
 				str = 'hands: '+Casino.game.hand.count;
 				if (Casino.game.mode == 'learn') {
-					str += ' / 10';
+					str += ' / '+Casino.game.per_level;
 				}
 				str += ' - tries: '+Casino.game.hand.tries;
 				txt = Casino.game.thing.txt_stat_info;
-				opts.rewrite = true;
+				options.rewrite = true;
 				break;
 		}
-		if (!opts.rewrite) {
+		if (!options.rewrite) {
 			txt.text = txt.text+' '+str;
 		} else {
 			txt.text = str;
@@ -211,8 +213,8 @@ Casino.Game.prototype = {
 		// update the stat box
 		this.updateText({box:'stat'});
 		
-		this.initMode(Casino.game.mode);
 		this.btnDisplay('hide');
+		this.initMode(Casino.game.mode);
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// button handler
@@ -220,7 +222,7 @@ Casino.Game.prototype = {
 	checkGameStatus:function() {
 		// progress a level in learn mode
 		if (Casino.game.mode == 'learn') {
-			if (Casino.game.hand.count < 10) {
+			if (Casino.game.hand.count < Casino.game.per_level) {
 				this.gameCreateHand();
 			} else {
 				this.levelProgress();
@@ -294,7 +296,8 @@ Casino.Game.prototype = {
 		// all ui elements created now initialize the game
 		switch(Casino.game.mode) {
 			case 'learn':
-				this.updateText({box:'main',str:'- learning '+Casino.game.level.main});
+				this.updateText({box:'main',str:'- learning '+Casino.game.level.main+' - '+Casino.game.level.sub});
+				this.btn_option.visible = true;
 				this.gameStart();
 				break;
 			case 'practice':
@@ -331,6 +334,7 @@ Casino.Game.prototype = {
 		
 		switch(Casino.game.mode) {
 			case 'learn':
+				this.btn_option.visible = true;
 				this.btn_start.visible = false;
 				this.gameCreateHand();
 				break;
@@ -370,8 +374,8 @@ Casino.Game.prototype = {
 		}
 		// if main_index over length, end the game
 		if (main_index >= main_keys.length) {
-//			fnGameOver();
-//			return;
+			this.gameEnd();
+			return;
 		}
 		// set new level stuff
 		Casino.game.level.main = main_keys[main_index];
@@ -421,7 +425,7 @@ Casino.Game.prototype = {
 				} else {
 					chance = 0;
 				}
-				hand = Cards.handCreate(Poker.create(Casino.game.level.main,chance,str[0]));
+				hand = Cards.handCreate(Poker.create({main:Casino.game.level.main,joker:chance,sub:str[0]}));
 				break;
 			case 'practice':
 				var str = Casino.game.practice_mode.sub.split('+');
@@ -439,15 +443,15 @@ Casino.Game.prototype = {
 				if (typeof this.debugHand !== 'undefined') {
 					hand = Cards.handCreate(this.debugHand);
 				} else {
-					hand = Cards.handCreate(Poker.create(Casino.game.practice_mode.main,chance,str[0]));
+					hand = Cards.handCreate(Poker.create({main:Casino.game.practice_mode.main,joker:chance,sub:str[0]}));
 				}
 			
 				break;
 			case 'timed':
-				hand = Cards.handCreate(Poker.create('random',50,'random'));
+				hand = Cards.handCreate(Poker.create({main:'random',joker:50,sub:'random'}));
 				break;
 			default:
-				hand = Cards.handCreate(Poker.create('random',50,'random'));
+				hand = Cards.handCreate(Poker.create({main:'random',joker:50,sub:'random'}));
 				break;
 		}
 		// create an array to hold chosen hair cards
@@ -456,8 +460,6 @@ Casino.Game.prototype = {
 		hand.poker = Poker.solve(hand.sorted);
 		// solve for pai-gow
 		hand.paigow = Paigow.solve(hand.poker);
-		// set the hand data
-		Casino.game.hand_data = hand;
 		// display the hand
 		Casino.game.thing.displayHand({type:'normal',opt:{hand:hand}});
 		// increment the hand count 
@@ -465,6 +467,8 @@ Casino.Game.prototype = {
 		// reset the tries counter
 		Casino.game.hand.tries = 0;
 		this.updateText({box:'stat',str:'default'});
+		// set the hand data for use throughout
+		Casino.game.hand_data = hand;
 		console.log('\nhand created: ',hand);
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -564,6 +568,7 @@ Casino.Game.prototype = {
 				break;
 			default:
 				// destroy the 'player' layout
+				Casino.game.group_player.visible = false;
 				Casino.game.group_player.destroy();
 				Casino.game.group_bank.destroy();
 				break;
@@ -572,23 +577,32 @@ Casino.Game.prototype = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to display a hand
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	displayHand:function(opts){
+	displayHand:function(options){
 		// reset the player and bank groups
-		if (opts.reset !== 'none') {
+		if (options.reset !== 'none') {
 			this.displayReset();
 		}
-		switch(opts.type) {
+		switch(options.type) {
 			case 'bank':
 				this.messageBox('hide');
-				this.displayBankHand(opts.opt);
+				this.displayBankHand(options.opt);
 				break;
 			case 'houseway':
 				this.messageBox('hide');
-				this.displayHouseWay(opts.opt);
+				this.displayHouseWay(options.opt);
 				break;
 			default:
 				this.messageBox('show','default');
-				this.displayNormalWay(opts.opt);
+				Casino.game.group_player.destroy();
+				Casino.game.group_player = Casino.game.thing.add.group();
+				var hand = options.opt.hand;
+				for (var i=0;i<hand.shuffled.length;i++) {
+					var key = hand.shuffled[i];
+					var card = this.createCard(key);
+					card.key = key;
+					Casino.game.group_player.add(card);
+				}
+				Display.normal(Casino.game.group_player,options.opt);
 				break;
 		}
 	},
@@ -608,45 +622,23 @@ Casino.Game.prototype = {
 		card.outline = outline;
 		var actual = Casino.game.thing.add.sprite(0,0,'cards',key);
 		card.addChild(actual);
+		card.key = key;
+		card.inputEnabled = true;
+		card.input.useHandCursor = true;
+		card.events.onInputDown.add(this.gameSelectHair,card);
 		return card;
-	},
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// silly function to disply the hand normally
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	displayNormalWay:function(opts){
-		// create the 'player' layout
-		Casino.game.group_player = Casino.game.thing.add.group();
-
-		var hand = opts.hand;
-		var cards = hand.shuffled;
-		var card_x = 30;
-		var card_y = 190;
-		var spacer_x = 135;
-		for (var i=0;i<hand.shuffled.length;i++) {
-			var key = hand.shuffled[i]
-			var card = that.prototype.createCard(key);
-			card.key = key;
-			card.inputEnabled = true;
-			card.input.useHandCursor = true;
-			card.events.onInputDown.add(this.gameSelectHair,card);
-			if (card) {
-				card.x = card_x+i*spacer_x;
-				card.y = card_y;
-				Casino.game.group_player.add(card);
-			}
-		}
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to display the hand set correctly
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	displayHouseWay:function(opts) {
+	displayHouseWay:function(options) {
 		Casino.game.group_player = Casino.game.thing.add.group();
 
-		var hand = opts.hand;
-		if (opts.chosen) {
-			var extras = this.arrayDiff(hand.paigow.hair,opts.chosen);
+		var hand = options.hand;
+		if (options.chosen) {
+			var extras = this.arrayDiff(hand.paigow.hair,options.chosen);
 		}
-		var hair = (!opts.chosen) ? hand.paigow.hair : opts.chosen;
+		var hair = (!options.chosen) ? hand.paigow.hair : options.chosen;
 		// if 1st hair is joker then reverse
 		if (Cards.isJoker(hair[0])) {
 			hair.reverse();
@@ -658,7 +650,7 @@ Casino.Game.prototype = {
 		// setup the back
 		var back;
 		// default back comes from paigow data
-		if (!opts.chosen) {
+		if (!options.chosen) {
 			back = hand.paigow.back;
 		} else {
 			back = hand.paigow.back;
@@ -685,7 +677,7 @@ Casino.Game.prototype = {
 				}
 			}
 		}
-		if (opts.mode != 'small') {
+		if (options.mode != 'small') {
 			var scale = 0.90;
 			var hand_x = 5;
 			var hand_y = 50;
@@ -754,10 +746,10 @@ Casino.Game.prototype = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to display the bank hand
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	displayBankHand:function(opts) {
+	displayBankHand:function(options) {
 		Casino.game.group_bank = Casino.game.thing.add.group();
 
-		var hand = opts.hand;
+		var hand = options.hand;
 		var scale = 0.7;
 		var hand_x = 545;
 		var hand_y = 75;

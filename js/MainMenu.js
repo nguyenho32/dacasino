@@ -1,9 +1,20 @@
 Casino.MainMenu = function(game) {};
 Casino.MainMenu.prototype = {
+	updateTimer:function() {
+		this.clock -= 1;
+
+		if (this.clock === 0) {
+			this.clock = Math.round(Math.random()*(5 - 2) + 2);
+			this.createHand();
+		}
+	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// creation
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	create: function() {
+		this.clock;
+		this.clockEvent;
+		this.cards = this.add.group();
 		// create buttons for the main menu
 		var menu = ["info","learn","practice","compare","speed","timed","debug"];
 		var sprite = this.add.sprite(0,0);
@@ -14,6 +25,10 @@ Casino.MainMenu.prototype = {
 			btn.x = 750;
 			btn.y = 40+i*50;
 			sprite.addChild(btn);
+			if (menu[i] == 'debug') {
+				this.btn_debug = btn;
+				btn.visible = false;
+			}
 		}
 
 		// create a text box for menu related information
@@ -33,7 +48,17 @@ Casino.MainMenu.prototype = {
 		// place the information area
 		sprite.y = 30;
 		
+		var dbg = this.input.keyboard.addKey(Phaser.Keyboard.D);
+		dbg.onDown.add(this.debugMode,this);
+
+		
 		this.createHand();
+
+		this.clock = 3;
+		this.clockEvent = this.time.events.loop(Phaser.Timer.SECOND,this.updateTimer,this);
+	},
+	debugMode:function() {
+		this.btn_debug.visible = (this.btn_debug.visible) ? false : true;
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// create a button
@@ -64,61 +89,35 @@ Casino.MainMenu.prototype = {
 		var hand = Cards.handCreate(deck.splice(0,7));
 		hand.poker = Poker.solve(hand.sorted);
 		hand.paigow = Paigow.solve(hand.poker);
-		this.displayHand(hand);
-	},
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// silly function to display a hand
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	displayHand:function(hand) {
-
-		var BANK_Y = 30;
-		var spacer = 190;
-		var hair = hand.paigow.hair;
-		var back = hand.paigow.back;;
-		var cards = hand.sorted;
-		for (var i=0;i<hand.original.length;i++) {
-			var key = hand.original[i];
-			var card = this.add.sprite();
-			var shadow = this.add.sprite(-1, -2,'cards',key);
-			shadow.scale.setTo(1.025);
-			shadow.tint = 0x000000;
-			shadow.alpha = 0.8;
-			card.addChild(shadow);
-			var actual = this.add.sprite(0,0,'cards',key);
-			card.addChild(actual);
+//		this.displayHand(hand);
+		this.cards.destroy();
+		this.cards = this.add.group();
+		for (var i=0;i<hand.shuffled.length;i++) {
+			var key = hand.shuffled[i];
+			var card = this.createCard(key);
 			card.key = key;
-//			card.inputEnabled = true;
-//			card.input.useHandCursor = true;
-//			card.events.onInputDown.add(Cards.cardClicked,card);
-			if (card.key == hair[0]) {
-				card.x = 10;
-				card.y = BANK_Y;
-			}
-			if (card.key == hair[1]) {
-				card.x = 140;
-				card.y = BANK_Y;
-			}
-			if (card.key == back[0]) {
-				card.x = 10;
-				card.y = BANK_Y+spacer;
-			}
-			if (card.key == back[1]) {
-				card.x = 140;
-				card.y = BANK_Y+spacer;
-			}
-			if (card.key == back[2]) {
-				card.x = 270;
-				card.y = BANK_Y+spacer;
-			}
-			if (card.key == back[3]) {
-				card.x = 400;
-				card.y = BANK_Y+spacer;
-			}
-			if (card.key == back[4]) {
-				card.x = 530;
-				card.y = BANK_Y+spacer;
-			}
+			this.cards.add(card);
 		}
+		Display.master(this.cards,{hand:hand});
+//		console.log('displaying...',hand);
+	},
+	createCard:function(key) {
+		var card = this.add.sprite();
+		var shadow = this.add.sprite(-1, -2,'cards',key);
+		shadow.scale.setTo(1.025);
+		shadow.tint = 0x000000;
+		shadow.alpha = 0.8;
+		card.addChild(shadow);
+		var outline = this.add.sprite(-2, -3,'cards',key);
+		outline.scale.setTo(1.05);
+		outline.tint = 0xFF0000;
+		outline.alpha = 0.8;
+		outline.visible = false;
+		card.addChild(outline);
+		card.outline = outline;
+		var actual = this.add.sprite(0,0,'cards',key);
+		card.addChild(actual);
+		return card;
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// button handler
@@ -128,8 +127,7 @@ Casino.MainMenu.prototype = {
 		switch(Casino.game.mode) {
 			case 'debug': this.game.state.start('Debug');
 			break;
-			case 'info': console.log('do info stuff');
-				this.createHand();
+			case 'info': this.createHand();
 			break;
 			case 'learn': this.game.state.start('LearnMenu');
 			break;

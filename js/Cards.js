@@ -149,9 +149,6 @@ var Cards = {
 		if (cards.type) {
 			hand.type = cards.type;
 		}
-		if (cards.opt) {
-			hand.opt = cards.opt;
-		}
 		return hand;
 	},
 }

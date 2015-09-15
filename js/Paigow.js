@@ -5,7 +5,7 @@ Paigow = {
 	rules:{
 		'pai-gow':{
 			'nothing':'When the hand contains no pairs, trips, quads, straights or flushes. Put the 2nd & 3rd highest cards in front',
-			'+joker':'When the hand contains no pairs, trips, quads, straights or flushes and you have a joker. Put the 1st and 3rd highest cards in the front and use the joker to make a pair with the 2nd high card'
+			'nothing+joker':'When the hand contains no pairs, trips, quads, straights or flushes and you have a joker. Put the 1st and 3rd highest cards in the front and use the joker to make a pair with the 2nd high card'
 		},
 		'pairs':{
 			'1-pair':'When the hand contains a pair, place the 1st & 2nd highest non-pair cards in hair',
@@ -16,7 +16,7 @@ Paigow = {
 			'3-pair+joker':'When the hand contains 3 pairs & joker. Put the highest pair in front and make a full house behind with the joker',
 		},
 		'trips':{
-			'0-pair':'When the hand contains trips. Put the 1st & 2nd highest non-trip cards in front with the trips behind',
+			'0-pair':'When the hand contains trips Aces. Put one of the Aces with the highest non-ace card in the front with pair of aces behind. Otherwise put the 1st & 2nd highest non-trip cards in front with the trips behind',
 			'1-pair':'When the hand contains trips + 1 pair. Put the pair in front with the trips behind',
 			'2-pair':'When the hand contains trips + 2 pairs. Put the highest pair in front with a full house behind',
 			'trips':'When the hand contains 2 trips. Put 2 of the cards from the higher trips in the hair, with the lower trips behind',
@@ -253,7 +253,7 @@ Paigow = {
 				bonus = 'full house';
 			}
 			// trips with trips yields full house
-			if (poker.trips) {
+			if (poker.trips.length != 1) {
 				bonus = 'full house';
 			}
 			// trips with joker yields 4 of a kind
@@ -266,7 +266,7 @@ Paigow = {
 				bonus = 'full house';
 			}
 		}
-		if (typeof bonus === undefined) {
+		if (typeof bonus === 'undefined') {
 			bonus = 'none';
 		}
 		return bonus;
@@ -278,7 +278,10 @@ Paigow = {
 	// solve for pai-gow
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	solve:function(poker) {
+//		console.log('Paigow.solve: ');
+//		console.table(poker);
 		var bonus = '';
+
 		// quads / trips get a match final
 		var match_final = false;
 		// the result
@@ -307,24 +310,28 @@ Paigow = {
 		if (poker.straights) {
 			result = this.solveStraight(poker);
 			s_result = result;
+//			console.log('Paigow.solve - post straights: ',result);
 		}
 		// solve for flush
 		if (poker.flush) {
 			result = this.solveFlush(poker);
 			f_result = result;
+//			console.log('Paigow.solve - post flush: ',result);
 		}
 		// compare the straight & flush and decide a winner
 		if (poker.straights && poker.flush) {
+//			console.log('s_result: ',s_result);
+//			console.log('f_result: ',f_result);
 			result = this.compareResults(s_result,f_result);
+//			console.log('Paigow.solve - post compare: ',result);
 		}
-//		console.log('final: ',result);
 		// solve for straight flush
 		if (poker.straight_flush) {
 			var old_result = result;
 			var new_result = this.solveStraightFlush(poker);
 			result = this.compareResults(old_result,new_result);
+//			console.log('Poker.solve - post straight_flush compare: ',result);
 		}
-//		console.log('final: ',result);
 
 		// no result from anything above, solve for nothing
 		if (poker.nothing) {
@@ -351,6 +358,8 @@ Paigow = {
 		debug += result.hair.toString()+'\n'+result.back.toString();
 		result.debug = debug;
 		
+//		console.log('final result');
+//		console.table(result);
 		return result;
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -358,6 +367,7 @@ Paigow = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	solveNothing:function(poker) {
 		var cards = poker.cards;
+//		console.log('Poker.solveNothing: ',cards);
 		var joker = poker.joker;
 		var hair = [];
 		var back = [];
@@ -381,6 +391,7 @@ Paigow = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	solvePairs:function(poker) {
 		var cards = poker.cards;
+//		console.log('Poker.solvePairs: ',cards);
 		var joker = poker.joker;
 		var hair = [];
 		var back = [];
@@ -527,6 +538,7 @@ Paigow = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////	
 	solveTrips:function(poker) {
 		var cards = poker.cards;
+//		console.log('Poker.solveTrips: ',cards);
 		var joker = poker.joker;
 		var hair = [];
 		var back = [];
@@ -634,6 +646,7 @@ Paigow = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	solveQuads:function(poker) {
 		var cards = poker.cards;
+//		console.log('Poker.solveQuads: ',cards);
 		var joker = poker.joker;
 		var hair = [];
 		var back = [];
@@ -738,6 +751,7 @@ Paigow = {
 	solveStraight:function(poker) {
 		var straights = poker.straights;
 		var cards = poker.cards;
+//		console.log('Poker.solveStraight: ',cards);
 		var joker = poker.joker;
 		var hair = [];
 		var back = [];
@@ -746,13 +760,13 @@ Paigow = {
 		// whatever
 		var result;
 
-//		console.log('\ncards in hand: ',cards);
+//		console.log('\n\n\ncards in hand: ',cards);
 //		console.log('number of straights: ',straights.length);
+//		console.table(straights);
 		switch(straights.length) {
 			// three straights means 7 card straight so use the lowest straight
 			case 3:
 				var straight = straights[2];
-//				console.log('straight: ',straight);
 				var extras = this.arrayDiff(cards,straight);
 //				console.log('straight extras: ',extras);
 				hair = extras;
@@ -813,6 +827,7 @@ Paigow = {
 						hair = extras2;
 						back = straight2;
 					}
+				
 					// joker is 2nd card in both extras means both are paired up
 					if (Cards.isJoker(extras1[1]) && Cards.isJoker(extras2[1])) {
 						// first extras is higher use that one
@@ -823,6 +838,13 @@ Paigow = {
 							// otherwise use the lower straight
 							hair = extras2;
 							back = straight2;
+						}
+					} else {
+						// if 1st hair is bigger than 2nd hair
+						if (Cards.getRank(extras1[0]) > Cards.getRank(extras2[0])) {
+							hair = extras1;
+							back = straight1;
+							
 						}
 					}
 				}
@@ -901,8 +923,8 @@ Paigow = {
 			brief = result.brief;
 		}
 //		console.log('final hair: ',hair);
-//		console.log('final back: ',back);
-		
+//		console.log('final back: ',back,'\n\n');
+	
 		return {hair,back,rule,brief};
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -910,11 +932,13 @@ Paigow = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	solveFlush:function(poker) {
 		var cards = poker.cards;
+//		console.log('Poker.solveFlush: ',cards);
 		var joker = poker.joker;
 		var hair = [];
 		var back = [];
 		var rule = (joker) ? 'flush:0-pair+joker' : 'flush:0-pair';
 		var brief = 'flush';
+		var result;
 
 		var flush = poker.flush;
 		var extras = this.arrayDiff(cards,flush);
@@ -1003,6 +1027,7 @@ Paigow = {
 	solveStraightFlush:function(poker) {
 		var straight_flushes = poker.straight_flush;
 		var cards = poker.cards;
+//		console.log('Poker.solveStraightFlush: ',cards);
 		var joker = poker.joker;
 		var hair = [];
 		var back = [];

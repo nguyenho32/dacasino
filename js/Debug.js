@@ -10,6 +10,20 @@ Casino.Debug.prototype = {
 		btn.key = 'menu';
 		btn.x = 0;
 		btn.y = 0;
+		
+		for (var i=0; i<Cards.names.length; i++) {
+			var key = Cards.names[i]+'_diamond';
+			var card = this.createCard(key);
+			if (i < Cards.names.length / 2) {
+				card.x = 10+(i*140);
+				card.y = 30;
+			} else {
+				var n = Math.floor(i-Cards.names.length / 2);
+				card.x = 10+(n*140);
+				card.y = 215;
+			}
+		}
+		
 		/*
 		// button for creating a single debug hand
 		var btn = this.createButton('single',this.mainMenu);
@@ -23,6 +37,26 @@ Casino.Debug.prototype = {
 		btn.y = 0;
 		*/
 	},
+	createCard:function(key) {
+		var card = this.add.sprite();
+		/*
+		var shadow = this.add.sprite(-1, -2,'cards',key);
+		shadow.scale.setTo(1.025);
+		shadow.tint = 0x000000;
+		shadow.alpha = 0.8;
+		card.addChild(shadow);
+		var outline = this.add.sprite(-2, -3,'cards',key);
+		outline.scale.setTo(1.05);
+		outline.tint = 0xFF0000;
+		outline.alpha = 0.8;
+		outline.visible = false;
+		card.addChild(outline);
+		card.outline = outline;
+		*/
+		var actual = this.add.sprite(0,0,'cards',key);
+		card.addChild(actual);
+		return card;
+	},	
 	/******************************************************************************************************************************************
 		DEBUG FUNCTIONS
 	******************************************************************************************************************************************/

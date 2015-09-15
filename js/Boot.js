@@ -23,7 +23,7 @@ var Casino = {
 	// message box txt
 	_MESSAGE_TXT: '#E2DEDB',
 
-	
+	debugHand:["ace_heart","ace_club","ace_diamond","jack_diamond","ten_diamond","three_club","two_club"],
 	game:{
 		thing:{},
 		mode:'learn',
@@ -31,11 +31,12 @@ var Casino = {
 		hand_data:{},
 		group_player:{},
 		group_bank:{},
+		per_level:1,
 		hand:{
 			count:0,
 			tries:0
 		},
-		level:{main:'pai-gow',sub:'nothing'},
+		level:{main:'straight-flush',sub:'2-pair+joker'},
 		practice_mode:{main:'random',sub:'random+random'},
 	}
 };
