@@ -16,7 +16,7 @@ Casino.MainMenu.prototype = {
 		this.clockEvent;
 		this.cards = this.add.group();
 		// create buttons for the main menu
-		var menu = ["info","learn","practice","compare","speed","timed","debug"];
+		var menu = ["reload","learn","practice","compare","speed","timed","debug"];
 		var sprite = this.add.sprite(0,0);
 		var width;
 		for (var i=0; i<menu.length; i++) {
@@ -53,7 +53,6 @@ Casino.MainMenu.prototype = {
 
 		
 		this.createHand();
-
 		this.clock = 3;
 		this.clockEvent = this.time.events.loop(Phaser.Timer.SECOND,this.updateTimer,this);
 	},
@@ -89,16 +88,23 @@ Casino.MainMenu.prototype = {
 		var hand = Cards.handCreate(deck.splice(0,7));
 		hand.poker = Poker.solve(hand.sorted);
 		hand.paigow = Paigow.solve(hand.poker);
-//		this.displayHand(hand);
+
 		this.cards.destroy();
 		this.cards = this.add.group();
+		var display = Display.master({hand:hand});
 		for (var i=0;i<hand.shuffled.length;i++) {
 			var key = hand.shuffled[i];
-			var card = this.createCard(key);
-			card.key = key;
-			this.cards.add(card);
+			if (typeof display[key] !== 'undefined') {
+				var card = this.createCard(key);
+				card.key = key;
+				card.x = display[key].x;
+				card.y = display[key].y;
+				this.cards.add(card);
+			} else {
+				console.log('broken hand: ',hand);
+			}
+			
 		}
-		Display.master(this.cards,{hand:hand});
 //		console.log('displaying...',hand);
 	},
 	createCard:function(key) {
@@ -127,7 +133,10 @@ Casino.MainMenu.prototype = {
 		switch(Casino.game.mode) {
 			case 'debug': this.game.state.start('Debug');
 			break;
-			case 'info': this.createHand();
+			case 'reload':
+				this.createHand();
+				this.clock = 3;
+				
 			break;
 			case 'learn': this.game.state.start('LearnMenu');
 			break;

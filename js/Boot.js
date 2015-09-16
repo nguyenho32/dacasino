@@ -23,21 +23,39 @@ var Casino = {
 	// message box txt
 	_MESSAGE_TXT: '#E2DEDB',
 
-	debugHand:["ace_heart","ace_club","ace_diamond","jack_diamond","ten_diamond","three_club","two_club"],
+//	debugBank:["queen_spade","queen_club","jack_club","ten_club","nine_club","eight_club","joker_one"],
+//	debugPlayer:["king_heart","queen_heart","jack_heart","ten_heart","nine_heart","seven_heart","two_diamond"],
+//	debugCompare:true,
+//	debugHand:["queen_spade","queen_club","jack_club","ten_club","nine_club","eight_club","joker_one"],
+	debugHand:["ten_diamond","nine_spade","nine_club","eight_spade","seven_club","six_spade","two_club"],
+	settings:{
+		hands_per_level:10,
+		timer_amount:30
+	},
 	game:{
+		mastery:false,
 		thing:{},
 		mode:'learn',
 		hair_chosen:[],
 		hand_data:{},
 		group_player:{},
 		group_bank:{},
-		per_level:10,
 		hand:{
 			count:0,
-			tries:0
+			tries:0,
+			correct:0,
+			total:0
 		},
 		level:{main:'pai-gow',sub:'nothing'},
 		practice_mode:{main:'random',sub:'random+random'},
+		compare:{
+			steps:["init","set-bank","set-other","both-set","resolve"],
+			current:'init',
+			index:function() {
+				return this.steps.indexOf(this.current);
+			}
+		}
+		
 	}
 };
 Casino.Boot = function(game) {};

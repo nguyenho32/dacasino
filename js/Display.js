@@ -1,14 +1,26 @@
 var Display = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// get the difference between 2 arrays
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	arrayDiff:function(big,small) {
+		var diff = [];
+		big.forEach(function(key) {
+			if (-1 === small.indexOf(key)) {
+				diff.push(key);
+			}
+		},this);
+		return diff;
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to disply the hand normally
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	normal:function(group,options){
+	normal:function(options){
 		var hand = options.hand;
-		var cards = hand.shuffled;
-		if (typeof options.size !== 'undefined') {
+
+		if (typeof options.mode !== 'undefined') {
 			var scale = 0.75;
 			var card_x = 120;
-			var card_y = 240;
+			var card_y = 260;
 			var spacer_x = 110;
 		} else {
 			var card_x = 30;
@@ -16,74 +28,223 @@ var Display = {
 			var spacer_x = 135;
 		}
 
-		for (var i=0;i<group.children.length;i++) {
-			var card = group.children[i];
-			var key = hand.shuffled[i]
-			card.x = card_x+i*spacer_x;
-			card.y = card_y;
-			// scale is only set if 'size' is set above
+		var display = {};
+		for (var i=0;i<hand.shuffled.length;i++) {
+			var key = hand.shuffled[i];
+			// scale is only set if 'mode' is set above
 			if (scale) {
-				card.scale.setTo(scale);
 				if (hand.paigow.hair.indexOf(key) != -1) {
-					card.y -=20;
-					card.outline.visible = true;
+					display[key] = {x:card_x+i*spacer_x,y:card_y-20,scale:scale,outline:true};
+				} else {
+					display[key] = {x:card_x+i*spacer_x,y:card_y-20,scale:scale};
+				}
+			} else {
+				display[key] = {x:card_x+i*spacer_x,y:card_y};
+			}
+		}
+		return display;
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// silly function to display the hand set correctly
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	houseway:function(options) {
+		var hand = options.hand;
+		if (options.chosen) {
+			var extras = this.arrayDiff(hand.paigow.hair,options.chosen);
+		}
+		var hair = (!options.chosen) ? hand.paigow.hair : options.chosen;
+		// if 1st hair is joker then reverse
+		if (Cards.isJoker(hair[0])) {
+			hair.reverse();
+		}
+		// if 1st hair is lower than 2nd (due to selected)
+		if (Cards.getRank(hair[0]) < Cards.getRank(hair[1])) {
+			hair.reverse();
+		}
+		// setup the back
+		var back;
+		// default back comes from paigow data
+		if (!options.chosen) {
+			back = hand.paigow.back;
+		} else {
+			back = hand.paigow.back;
+			// hair bigger than 2 always means pair / trip / quad / joker so use the first hair card
+			if (hand.paigow.hair.length > 2) {
+				var name;
+				if (Cards.getName(hand.paigow.hair[0]) == Cards.getName(hand.paigow.hair[1])) {
+					name = Cards.getName(hair[0]);
+				} else {
+					name = Cards.getName(hair[1]);
+				}
+				// first card is required, everything matches
+				if (Cards.getName(hand.paigow.hair[1]) == Cards.getName(hand.paigow.hair[2])) {
+					name = Cards.getName(extras[0]);
+				}
+				// find the position of the card to replace
+				for (var i=0; i<back.length;i++) {
+					if (Cards.getName(back[i]) == name) {
+						if (extras.length > 0) {
+							back[i] = extras[0];
+							extras.splice(0,1);
+						}
+					}
 				}
 			}
 		}
+		var showtxt = true;
+		// cant think of any situation to allow clickable bank hand...only normal mode
+		var disabled = true;
+		switch(options.mode) {
+			case 'small':
+				var scale = 0.7;
+				var hand_x = 5;
+				var hand_y = 75;
+				var space_x = 90;
+				var space_y = 130;
+				break;
+			case 'toast':
+				var scale = 0.575;
+				var hand_x = 120;
+				var hand_y = 165;
+				var space_x = 75;
+				var space_y = 105;
+				showtxt = false;
+				break;
+			default:
+				var scale = 0.90;
+				var hand_x = 5;
+				var hand_y = 50;
+				var space_x = 115;
+				var space_y = 160;
+			break;
+		}
+		// finally create the actual cards for display
+		var display = {};
+		for (var i=0;i<hand.sorted.length;i++) {
+			var key = hand.sorted[i]
+			if (key == hair[0]) {
+				display[key] = {x:hand_x,y:hand_y,scale:scale,disabled:disabled};
+			}
+			if (key == hair[1]) {
+				display[key] = {x:hand_x+space_x*1,y:hand_y,scale:scale,disabled:disabled};
+			}
+			if (key == back[0]) {
+				display[key] = {x:hand_x,y:hand_y+space_y,scale:scale,disabled:disabled};
+			}
+			if (key == back[1]) {
+				display[key] = {x:hand_x+space_x*1,y:hand_y+space_y,scale:scale,disabled:disabled};
+			}
+			if (key == back[2]) {
+				display[key] = {x:hand_x+space_x*2,y:hand_y+space_y,scale:scale,disabled:disabled};
+			}
+			if (key == back[3]) {
+				display[key] = {x:hand_x+space_x*3,y:hand_y+space_y,scale:scale,disabled:disabled};
+			}
+			if (key == back[4]) {
+				display[key] = {x:hand_x+space_x*4,y:hand_y+space_y,scale:scale,disabled:disabled};
+			}
+		}
+		if (showtxt) {
+			display['txt'] = {width:space_x*3-5,height:space_y-5,x:hand_x+space_x*2,y:hand_y};
+		}
+		return display;
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// silly function to display the bank hand
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	bank:function(options) {
+		var hand = options.hand;
+		var showtxt = true;
+		// cant think of any situation to allow clickable bank hand...only normal mode
+		var disabled = true;
+		switch(options.mode) {
+			case 'toast':
+				var scale = 0.575;
+				var hand_x = 505;
+				var hand_y = 165;
+				var space_x = 75;
+				var space_y = 105;
+				showtxt = false;
+			break;
+			default:
+				var scale = 0.7;
+				var hand_x = 545;
+				var hand_y = 75;
+				var space_x = 90;
+				var space_y = 130;
+			break;
+			
+		}
+		var back = hand.paigow.back;
+		var hair = this.arrayDiff(hands.sorted,back);
+		
+		var display = {};
+		for (var i=0;i<hand.sorted.length;i++) {
+			var key = hand.sorted[i]
+			if (key == hair[0]) {
+				display[key] = {x:hand_x,y:hand_y,scale:scale,disabled:disabled};
+			}
+			if (key == hair[1]) {
+				display[key] = {x:hand_x+space_x*1,y:hand_y,scale:scale,disabled:disabled};
+			}
+			if (key == back[0]) {
+				display[key] = {x:hand_x,y:hand_y+space_y,scale:scale,disabled:disabled};
+			}
+			if (key == back[1]) {
+				display[key] = {x:hand_x+space_x*1,y:hand_y+space_y,scale:scale,disabled:disabled};
+			}
+			if (key == back[2]) {
+				display[key] = {x:hand_x+space_x*2,y:hand_y+space_y,scale:scale,disabled:disabled};
+			}
+			if (key == back[3]) {
+				display[key] = {x:hand_x+space_x*3,y:hand_y+space_y,scale:scale,disabled:disabled};
+			}
+			if (key == back[4]) {
+				display[key] = {x:hand_x+space_x*4,y:hand_y+space_y,scale:scale,disabled:disabled};
+			}
+		}
+		if (showtxt) {
+			display['txt'] = {width:space_x*3-5,height:space_y-5,x:hand_x+space_x*2,y:hand_y};
+		}
+		return display;
 	},
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to display a hand
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	master:function(group,options) {
+	master:function(options) {
 		var hand = options.hand;
+
 		var BANK_Y = 30;
 		var spacer = 190;
-		var hair = hand.paigow.hair;
 		var back = hand.paigow.back;;
 		var cards = hand.sorted;
-		for (var i=0;i<group.children.length;i++) {
-			var card = group.children[i];
-			var key = hand.original[i];
-			var matched = false;
-			if (card.key == hair[0]) {
-				card.x = 10;
-				card.y = BANK_Y;
-				matched = true;
+		var hair = this.arrayDiff(cards,back);
+		var display = {};
+		for (var i=0;i<hand.sorted.length;i++) {
+			var key = hand.sorted[i];
+			if (key == hair[0]) {
+				display[key] = {x:10,y:BANK_Y};
 			}
-			if (card.key == hair[1]) {
-				card.x = 140;
-				card.y = BANK_Y;
-				matched = true;
+			if (key == hair[1]) {
+				display[key] = {x:140,y:BANK_Y};
 			}
-			if (card.key == back[0]) {
-				card.x = 10;
-				card.y = BANK_Y+spacer;
-				matched = true;
+			if (key == back[0]) {
+				display[key] = {x:10,y:BANK_Y+spacer};
 			}
-			if (card.key == back[1]) {
-				card.x = 140;
-				card.y = BANK_Y+spacer;
-				matched = true;
+			if (key == back[1]) {
+				display[key] = {x:140,y:BANK_Y+spacer};
 			}
-			if (card.key == back[2]) {
-				card.x = 270;
-				card.y = BANK_Y+spacer;
-				matched = true;
+			if (key == back[2]) {
+				display[key] = {x:270,y:BANK_Y+spacer};
 			}
-			if (card.key == back[3]) {
-				card.x = 400;
-				card.y = BANK_Y+spacer;
-				matched = true;
+			if (key == back[3]) {
+				display[key] = {x:400,y:BANK_Y+spacer};
 			}
-			if (card.key == back[4]) {
-				card.x = 530;
-				card.y = BANK_Y+spacer;
-				matched = true;
+			if (key == back[4]) {
+				display[key] = {x:530,y:BANK_Y+spacer};
 			}
 		}
-		if (!matched) {
-			console.log('hand display b0rk3d: ',hand);
-		}
+		return display;
 	}
 };

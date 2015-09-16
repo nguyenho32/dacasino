@@ -2,6 +2,7 @@ Paigow = {
 	/******************************************************************************************************************************************
 		PAI-GOW RULES
 	******************************************************************************************************************************************/
+	briefs:["nothing","1-pair","2-pair","trips","straight","flush","full house","quads","straight-flush"],
 	rules:{
 		'pai-gow':{
 			'nothing':'When the hand contains no pairs, trips, quads, straights or flushes. Put the 2nd & 3rd highest cards in front',
@@ -69,6 +70,89 @@ Paigow = {
 			}
 		},this);
 		return diff;
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// compare 2 hands and return the higher one
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	compareHands:function(player,bank) {
+		console.log('\ncomparing...');
+		console.log('player hand: ',player);
+		console.log('bank hand: ',bank);
+		
+		var hair_winner = 'bank';
+		var back_winner = 'bank';
+		// player pair
+		var player_pair = false;
+		if (Cards.getRank(player.paigow.hair[0]) == Cards.getRank(player.paigow.hair[1]) || Cards.isJoker(player.paigow.hair[1])) {
+			console.log('player paired up');
+			player_pair = true;
+		}
+		// bank pair
+		var bank_pair = false;
+		if (Cards.getRank(bank.paigow.hair[0]) == Cards.getRank(bank.paigow.hair[1]) || Cards.isJoker(bank.paigow.hair[1])) {
+			console.log('bank paired up');
+			bank_pair = true;
+		}
+		// both paired up
+		if (player_pair && bank_pair) {
+			if (Cards.getRank(player.paigow.hair[0]) > Cards.getRank(bank.paigow.hair[0])) {
+				console.log('player wins if both paired and higher pair');
+				hair_winner = 'player';
+			}
+		// only the player paired up
+		} else if (player_pair && !bank_pair) {
+			console.log('player paired - bank not, player wins');
+			hair_winner = 'player';
+		// otherwise compare the cards
+		} else {
+			if (!bank_pair && Cards.getRank(player.paigow.hair[0]) > Cards.getRank(bank.paigow.hair[0])) {
+				console.log('player won 1st hair');
+				hair_winner = 'player';
+			} else {
+				if (Cards.getRank(player.paigow.hair[0]) == Cards.getRank(bank.paigow.hair[0])) {
+					console.log('bank & player match 1st hair');
+					if (Cards.getRank(player.paigow.hair[1]) > Cards.getRank(bank.paigow.hair[1])) {
+						hair_winner = 'player';
+					}
+				}
+			}
+			
+		}
+		console.log('using player brief: ',player.paigow.brief);
+		console.log('using bank brief: ',bank.paigow.brief);
+		// brief matches
+		if (player.paigow.brief == bank.paigow.brief) {
+			for (var i=0;i<player.paigow.back.length;i++) {
+				console.log(Cards.getRank(player.paigow.back[i]),'vs',Cards.getRank(bank.paigow.back[i]));
+				// player wins back by rank
+				if (Cards.getRank(player.paigow.back[i]) > Cards.getRank(bank.paigow.back[i])) {
+					console.log('player back wins by rank ',Cards.getRank(player.paigow.back[i]),'vs',Cards.getRank(bank.paigow.back[i]));
+					back_winner = 'player';
+					break;
+				// otherwise bank wins
+				} else {
+					break;
+				}
+			}
+		// otherwise the higher brief wins
+		} else {
+			console.log('player brief: ',this.briefs.indexOf(player.paigow.brief));
+			console.log('bank brief: ',this.briefs.indexOf(bank.paigow.brief));
+			if (this.briefs.indexOf(player.paigow.brief) > this.briefs.indexOf(bank.paigow.brief)) {
+				console.log('player wins back by briefs index');
+				back_winner = 'player';
+			}
+		}
+		var winner = 'lose';
+		if (hair_winner == back_winner && hair_winner == 'player') {
+			console.log('player won the hand');
+			winner = 'win';
+		}
+		if (hair_winner != back_winner) {
+			console.log('the hand pushes');
+			winner = 'push';
+		}
+		return winner;
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// compare 2 results and return the higher one (for comparing straight vs flush)
@@ -310,27 +394,27 @@ Paigow = {
 		if (poker.straights) {
 			result = this.solveStraight(poker);
 			s_result = result;
-//			console.log('Paigow.solve - post straights: ',result);
+			console.log('Paigow.solve - post straights: ',result);
 		}
 		// solve for flush
 		if (poker.flush) {
 			result = this.solveFlush(poker);
 			f_result = result;
-//			console.log('Paigow.solve - post flush: ',result);
+			console.log('Paigow.solve - post flush: ',result);
 		}
 		// compare the straight & flush and decide a winner
 		if (poker.straights && poker.flush) {
 //			console.log('s_result: ',s_result);
 //			console.log('f_result: ',f_result);
 			result = this.compareResults(s_result,f_result);
-//			console.log('Paigow.solve - post compare: ',result);
+			console.log('Paigow.solve - post compare: ',result);
 		}
 		// solve for straight flush
 		if (poker.straight_flush) {
 			var old_result = result;
 			var new_result = this.solveStraightFlush(poker);
 			result = this.compareResults(old_result,new_result);
-//			console.log('Poker.solve - post straight_flush compare: ',result);
+			console.log('Poker.solve - post straight_flush compare: ',result);
 		}
 
 		// no result from anything above, solve for nothing
@@ -659,8 +743,14 @@ Paigow = {
 		// have trips
 		if (poker.trips) {
 			var trip = poker.trips[0];
-			hair = trip;
-			back = [quads[0],quads[1],quads[2],quads[3],trip[2]];
+			if (Cards.getRank(trip[0]) > Cards.getRank(quads[0])) {
+				hair = trip;
+				back = [quads[0],quads[1],quads[2],quads[3],trip[2]];
+			} else {
+				hair = quads;
+				back = [trip[0],trip[1],trip[2],quads[2],quads[3]];
+				brief = 'full house';
+			}
 			rule = 'quads:trips';
 		}
 		// have a pair
@@ -969,8 +1059,8 @@ Paigow = {
 						hair = pair;
 						back = this.arrayDiff(flush,hair);
 					} else {
-						hair = [extras[0],flush[0]];
-						back = [flush[1],flush[2],flush[3],flush[4],flush[5]];
+						hair = [extras[0],'joker_one'];
+						back = this.arrayDiff(flush,hair);
 					}
 				} else {
 					if (poker.pairs) {
@@ -979,7 +1069,11 @@ Paigow = {
 						back = this.arrayDiff(flush,hair);
 						rule = 'flush:1-pair';
 					} else {
-						hair = [extras[0],flush[0]];
+						if (Cards.getRank(extras[0]) > Cards.getRank(flush[0])) {
+							hair = [extras[0],flush[0]];
+						} else {
+							hair = [flush[0],extras[0]];
+						}
 						back = [flush[1],flush[2],flush[3],flush[4],flush[5]];
 					}
 				}

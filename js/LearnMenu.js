@@ -63,6 +63,8 @@ Casino.LearnMenu.prototype = {
 		var txt;
 		if (Casino.game.active) {
 			txt = '<--- click to return to the game';
+		} else if (Casino.game.mastery) {
+			txt = 'you are a master';
 		} else {
 			txt = '<--- click to return to this menu            click to begin setting hands --->';
 		}
@@ -121,14 +123,22 @@ Casino.LearnMenu.prototype = {
 		sprite.x = 100;
 		sprite.y = 95;
 
-		if (Casino.game.active) {
+		if (!Casino.game.mastery) {
+			if (Casino.game.active) {
+				this.buttons['start'].visible = false;
+			}
+			this.showGroup(Casino.game.level.main);
+			this.current_main = Casino.game.level.main;
+			this.current_sub = Casino.game.level.sub;
+			this.messageBox(Paigow.rules[Casino.game.level.main][Casino.game.level.sub]);
+			this.createExampleHand(Casino.game.level.main,Casino.game.level.sub);
+		} else {
+			this.showGroup(Casino.game.level.main);
+			this.messageBox('You have mastered the game of pai-gow. Go practice some hands or select options above to review hands');
 			this.buttons['start'].visible = false;
+			this.buttons['option'].visible = false;
+			
 		}
-		this.showGroup(Casino.game.level.main);
-		this.current_main = Casino.game.level.main;
-		this.current_sub = Casino.game.level.sub;
-		this.messageBox(Paigow.rules[Casino.game.level.main][Casino.game.level.sub]);
-		this.createExampleHand(Casino.game.level.main,Casino.game.level.sub);
 	},
 	messageBox(str) {
 		this.message_box.text = str;
@@ -153,32 +163,43 @@ Casino.LearnMenu.prototype = {
 
 		this.cards.destroy();
 		this.cards = this.add.group();
+		var display = Display.normal({hand:hand,mode:'small'});
 		for (var i=0;i<hand.shuffled.length;i++) {
 			var key = hand.shuffled[i];
 			var card = this.createCard(key);
 			card.key = key;
 			this.cards.add(card);
+			card.x = display[key].x;
+			card.y = display[key].y;
+			card.scale.setTo(display[key].scale);
+			if (display[key].outline) {
+				card.y -=20;
+				card.outline.visible = true;
+			}
 		}
 		// display the hand
-		Display.normal(this.cards,{size:'small',hand:hand});
 		console.log('created hand for learn display...',hand);
 	},
 	createCard:function(key) {
 		var card = this.add.sprite();
+
 		var shadow = this.add.sprite(-2, -2,'cards',key);
 		shadow.scale.setTo(1.025);
 		shadow.tint = 0x000000;
 		shadow.alpha = 0.8;
 		card.addChild(shadow);
+
+		var actual = this.add.sprite(0,0,'cards',key);
+		card.addChild(actual);
+
 		var outline = this.add.sprite(-3, -3,'cards',key);
 		outline.scale.setTo(1.05);
-		outline.tint = 0xFF0000;
-		outline.alpha = 0.8;
+		outline.tint = 0x2F4F2F;
+		outline.alpha = 0.15;
 		outline.visible = false;
 		card.addChild(outline);
 		card.outline = outline;
-		var actual = this.add.sprite(0,0,'cards',key);
-		card.addChild(actual);
+
 		return card;
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
