@@ -513,6 +513,7 @@ Poker = {
 	// find all poker hands within a set of cards
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	solve:function(cards) {
+		console.log('attempting to solve...',cards);
 		var poker = {};
 		poker.cards = cards.slice();
 		poker.joker = (cards.indexOf('joker_one') > 0 ) ? true : false;

@@ -58,14 +58,18 @@ Casino.Game.prototype = {
 				break;
 			case 'stat':
 				if (Casino.game.mode != 'compare') {
-					str = 'hands: '+Casino.game.hand.count;
+					str = 'hands: '+Casino.game.stat.count;
 					if (Casino.game.mode == 'learn') {
 						str += ' / '+Casino.settings.hands_per_level;
 					}
-					str += ' - tries: '+Casino.game.hand.tries;
+					str += ' - tries: '+Casino.game.stat.tries;
 				} else {
-					str = 'hands correct: '+Casino.game.hand.correct;
-					str += ' - hands total: '+Casino.game.hand.total;
+					str = 'hands correct: '+Casino.game.stat.correct;
+					str += ' - hands total: '+Casino.game.stat.total;
+				}
+				if (Casino.game.mode == 'speed') {
+					str = 'hand: '+Casino.game.hands_set.length+' of 7';
+					str += ' - tries: '+Casino.game.stat.tries;
 				}
 				options.rewrite = true;
 				txt = Casino.game.thing.txt_stat_info;
@@ -312,8 +316,8 @@ Casino.Game.prototype = {
 			Casino.game.active = false;
 		}
 		if (!Casino.game.active) {
-			Casino.game.hand.count = 0;
-			Casino.game.hand.tries = 0;
+			Casino.game.stat.count = 0;
+			Casino.game.stat.tries = 0;
 		}
 		this.updateText({box:'stat',str:'default'});
 		// all ui elements created now initialize the game
@@ -336,8 +340,8 @@ Casino.Game.prototype = {
 				this.btnDisplay('start');
 				break;
 			case 'speed':
-				this.updateText({box:'main',str:'- try a speed test .:. coming soon .:.'});
-				this.btnDisplay();
+				this.updateText({box:'main',str:'- try a speed test'});
+				this.btnDisplay('start');
 				break;
 			case 'timed':
 				this.updateText({box:'main',str:'- as many hands in 30 seconds'});
@@ -353,25 +357,44 @@ Casino.Game.prototype = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	gameStart:function(type) {
 		this.displayReset();
-		
-		Casino.game.hand_data = {};
+		var game = Casino.game;
+
+		game.hands = [];
+		game.hands_set = [];
+		game.hand = {};
 		// reset the stats
-		if (!Casino.game.active) {
-			Casino.game.hand.count = 0;
-			Casino.game.hand.tries = 0;
+		if (!game.active) {
+			game.stat.count = 0;
+			game.stat.tries = 0;
 		}
-		Casino.game.hand.total = 0;
-		Casino.game.hand.correct = 0;
+		game.stat.total = 0;
+		game.stat.correct = 0;
 		switch(type) {
 			case 'timed':
 				this.updateText({box:'main',str:'mode: timed - as many hands in 30 seconds',rewrite:true});
 				this.clock = Casino.settings.timer_amount;
 				this.clockEvent = this.time.events.loop(Phaser.Timer.SECOND,this.updateClock,this,'down');
-			break;
+				break;
+			case 'speed':
+				// create a deck
+				game.deck = Cards.deckCreate('standard',true,1);
+				// draw out 7 hands into game.hands
+				for (var i=0; i<7; i++) {
+					var hand = Cards.handCreate(game.deck.splice(0,7));
+					console.log(game.deck.length);
+					console.log(game.hands.length);
+					console.log('hand create...',hand);
+					this.gameCreateHand(hand);
+					game.hands.push(hand);
+				}
+				game.hands.push(game.deck);
+				break;
 		}
+		game.compare.step = game.compare.steps[0];
 		
 		// run the game
-		this.gameRun(Casino.game.mode);
+		Casino.game = game;
+		this.gameRun(game.mode);
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// run a game
@@ -407,7 +430,7 @@ Casino.Game.prototype = {
 				this.runModeCompare();
 				break;
 			case 'speed':
-				console.log('set things up for learn mode');
+				this.runModeCompare();
 				break;
 			case 'timed':
 				hand = Cards.handCreate(Poker.create({main:'random',joker:50,sub:'random'}));
@@ -420,7 +443,7 @@ Casino.Game.prototype = {
 	// run the learn mode
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	runModeLearn:function() {
-		if (Casino.game.hand.count < Casino.settings.hands_per_level) {
+		if (Casino.game.stat.count < Casino.settings.hands_per_level) {
 			var str = Casino.game.level.sub.split('+');
 			var chance;
 			if (str[1] == 'joker') {
@@ -466,99 +489,144 @@ Casino.Game.prototype = {
 	// run the compare mode
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	runModeCompare:function(options) {
-		Casino.game.deck = Cards.deckCreate('standard',true,1);
-		var deck = Casino.game.deck;
-		var index = Casino.game.compare.index();
-		Casino.game.compare.current = Casino.game.compare.steps[index+1];
-		// create an array to hold chosen hair cards
-		Casino.game.hair_chosen = [];
-		Casino.game.hand.count = 0;
-		Casino.game.hand.tries = 0;
+		console.log('all hands!!! ',Casino.game.hands);
 
-		// debug compare so drop random hand into the mix
-		if (typeof Casino.debugCompare !== 'undefined') {
-			if (index < 1) {
-				var hand = Cards.handCreate(deck.splice(0,7));
-				this.gameCreateHand(hand);
-				Casino.game.compare.bank = hand;
+		var game = Casino.game;
+		var index = game.compare.index();
+		// n being the current player hand
+		var n = 1;
 
-				var hand = Cards.handCreate(deck.splice(0,7));
-				this.gameCreateHand(hand);
-				Casino.game.compare.player = hand;
+		// speed mode (usually)
+		if (game.mode != 'compare') {
+			this.updateText({box:'stat'});
+			console.log('speed mode options: ',options);
+			
+			// bank hand already set
+			if (game.hands_set.length != 0) {
+				if (game.hands_set.length == game.hands.length-1) {
+					console.log('no more hands');
+					return;
+				}
+				// skip step 0
+				if (index == 0) {
+					game.compare.step = game.compare.steps[1];
+					index = game.compare.index();
+				}
+				if (index == 1) {
+					console.log('hands set: ',game.hands_set.length);
+					n = game.hands_set.length;
+				}
+				if (index > 1) {
+					console.log('hands set: ',game.hands_set.length);
+					n = game.hands_set.length-1;
+				}
+			}
+		
+		// default behaviour
+		} else {
+			game.deck = Cards.deckCreate('standard',true,1);
+			var deck = game.deck;
 
-				index = 2;
+			// debug compare so drop random hands, then jump to the choice step
+			if (typeof Casino.debugCompare !== 'undefined') {
+				if (index < 1) {
+					var hand = Cards.handCreate(deck.splice(0,7));
+					this.gameCreateHand(hand);
+					game.hands.push(hand);
+
+					var hand = Cards.handCreate(deck.splice(0,7));
+					this.gameCreateHand(hand);
+					game.hands.push(hand);
+
+					index = 2;
+				}
+			// debug player and bank set, set both
+			} else if (typeof Casino.debugBank !== 'undefined' && typeof Casino.debugPlayer !== 'undefined') {
+				if (index < 1) {
+					var hand = Cards.handCreate(Casino.debugBank);
+					this.gameCreateHand(hand);
+					game.hands.push(hand);
+
+					var hand = Cards.handCreate(Casino.debugPlayer);
+					this.gameCreateHand(hand);
+					game.hands.push(hand);
+
+					index = 2;
+				}
+			} else {
+				if (index < 1) {
+					game.hands = [];
+					// bank hand
+					var hand = Cards.handCreate(deck.splice(0,7));
+					this.gameCreateHand(hand);
+					game.hands.push(hand);
+					// player hand
+					var hand = Cards.handCreate(deck.splice(0,7));
+					this.gameCreateHand(hand);
+					game.hands.push(hand);
+				}
 			}
 		}
-		// debug player and bank set, set both
-		if (typeof Casino.debugBank !== 'undefined' && typeof Casino.debugPlayer !== 'undefined') {
-			if (index < 1) {
-				var hand = Cards.handCreate(Casino.debugBank);
-				this.gameCreateHand(hand);
-				Casino.game.compare.bank = hand;
-
-				var hand = Cards.handCreate(Casino.debugPlayer);
-				this.gameCreateHand(hand);
-				Casino.game.compare.player = hand;
-
-				index = 2;
-			}
-		}
-		Casino.game.compare.current = Casino.game.compare.steps[index+1];
-		console.log(Casino.game.compare.current);
+		console.log('step: ',game.compare.step);
+		game.compare.step = game.compare.steps[index+1];
+		console.log('step: ',game.compare.step);
 		switch(index) {
 			case 0:
-				// create and display the bank hand for setting
-				var hand = Cards.handCreate(deck.splice(0,7));
-				this.gameCreateHand(hand);
-				Casino.game.compare.bank = hand;
-				Casino.game.hand_data = hand;
+				// disply the bank hand
+				game.hair_chosen = [];
+				game.stat.count = 0;
+				game.stat.tries = 0;
+				var hand = game.hands[0];
+				game.hand = hand;
+				game.hands_set.push(hand);
 				this.displayHand({type:'normal',hand:hand});
 				this.messageBox('show','set the bank hand');
 				break;
 			case 1:
-				// create and display the player hand for setting
-				var hand = Cards.handCreate(deck.splice(0,7));
-				this.gameCreateHand(hand);
-				Casino.game.compare.player = hand;
-				// set the hand data for use throughout
-				Casino.game.hand_data = hand;
+				// display the player hand
+				game.hair_chosen = [];
+				game.stat.count = 0;
+				game.stat.tries = 0;
+				var hand = game.hands[n];
+				game.hand = hand;
+				game.hands_set.push(hand);
 				this.displayHand({type:'normal',hand:hand});
 				this.messageBox('show','set the player');
 				break;
 			case 2:
-				// display the player hand
-				this.displayHand({type:'houseway',mode:'small',hand:Casino.game.compare.player});
-				// display the bank hnd
-				this.displayHand({type:'bank',reset:'none',hand:Casino.game.compare.bank});
+				// display both hands
+				this.displayHand({type:'houseway',mode:'small',hand:game.hands[n]});
+				this.displayHand({type:'bank',reset:'none',hand:game.hands[0]});
 				// display choice buttons
 				this.btnDisplay('win,lose,push');
 				break;
 			case 3:
 				// display both hands with a message
 				if (typeof options.choice !== 'undefined') {
-					this.displayHand({type:'houseway',mode:'toast',hand:Casino.game.compare.player});
-					this.displayHand({type:'bank',mode:'toast',reset:'none',hand:Casino.game.compare.bank});
+					this.displayHand({type:'houseway',mode:'toast',hand:game.hands[n]});
+					this.displayHand({type:'bank',mode:'toast',reset:'none',hand:game.hands[0]});
 					this.btnDisplay('next');
 					var str = '';
-					var result = Paigow.compareHands(Casino.game.compare.player,Casino.game.compare.bank);
+					var result = Paigow.compareHands(game.hands[n],game.hands[0]);
 					console.log('comparison result...',result);
 					if (result == options.choice) {
 						str = 'You chose correctly\nthe hand does indeed '+options.choice;
-						Casino.game.hand.correct++;
+						game.stat.correct++;
 					} else {
 						str = 'You are incorrect!!!\nthe hand is actually a '+result;
 					}
 					this.messageBox('show',str);
-					Casino.game.hand.total++;
-					Casino.game.compare.current = Casino.game.compare.steps[0];
+					game.stat.total++;
+					game.compare.step = game.compare.steps[0];
 					this.updateText({box:'stat'})
 				}
 				break;
 			default:
 				console.log('no step');
-				Casino.game.compare.current = Casino.game.compare.steps[0];
+				game.compare.step = game.compare.steps[0];
 				break;
 		}
+		Casino.game = game;
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// create a hand of cards
@@ -573,8 +641,8 @@ Casino.Game.prototype = {
 
 		this.updateText({box:'stat',str:'default'});
 		// set the hand data for use throughout
-		Casino.game.hand_data = hand;
-		console.log('\nhand created: ',Casino.game.hand_data);
+		Casino.game.hand = hand;
+		console.log('\nhand created: ',Casino.game.hand);
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// handle selection of hair cards
@@ -603,7 +671,7 @@ Casino.Game.prototype = {
 	// check hair selection for correctness
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	gameCheckHair:function(hair_chosen) {
-		var hand = Casino.game.hand_data;
+		var hand = Casino.game.hand;
 //		console.log('checkHair() ',hair_chosen);
 //		console.log('actual: ',hand.paigow.hair);
 
@@ -622,12 +690,12 @@ Casino.Game.prototype = {
 		if (required && (hair.indexOf(chosen[0]) != -1 && hair.indexOf(chosen[1]) != -1)) {
 			// increment the hand count 
 			if (!Casino.game.hint) {
-				Casino.game.hand.count += 1;
+				Casino.game.stat.count += 1;
 			} else {
 				Casino.game.hint = false;
 			}
 			// reset the tries counter
-			Casino.game.hand.tries = 0;
+			Casino.game.stat.tries = 0;
 			// display the hand
 			Casino.game.thing.displayHand({type:'houseway',hand:hand,chosen:chosen});
 			// show the 'next' button
@@ -637,14 +705,14 @@ Casino.Game.prototype = {
 				Casino.game.thing.btnDisplay('option,next');
 			}
 		} else {
-			Casino.game.hand.tries += 1;
+			Casino.game.stat.tries += 1;
 			this.updateText({box:'stat',str:'default'});
 			var txt;
 			var main = Casino.game.level.main;
 			var sub = Casino.game.level.sub;
-			if (Casino.game.hand.tries > 2 && Casino.game.hand.tries <= 5) {
+			if (Casino.game.stat.tries > 2 && Casino.game.stat.tries <= 5) {
 				txt = Paigow.rules[main][sub];
-			} else if (Casino.game.hand.tries > 5) {
+			} else if (Casino.game.stat.tries > 5) {
 				Casino.game.hint = true;
 				if (Casino.game.mode != 'learn') {
 					txt = 'slow down and maybe try the ones that are highlighted';
@@ -673,7 +741,7 @@ Casino.Game.prototype = {
 		
 		var str = 'Game Over!!!\n';
 		if (Casino.game.mode != 'learn') {
-			str += 'You got '+Casino.game.hand.count+' hands correct';
+			str += 'You got '+Casino.game.stat.count+' hands correct';
 			this.btnDisplay('start');
 		} else {
 			str += 'You have mastered the game of pai-gow, go try some practice hands now!!!';

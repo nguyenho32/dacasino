@@ -37,10 +37,14 @@ var Casino = {
 		thing:{},
 		mode:'learn',
 		hair_chosen:[],
-		hand_data:{},
 		group_player:{},
 		group_bank:{},
-		hand:{
+		// uses the standard hands. data that is passed throughout the game as entries
+		hands:[],
+		hands_set:[],
+		// a single hand
+		hand:{},
+		stat:{
 			count:0,
 			tries:0,
 			correct:0,
@@ -50,9 +54,9 @@ var Casino = {
 		practice_mode:{main:'random',sub:'random+random'},
 		compare:{
 			steps:["init","set-bank","set-other","both-set","resolve"],
-			current:'init',
+			step:'init',
 			index:function() {
-				return this.steps.indexOf(this.current);
+				return this.steps.indexOf(this.step);
 			}
 		}
 	}

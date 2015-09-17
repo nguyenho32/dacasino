@@ -15,6 +15,7 @@ var Display = {
 	// silly function to disply the hand normally
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	normal:function(options){
+		console.log('display normal: ',options);
 		var hand = options.hand;
 
 		if (typeof options.mode !== 'undefined') {
@@ -48,9 +49,10 @@ var Display = {
 	// silly function to display the hand set correctly
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	houseway:function(options) {
+		console.log('display houseway: ',options);
 		var hand = options.hand;
 
-		var hair = (!options.chosen) ? this.arrayDiff(hand.sorted,back) : options.chosen;
+		var hair = (!options.chosen) ? this.arrayDiff(hand.sorted,hand.paigow.back) : options.chosen;
 		if (options.chosen) {
 			var extras = this.arrayDiff(hand.paigow.hair,options.chosen);
 		}
@@ -154,6 +156,7 @@ var Display = {
 	// silly function to display the bank hand
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	bank:function(options) {
+		console.log('display bank: ',options);
 		var hand = options.hand;
 		var showtxt = true;
 		// cant think of any situation to allow clickable bank hand...only normal mode
@@ -214,6 +217,7 @@ var Display = {
 	// silly function to display a hand
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	master:function(options) {
+		console.log('display master: ',options);
 		var hand = options.hand;
 
 		var BANK_Y = 30;
