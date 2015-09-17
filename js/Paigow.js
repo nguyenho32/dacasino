@@ -71,6 +71,43 @@ Paigow = {
 		},this);
 		return diff;
 	},
+	jokerRank:function(hand) {
+		// is a joker in the hand first
+		if (!hand.poker.joker) {
+			return 1;
+		}
+		// joker is in back
+		if (hand.paigow.back.indexOf('joker_one') != -1) {
+			console.log('joker in back');
+			var index = hand.paigow.back.indexOf('joker_one');
+			switch(hand.paigow.brief) {
+				case '1-pair':
+				case '2-pair':
+				case '3-pair':
+				case 'trip':
+				case 'quad':
+					return Cards.getRank(hand.paigow.back[index-1]);
+					break;
+				case 'straight':
+				case 'straight-flush':
+					if (index != 0) {
+						return Cards.getRank(hand.paigow.back[index-1])-1;
+					} else {
+						return Cards.getRank(hand.paigow.back[index+1])+1;
+					}
+					break;
+				case 'flush':
+					if (index != 0) {
+						return Cards.getRank(hand.paigow.back[index-1])-1;
+					} else {
+						return 14;
+					}
+					break;
+			}
+		} else {
+			return 1;
+		}
+	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// compare 2 hands and return the higher one
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -112,6 +149,7 @@ Paigow = {
 				if (Cards.getRank(player.paigow.hair[0]) == Cards.getRank(bank.paigow.hair[0])) {
 					console.log('bank & player match 1st hair');
 					if (Cards.getRank(player.paigow.hair[1]) > Cards.getRank(bank.paigow.hair[1])) {
+						console.log('player won 2nd hair');
 						hair_winner = 'player';
 					}
 				}
@@ -123,15 +161,22 @@ Paigow = {
 		// brief matches
 		if (player.paigow.brief == bank.paigow.brief) {
 			for (var i=0;i<player.paigow.back.length;i++) {
-				console.log(Cards.getRank(player.paigow.back[i]),'vs',Cards.getRank(bank.paigow.back[i]));
+				var player_rank = (Cards.getRank(player.paigow.back[i]) != 0) ? Cards.getRank(player.paigow.back[i]) : this.jokerRank(player);
+				var bank_rank = (Cards.getRank(bank.paigow.back[i]) != 0) ? Cards.getRank(bank.paigow.back[i]) : this.jokerRank(bank);
+				console.log(player_rank,'vs',bank_rank);
 				// player wins back by rank
-				if (Cards.getRank(player.paigow.back[i]) > Cards.getRank(bank.paigow.back[i])) {
-					console.log('player back wins by rank ',Cards.getRank(player.paigow.back[i]),'vs',Cards.getRank(bank.paigow.back[i]));
+				if (player_rank > bank_rank) {
+					console.log('player back wins by rank ',player_rank,'vs',bank_rank);
 					back_winner = 'player';
 					break;
-				// otherwise bank wins
 				} else {
-					break;
+					// if they are equal go another level
+					if (player_rank == bank_rank) {
+						continue;
+					// otherwise bank is higher so break out
+					} else {
+						break;
+					}
 				}
 			}
 		// otherwise the higher brief wins
@@ -456,18 +501,19 @@ Paigow = {
 		var hair = [];
 		var back = [];
 		var rule = (joker) ? 'pai-gow:+joker' : 'pai-gow:nothing';
-
+		var brief = 'nothing';
 		if (joker) {
 			// 1st & 3rd high card in hair, 2nd high + joker for pair
 			hair = [cards[0],cards[2]];
 			back = [cards[1],cards[6],cards[3],cards[4],cards[5]];
+			brief = '1-pair';
 		} else {
 			// 2nd & 3rd high card in hair, rest behind
 			hair = [cards[1],cards[2]];
 			back = [cards[0],cards[3],cards[4],cards[5],cards[6]];
 		}
 		
-		return {hair,back,rule};
+		return {hair,back,rule,brief};
 	},
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -23,11 +23,11 @@ var Casino = {
 	// message box txt
 	_MESSAGE_TXT: '#E2DEDB',
 
-//	debugBank:["queen_spade","queen_club","jack_club","ten_club","nine_club","eight_club","joker_one"],
-//	debugPlayer:["king_heart","queen_heart","jack_heart","ten_heart","nine_heart","seven_heart","two_diamond"],
+//	debugBank:["queen_spade","king_heart","eight_club","nine_club","seven_club","six_spade","joker_one"],
+//	debugPlayer:["queen_heart","king_club","eight_spade","eight_heart","eight_club","joker_one","ten_club"],
 //	debugCompare:true,
 //	debugHand:["queen_spade","queen_club","jack_club","ten_club","nine_club","eight_club","joker_one"],
-	debugHand:["ten_diamond","nine_spade","nine_club","eight_spade","seven_club","six_spade","two_club"],
+//	debugHand:["ten_diamond","nine_spade","nine_club","eight_spade","seven_club","six_spade","two_club"],
 	settings:{
 		hands_per_level:10,
 		timer_amount:30
@@ -55,8 +55,8 @@ var Casino = {
 				return this.steps.indexOf(this.current);
 			}
 		}
-		
 	}
+		
 };
 Casino.Boot = function(game) {};
 Casino.Boot.prototype = {

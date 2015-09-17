@@ -466,7 +466,6 @@ Casino.Game.prototype = {
 	// run the compare mode
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	runModeCompare:function(options) {
-
 		Casino.game.deck = Cards.deckCreate('standard',true,1);
 		var deck = Casino.game.deck;
 		var index = Casino.game.compare.index();
@@ -478,28 +477,34 @@ Casino.Game.prototype = {
 
 		// debug compare so drop random hand into the mix
 		if (typeof Casino.debugCompare !== 'undefined') {
-			var hand = Cards.handCreate(deck.splice(0,7));
-			this.gameCreateHand(hand);
-			Casino.game.compare.bank = hand;
+			if (index < 1) {
+				var hand = Cards.handCreate(deck.splice(0,7));
+				this.gameCreateHand(hand);
+				Casino.game.compare.bank = hand;
 
-			var hand = Cards.handCreate(deck.splice(0,7));
-			this.gameCreateHand(hand);
-			Casino.game.compare.player = hand;
-			index = 2;
+				var hand = Cards.handCreate(deck.splice(0,7));
+				this.gameCreateHand(hand);
+				Casino.game.compare.player = hand;
+
+				index = 2;
+			}
 		}
 		// debug player and bank set, set both
 		if (typeof Casino.debugBank !== 'undefined' && typeof Casino.debugPlayer !== 'undefined') {
-			var hand = Cards.handCreate(Casino.debugBank);
-			this.gameCreateHand(hand);
-			Casino.game.compare.bank = hand;
+			if (index < 1) {
+				var hand = Cards.handCreate(Casino.debugBank);
+				this.gameCreateHand(hand);
+				Casino.game.compare.bank = hand;
 
-			var hand = Cards.handCreate(Casino.debugPlayer);
-			this.gameCreateHand(hand);
-			Casino.game.compare.player = hand;
+				var hand = Cards.handCreate(Casino.debugPlayer);
+				this.gameCreateHand(hand);
+				Casino.game.compare.player = hand;
 
-			// go to the third index;
-			index = 3;
+				index = 2;
+			}
 		}
+		Casino.game.compare.current = Casino.game.compare.steps[index+1];
+		console.log(Casino.game.compare.current);
 		switch(index) {
 			case 0:
 				// create and display the bank hand for setting
@@ -538,10 +543,10 @@ Casino.Game.prototype = {
 					var result = Paigow.compareHands(Casino.game.compare.player,Casino.game.compare.bank);
 					console.log('comparison result...',result);
 					if (result == options.choice) {
-						str = 'You chose correctly, the hand does indeed '+options.choice;
+						str = 'You chose correctly\nthe hand does indeed '+options.choice;
 						Casino.game.hand.correct++;
 					} else {
-						str = 'You are incorrect, the hand is actually a '+result;
+						str = 'You are incorrect!!!\nthe hand is actually a '+result;
 					}
 					this.messageBox('show',str);
 					Casino.game.hand.total++;

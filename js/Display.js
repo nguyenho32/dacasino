@@ -49,10 +49,11 @@ var Display = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	houseway:function(options) {
 		var hand = options.hand;
+
+		var hair = (!options.chosen) ? this.arrayDiff(hand.sorted,back) : options.chosen;
 		if (options.chosen) {
 			var extras = this.arrayDiff(hand.paigow.hair,options.chosen);
 		}
-		var hair = (!options.chosen) ? hand.paigow.hair : options.chosen;
 		// if 1st hair is joker then reverse
 		if (Cards.isJoker(hair[0])) {
 			hair.reverse();
@@ -176,7 +177,7 @@ var Display = {
 			
 		}
 		var back = hand.paigow.back;
-		var hair = this.arrayDiff(hands.sorted,back);
+		var hair = this.arrayDiff(hand.sorted,back);
 		
 		var display = {};
 		for (var i=0;i<hand.sorted.length;i++) {
