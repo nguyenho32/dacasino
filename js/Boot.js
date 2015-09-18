@@ -42,6 +42,7 @@ var Casino = {
 		// uses the standard hands. data that is passed throughout the game as entries
 		hands:[],
 		hands_set:[],
+		hands_choices:[{choice:'none',actual:'none',correct:false}],
 		// a single hand
 		hand:{},
 		stat:{

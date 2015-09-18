@@ -23,7 +23,7 @@ Casino.MainMenu.prototype = {
 			var btn = this.createButton(menu[i],this.btnHandler);
 			btn.key = menu[i];
 			btn.x = 750;
-			btn.y = 40+i*50;
+			btn.y = 30+i*40;
 			sprite.addChild(btn);
 			if (menu[i] == 'debug') {
 				this.btn_debug = btn;
@@ -45,8 +45,21 @@ Casino.MainMenu.prototype = {
 		main_info_box = this.add.text(4, 4, txt, style);	
 		sprite.addChild(main_info_box);
 		sprite.x = 275;
-		// place the information area
 		sprite.y = 30;
+		
+		// create a text box for hand related
+		var sprite = this.add.sprite(0,0);
+		var gfx = this.add.graphics(0,0);
+		gfx.beginFill(Casino._INFO_BG,1);
+		gfx.drawRect(0,0,325,90);
+		sprite.addChild(gfx);
+		var style = { font: '10pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: true, wordWrapWidth: 325 };
+		this.hand_info_box = this.add.text(4, 4, '', style);	
+		sprite.addChild(this.hand_info_box);
+		sprite.x = 665;
+		// place the information area
+		sprite.y = 300;
+
 		
 		var dbg = this.input.keyboard.addKey(Phaser.Keyboard.D);
 		dbg.onDown.add(this.debugMode,this);
@@ -89,6 +102,7 @@ Casino.MainMenu.prototype = {
 		hand.poker = Poker.solve(hand.sorted);
 		hand.paigow = Paigow.solve(hand.poker);
 
+		this.hand_info_box.text = 'rule: '+hand.paigow.rule+'\nbonus: '+hand.paigow.bonus+'\ndesc: '+hand.paigow.desc
 		this.cards.destroy();
 		this.cards = this.add.group();
 		var display = Display.master({hand:hand});
@@ -102,10 +116,11 @@ Casino.MainMenu.prototype = {
 				this.cards.add(card);
 			} else {
 				console.log('broken hand: ',hand);
+				break;
+				this.createHand();
 			}
 			
 		}
-//		console.log('displaying...',hand);
 	},
 	createCard:function(key) {
 		var card = this.add.sprite();
