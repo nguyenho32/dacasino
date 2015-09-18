@@ -116,8 +116,8 @@ Casino.MainMenu.prototype = {
 				this.cards.add(card);
 			} else {
 				console.log('broken hand: ',hand);
-				break;
 				this.createHand();
+				break;
 			}
 			
 		}
@@ -153,7 +153,7 @@ Casino.MainMenu.prototype = {
 				this.clock = 3;
 				
 			break;
-			case 'learn': this.game.state.start('LearnMenu');
+			case 'learn': this.game.state.start('LevelMenu');
 			break;
 			default: this.game.state.start('Game');
 			break;

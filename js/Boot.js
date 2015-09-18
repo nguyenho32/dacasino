@@ -30,7 +30,9 @@ var Casino = {
 //	debugHand:["ten_diamond","nine_spade","nine_club","eight_spade","seven_club","six_spade","two_club"],
 	settings:{
 		hands_per_level:10,
-		timer_amount:30
+		timer_amount:30,
+		min_hint_count:2,
+		max_hint_count:5,
 	},
 	game:{
 		mastery:false,
@@ -39,12 +41,14 @@ var Casino = {
 		hair_chosen:[],
 		group_player:{},
 		group_bank:{},
-		// uses the standard hands. data that is passed throughout the game as entries
+		
+		// current hand number
+		hand_number:0,
+		// array containing all hands
 		hands:[],
-		hands_set:[],
-		hands_choices:[{choice:'none',actual:'none',correct:false}],
 		// a single hand
 		hand:{},
+		// stats
 		stat:{
 			count:0,
 			tries:0,
@@ -53,13 +57,11 @@ var Casino = {
 		},
 		level:{main:'pai-gow',sub:'nothing'},
 		practice_mode:{main:'random',sub:'random+random'},
-		compare:{
-			steps:["init","set-bank","set-other","both-set","resolve"],
-			step:'init',
-			index:function() {
-				return this.steps.indexOf(this.step);
-			}
-		}
+		steps:{
+			compare:["boot","init","set-bank","set-player","compare","result"],
+			speed:["set-bank","set-other","both-set","resolve"]
+		},
+		step:'',
 	}
 		
 };

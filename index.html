@@ -13,7 +13,7 @@
 	<script type="text/javascript" src="js/Boot.js"></script>
 	<script type="text/javascript" src="js/Preloader.js"></script>
 	<script type="text/javascript" src="js/MainMenu.js"></script>
-	<script type="text/javascript" src="js/LearnMenu.js"></script>
+	<script type="text/javascript" src="js/LevelMenu.js"></script>
 	<script type="text/javascript" src="js/Game.js"></script>
 	<script type="text/javascript" src="js/Debug.js"></script>
 
@@ -36,6 +36,7 @@ why 2 jokers?
 
 straight / flush : 2-pair + joker - fix
 rebuild learn menu to use less buttons
+levelmenu is available in 'learn', 'practice' modes only, disabled in the other modes
 </pre>
 <script>
 (function() {
@@ -43,7 +44,7 @@ rebuild learn menu to use less buttons
 	game.state.add('Boot',Casino.Boot);
 	game.state.add('Preloader',Casino.Preloader);
 	game.state.add('MainMenu',Casino.MainMenu);
-	game.state.add('LearnMenu',Casino.LearnMenu);
+	game.state.add('LevelMenu',Casino.LevelMenu);
 	game.state.add('Game',Casino.Game);
 	game.state.add('Debug',Casino.Debug);
 	game.state.start('Boot');
