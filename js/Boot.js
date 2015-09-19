@@ -35,6 +35,7 @@ var Casino = {
 		max_hint_count:5,
 	},
 	game:{
+		skip_houseway:false,
 		mastery:false,
 		thing:{},
 		mode:'learn',
@@ -59,7 +60,7 @@ var Casino = {
 		practice_mode:{main:'random',sub:'random+random'},
 		steps:{
 			compare:["boot","init","set-bank","set-player","compare","result"],
-			speed:["set-bank","set-other","both-set","resolve"]
+			speed:["set-bank","set-other","both-set","review"]
 		},
 		step:'',
 	}
