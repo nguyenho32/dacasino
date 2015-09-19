@@ -146,6 +146,8 @@ Poker = {
 				}
 				break;
 		}
+		console.log('just built: ',hand);
+		console.log('match',match);
 		// now complete the hand
 		do {
 			// generate a random card
@@ -169,13 +171,30 @@ Poker = {
 			}
 			// insert 2 pairs
 			if (sub == '2-pair') {
-				if (hand.length == len) {
-					name = match[Math.round(Math.random()*(match.length-1))];
-				} else {
-					name = match[Math.round(Math.random()*(match.length-1))];
-					if (name == match[match.length-1]) {
-						continue;
-					}
+				// if joker then reduce the straight size by 1
+				console.log('old hand: ',hand);
+				if (Cards.isJoker(hand[0])) {
+					console.log('joker!!!');
+					hand.splice(0,1);
+					console.log('new hand joker spliced out: ',hand);
+					var rand = Math.floor(Math.random()*2)+1;
+					hand[rand] = 'joker_one';
+					match.splice(rand,1);
+					console.log('new_hand joker spliced back in: ',hand);
+					console.log('new match: ',match)
+					
+				}
+				// random number
+				var r1 = Math.floor(Math.random()*match.length);
+				console.log('r1: ',r1);
+				// grab something from possible matches
+				name = match[r1];
+				console.log('name: ',name);
+				console.log('match: ',match);
+				// if the name is not the last entry in hand and hand.length is over the len
+				if (name == Cards.getName(hand[hand.length-1])) {
+					console.log('continuing because of attempted trips insert');
+					continue;
 				}
 			}
 			// insert trips

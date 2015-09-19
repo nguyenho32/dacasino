@@ -38,7 +38,7 @@ var Casino = {
 		skip_houseway:false,
 		mastery:false,
 		thing:{},
-		mode:'learn',
+		mode:'init',
 		hair_chosen:[],
 		group_player:{},
 		group_bank:{},
@@ -60,7 +60,7 @@ var Casino = {
 		practice_mode:{main:'random',sub:'random+random'},
 		steps:{
 			compare:["boot","init","set-bank","set-player","compare","result"],
-			speed:["set-bank","set-other","both-set","review"]
+			speed:["set-bank","set-other","compare","review"]
 		},
 		step:'',
 	}

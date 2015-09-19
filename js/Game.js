@@ -462,6 +462,7 @@ Casino.Game.prototype = {
 				hand = Cards.handCreate(Poker.create({main:'random',joker:50,sub:'random'}));
 				this.gameCreateHand(hand);
 				this.displayHand({type:'normal',hand:hand});
+				game.hands.push(hand);
 				break;
 		}
 		Casino.game = game;
@@ -645,7 +646,6 @@ Casino.Game.prototype = {
 				game.step = game.steps[0];
 				break;
 		}
-		console.log('runModeCompare() - hand ',game.hand);
 		Casino.game = game;
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -785,6 +785,7 @@ Casino.Game.prototype = {
 			}
 		}
 		if (required && (hair.indexOf(chosen[0]) != -1 && hair.indexOf(chosen[1]) != -1)) {
+			console.log('hair is correct so do neato stuff!!');
 			// complete the hand
 			this.handComplete();
 
@@ -837,12 +838,15 @@ Casino.Game.prototype = {
 	// hand complete so do stuff
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	handComplete:function(status) {
+		console.log(status);
 		var game = Casino.game;
 		
-		// no matter what
-		console.log('handComplete() - hand number: ',game.hand_number);
-		console.log('handComplete() - all hands: ',game.hands);
-		game.hands[game.hand_number].set = true;
+		// only if we are tracking hands (ie speed / compare / timed modes)
+		if (game.hands.length != 0) {
+			console.log('handComplete() - hand number: ',game.hand_number);
+			console.log('handComplete() - all hands: ',game.hands);
+			game.hands[game.hand_number].set = true;
+		}
 		
 		// no status means hand was correct
 		if (typeof status === 'undefined') {
