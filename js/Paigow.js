@@ -3,6 +3,7 @@ Paigow = {
 		PAI-GOW RULES
 	******************************************************************************************************************************************/
 	briefs:["nothing","1-pair","2-pair","trips","straight","flush","full house","quads","straight-flush"],
+	levels:["nothing","nothing+joker","0-pair","0-pair+joker","1-pair","2-pair","3-pair","1-pair+joker","2-pair+joker","3-pair+joker","trips","trips+joker"],
 	rules:{
 		'pai-gow':{
 			'nothing':'When the hand contains no pairs, trips, quads, straights or flushes. Put the 2nd & 3rd highest cards in front',

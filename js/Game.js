@@ -24,7 +24,7 @@ Casino.Game.prototype = {
 		}
 		this.buttons['next'].visible = false;
 		this.buttons['start'].visible = false;
-		this.buttons['option'].visible = false;
+		this.buttons['rules'].visible = false;
 		
 		this.buttons['win'].visible = false;
 		this.buttons['lose'].visible = false;
@@ -177,11 +177,11 @@ Casino.Game.prototype = {
 		/*
 			bottom ui elements
 		*/
-		// button for options
-		var btn = this.createButton({name:'option',callback:this.btnHandler});
+		// button for ruless
+		var btn = this.createButton({name:'rules',callback:this.btnHandler});
 		btn.x = 0;
 		btn.y = 375;
-		this.buttons['option'] = btn;
+		this.buttons['rules'] = btn;
 		// button for getting the next hand
 		var btn = this.createButton({name:'next',callback:this.btnHandler});
 		btn.x = 890;
@@ -271,7 +271,7 @@ Casino.Game.prototype = {
 			case 'start':
 				this.gameStart();
 				break;
-			case 'option':
+			case 'rules':
 				if (Casino.game.mode == 'learn') {
 					Casino.game.active = true;
 					this.game.state.start('LevelMenu');
@@ -433,7 +433,7 @@ Casino.Game.prototype = {
 		}
 		switch(game.mode) {
 			case 'learn':
-				this.btnDisplay('option');
+				this.btnDisplay('rules');
 				this.runModeLearn();
 				break;
 			case 'practice':
@@ -798,7 +798,7 @@ Casino.Game.prototype = {
 				if (game.mode != 'learn') {
 					game.thing.btnDisplay('next');
 				} else {
-					game.thing.btnDisplay('option,next');
+					game.thing.btnDisplay('rules,next');
 				}
 			} else {
 				console.log('skipping houseway');

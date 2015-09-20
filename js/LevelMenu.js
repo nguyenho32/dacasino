@@ -8,18 +8,21 @@ Casino.LevelMenu.prototype = {
 		this.clock = 0;
 		this.clockEvent;
 		// active button color
-		this.btn_color_active = 0x000000;
+		this.btn_color_active = 0x0000FF;
 		// inactive button color
-		this.btn_color_inactive = 0xCCCCCC;
-		this.buttons = {};
-		this.group = this.add.group();
-		this.cards = this.add.group();
-
-		// current main level
-		this.current_main;
-		// current sub_level
-		this.current_sub;
+		this.btn_color_inactive = 0xFF0000;
+		// available button color
+		this.btn_color_available = 0x00FF00;
 		
+		// start / rules
+		this.buttons = {};
+		// all the level buttons
+		this.levels = this.add.group();
+		// the cards
+		this.cards = this.add.group();
+		
+		this.current = {main:'',sub:''};
+
 		// button for returning to the menu
 		var btn = this.createButton({name:'menu',callback:this.btnHandler});
 		btn.x = 0;
@@ -29,9 +32,9 @@ Casino.LevelMenu.prototype = {
 		this.buttons['start'] = btn;
 		btn.x = 890;
 		btn.y = 375;
-		// button for options
-		var btn = this.createButton({name:'option',callback:this.btnHandler});
-		this.buttons['option'] = btn;
+		// button for ruless
+		var btn = this.createButton({name:'rules',callback:this.btnHandler});
+		this.buttons['rules'] = btn;
 		btn.x = 0;
 		btn.y = 375;
 		// create a text box for game related information
@@ -73,29 +76,30 @@ Casino.LevelMenu.prototype = {
 		sprite.x = 120;
 		sprite.y = 375;
 
-		// create buttons for the levels
-		var width;
+
+		// the level buttons
+		var levels = [];
 		var i = 0;
-		for (var key in Paigow.rules) {
-			var value = Paigow.rules[key];
-			var btn = this.createButton({name:key,callback:this.btnHandler,size:'large',learn:true});
-			btn.main_key = key;
-			btn.x = 30 +(i*135);
+		for (var main in Paigow.rules) {
+			var value = Paigow.rules[main];
+			var btn = this.createButton({name:main,callback:this.btnHandler,size:'large',levels:true});
+			btn.type = 'main';
+			btn.key = main;
+			btn.x = 15 +(i*140);
 			btn.y = 30;
-			var n = 1;
-			this.group.add(btn);
-			for (var sub in Paigow.rules[key]) {
-				var subval = Paigow.rules[key][sub];
-				var btn = this.createButton({name:sub,callback:this.btnHandler,size:'large',learn:true});
-				btn.main_key = key;
-				btn.sub_key = sub;
-				btn.x = n*135-35;
-				btn.y = 60;
-				n++;
-				this.group.add(btn);
-			}
+			this.levels.add(btn);
 			i++;
 		}
+		for (var i=0; i<Paigow.levels.length; i++) {
+			var sub = Paigow.levels[i];
+			var btn = this.createButton({name:sub,callback:this.btnHandler,size:'large',levels:true});
+			btn.type = 'sub';
+			btn.key = sub;
+			btn.visible = false;
+			this.levels.add(btn);
+		}
+		/*
+
 		// set the main level
 		if (!Casino.game.level.main) {
 			Casino.game.level.main = 'pai-gow';
@@ -110,7 +114,7 @@ Casino.LevelMenu.prototype = {
 		// sub keys + index
 		var sub_keys = Object.keys(Paigow.rules[Casino.game.level.main]);
 		var sub_index = sub_keys.indexOf(Casino.game.level.sub);
-
+		*/
 		// create a text box for messages
 		var sprite = this.add.sprite(0,0);
 		var gfx = this.add.graphics(0,0);
@@ -123,6 +127,7 @@ Casino.LevelMenu.prototype = {
 		sprite.x = 100;
 		sprite.y = 95;
 
+		this.showGroup(Casino.game.level.main);
 		if (!Casino.game.mastery) {
 			if (Casino.game.active) {
 				this.buttons['start'].visible = false;
@@ -136,7 +141,7 @@ Casino.LevelMenu.prototype = {
 			this.showGroup(Casino.game.level.main);
 			this.messageBox('You have mastered the game of pai-gow. Go practice some hands or select options above to review hands');
 			this.buttons['start'].visible = false;
-			this.buttons['option'].visible = false;
+			this.buttons['rules'].visible = false;
 			
 		}
 	},
@@ -211,24 +216,36 @@ Casino.LevelMenu.prototype = {
 
 		var sprite = this.add.sprite(0,0);
 		
-		var gfx = this.add.graphics(0,0);
-		gfx.beginFill(Casino._BTN_BG,1);
-		gfx.drawRect(0,0,btn_width,25);
-		sprite.addChild(gfx);
-		if (opts.learn) {
+		if (opts.levels) {
+			// inactive state
 			var gfx = this.add.graphics(0,0);
 			gfx.beginFill(this.btn_color_inactive,1);
-			gfx.drawRect(0,0,btn_width,25);
+			gfx.drawRect(-2,-2,btn_width+4,29);
+			gfx.visible = false;
 			sprite.addChild(gfx);
-			sprite.off = gfx;
+			sprite.inactive = gfx;
 
+			// active state
 			var gfx = this.add.graphics(0,0);
-			gfx.beginFill(this.btn_color_current,1);
-			gfx.drawRect(0,0,btn_width,25);
+			gfx.beginFill(this.btn_color_active,1);
+			gfx.drawRect(-2,-2,btn_width+4,29);
+			gfx.visible = false;
 			sprite.addChild(gfx);
-			sprite.current = gfx;
-			sprite.current.visible = false;
+			sprite.active = gfx;
+
+			// available state
+			var gfx = this.add.graphics(0,0);
+			gfx.beginFill(this.btn_color_available,1);
+			gfx.drawRect(-2,-2,btn_width+4,29);
+			gfx.visible = false;
+			sprite.addChild(gfx);
+			sprite.available = gfx;
 		}
+		var gfx = this.add.graphics(0,0);
+		gfx.beginFill(Casino._BTN_BG,0.5);
+		gfx.drawRect(0,0,btn_width,25);
+		sprite.addChild(gfx);
+
 		var style = { font: font_size+'Courier', fill: Casino._BTN_TXT, align: 'center', wordWrap: true, wordWrapWidth: btn_width };
 		var text = this.add.text(btn_width / 2, 4, opts.name, style);	
 		text.anchor.setTo(0.5,0);
@@ -238,10 +255,108 @@ Casino.LevelMenu.prototype = {
 			sprite.input.useHandCursor = true;
 			sprite.events.onInputDown.add(opts.callback,this);
 		}
-		sprite.key = (opts.learn) ? 'learn' : opts.name;
+		// activate the correct backdrop
+		sprite.activate = function(back) {
+			sprite.active.visible = false;
+			sprite.inactive.visible = false;
+			sprite.available.visible = false;
+			switch(back) {
+				case 'available':
+					sprite.available.visible = true;
+					break;
+				case 'active':
+					sprite.active.visible = true;
+					break;
+				default:
+					sprite.inactive.visible = true;
+					break;
+			}
+		}
+		sprite.name = (opts.levels) ? 'levels' : opts.name;
 		
 		return sprite;
 	},
+	
+	showGroup:function(key) {
+		var main = Casino.game.level.main;
+		var sub = Casino.game.level.sub;
+		
+		var super_keys = Object.keys(Paigow.rules);
+
+		if (this.current.main == '') {
+			this.current.main = Casino.game.level.main;
+		}
+		if (this.current.sub == '') {
+			this.current.sub = Casino.game.level.sub;
+		}
+		// loop the rules of this group
+		var keys = [];
+		for (var key in Paigow.rules[this.current.main]) {
+			keys.push(key);
+		}
+		// now loop the levels and do fun shit
+		n = 0;
+		for (var i=0; i<this.levels.children.length; i++) {
+			var btn = this.levels.children[i];
+			if (btn.type == 'main') {
+				if (super_keys.indexOf(btn.key) <= super_keys.indexOf(main)) {
+					btn.activate('available');
+				} else {
+					btn.activate('inactive');
+				}
+				if (btn.key == this.current.main) {
+					btn.activate('active');
+				}
+			} else {
+				// if the current main is below the game main then show everything for this level
+				if (super_keys.indexOf(this.current.main) < super_keys.indexOf(main)) {
+					if (keys.indexOf(btn.key) != -1) {
+						btn.visible = true;
+						btn.x = Casino._WIDTH / 2 - (keys.length * 140 / 2 )+ 140 *n;
+						btn.y = 65;
+						n++;
+						btn.activate('available');
+					} else {
+						btn.visible = false;
+					}
+				// if the current main is below the game main then show everything for this level
+				} else if (super_keys.indexOf(this.current.main) == super_keys.indexOf(main)) {
+					console.log('levels match');
+					console.log('sub level: ',sub);
+					if (keys.indexOf(btn.key) != -1) {
+						btn.visible = true;
+						btn.x = Casino._WIDTH / 2 - (keys.length * 140 / 2 )+ 140 *n;
+						btn.y = 65;
+						n++;
+						if (keys.indexOf(btn.key) < keys.indexOf(sub)) {
+							btn.activate('available');
+						}
+						if (keys.indexOf(btn.key) > keys.indexOf(sub)) {
+							btn.activate('inactive');
+						}
+						console.log('sub...',this.current.sub);
+						if (btn.key == this.current.sub) {
+							btn.activate('active');
+						}
+					} else {
+						btn.visible = false;
+					}
+				// otherwise just deal with this level
+				} else {
+					if (keys.indexOf(btn.key) != -1) {
+						btn.activate('inactive');
+						btn.visible = true;
+						btn.x = Casino._WIDTH / 2 - (keys.length * 140 / 2 )+ 140 *n;
+						btn.y = 65;
+						n++;
+					} else {
+						btn.visible = false;
+					}
+				}
+			} 
+		}
+	},
+	/*
 	showGroup:function(main) {
 		var super_keys = Object.keys(Paigow.rules);
 		var current_level = Casino.game.level.main
@@ -252,7 +367,7 @@ Casino.LevelMenu.prototype = {
 		var main_index = super_keys.indexOf(main);
 		var sub_index = main_keys.indexOf(Casino.game.level.sub);
 
-		this.group.forEach(function(btn) {
+		this.levels.forEach(function(btn) {
 			btn.visible = false;
 			btn.inputEnabled = false;
 			btn.input.useHandCursor = false;
@@ -299,15 +414,24 @@ Casino.LevelMenu.prototype = {
 			}
 		},this);
 	},
+	*/
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// return to main menu or start a game state
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	btnHandler: function(btn) {
+	btnHandler:function(btn) {
 		
-		switch(btn.key) {
+		switch(btn.name) {
 			case 'start': this.game.state.start('Game');
 			break;
-			case 'learn':
+			case 'levels':
+				console.log(btn.key);
+				if (btn.type != 'sub') {
+					this.current.main = btn.key;
+				} else {
+					this.current.sub = btn.key;
+				}
+				this.showGroup(btn.key);
+			/*
 				// no sub key means main button
 				if (!btn.sub_key) {
 					this.showGroup(btn.main_key);
@@ -328,14 +452,15 @@ Casino.LevelMenu.prototype = {
 					this.messageBox(Paigow.rules[this.current_main][btn.sub_key]);
 					this.createExampleHand(btn.main_key,btn.sub_key);
 				}
+				*/
 			break;
-			case 'option':
+			case 'rules':
 					if (Casino.game.active) {
 						this.game.state.start('Game');
 					} else {
 						this.clock = 3;
 						this.clockEvent = this.time.events.loop(Phaser.Timer.SECOND,this.clockHandler,this);
-						this.messageBox('you are already in the options menu, use the button to return here from the game');
+						this.messageBox('you are already in the ruless menu, use the button to return here from the game');
 					}
 				break;
 			default: this.game.state.start('MainMenu');
@@ -345,7 +470,6 @@ Casino.LevelMenu.prototype = {
 	clockHandler:function() {
 		this.clock -= 1;
 		if (this.clock === 0) {
-			console.log(this.message_box.text);
 			this.time.events.remove(this.clockEvent);
 			this.messageBox('select a category from above');
 		}

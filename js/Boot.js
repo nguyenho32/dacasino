@@ -56,7 +56,7 @@ var Casino = {
 			correct:0,
 			total:0
 		},
-		level:{main:'pai-gow',sub:'nothing'},
+		level:{main:'trips',sub:'2-pair'},
 		practice_mode:{main:'random',sub:'random+random'},
 		steps:{
 			compare:["boot","init","set-bank","set-player","compare","result"],
