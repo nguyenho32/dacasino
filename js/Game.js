@@ -4,6 +4,134 @@ Casino.Game.prototype = {
 	debugBank:Casino.debugBank,
 	debugPlayer:Casino.debugPlayer,
 	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// common stuff
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	createButton:Casino.createButton,
+	createCard:Casino.createCard,
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// creation
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	create:function() {
+		// holy fuckity fuck!!!
+		Casino.game.thing = this;
+		// create some display groups
+		Casino.game.group_bank = Casino.game.thing.add.group();
+		Casino.game.group_player = Casino.game.thing.add.group();
+		// clock stuff
+		this.clock = 0;
+		this.clockEvent;
+		
+		// buttons
+		this.buttons = {};
+		/*
+			top ui elements
+		*/
+		// button for returning to the menu
+		var btn = this.createButton({name:'menu',callback:this.mainMenu});
+		btn.x = 0;
+		btn.y = 0;
+		// button for starting a game
+		var btn = this.createButton({name:'start',callback:this.btnHandler});
+		btn.x = 890;
+		btn.y = 0;
+		this.buttons['start'] = btn;
+		// create a text box for game related information
+		var sprite = Casino.game.thing.add.sprite(0,0);
+		sprite.x = 120;
+		sprite.y = 0;
+		var gfx = Casino.game.thing.add.graphics(0,0);
+		gfx.beginFill(Casino._INFO_BG,1);
+		gfx.drawRect(0,0,760,25);
+		sprite.addChild(gfx);
+		var style = { font: '12pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: false };
+		var txt = 'mode: '+Casino.game.mode;
+		this.txt_main_info = Casino.game.thing.add.text(5, 5, txt, style);	
+		sprite.addChild(this.txt_main_info);
+
+		/*
+			bottom ui elements
+		*/
+		// button for ruless
+		var btn = this.createButton({name:'rules',callback:this.btnHandler});
+		btn.x = 0;
+		btn.y = 375;
+		this.buttons['rules'] = btn;
+		// button for getting the next hand
+		var btn = this.createButton({name:'next',callback:this.btnHandler});
+		btn.x = 890;
+		btn.y = 375;
+		this.buttons['next'] = btn;
+		// create a text box for stat related information
+		var sprite = Casino.game.thing.add.sprite(0,0);
+		var gfx = Casino.game.thing.add.graphics(0,0);
+		gfx.beginFill(Casino._STAT_BG,1);
+		gfx.drawRect(0,0,760,25);
+		sprite.addChild(gfx);
+		// stat information box
+		var style = { font: '12pt Courier', fill: Casino._STAT_TXT, align: 'left', wordWrap: true, wordWrapWidth: 400 };
+		var txt = '';
+		this.txt_stat_info = Casino.game.thing.add.text(5, 5, txt, style);
+		sprite.addChild(this.txt_stat_info);
+		// clock information box
+		var gfx = Casino.game.thing.add.graphics(0,0);
+//		gfx.beginFill(0xCC0000,1);
+//		gfx.drawRect(630,0,130,25);
+//		sprite.addChild(gfx);
+		var style = { font: '12pt Courier', fill: Casino._INFO_TXT, align: 'right', wordWrap: true, wordWrapWidth: 160 };
+		var txt = 'clock: 00:00:00';
+		this.txt_clock = Casino.game.thing.add.text(610, 5, txt, style);
+		sprite.addChild(this.txt_clock);
+		sprite.x = 120;
+		sprite.y = 375;
+
+		var wide = 60;
+		var btn = this.createButton({name:'win',callback:this.btnHandler,wide:wide});
+		btn.x = Casino._WIDTH / 2 - wide / 2;
+		btn.y = 150;
+		this.buttons['win'] = btn;
+		var btn = this.createButton({name:'lose',callback:this.btnHandler,wide:wide});
+		btn.x = Casino._WIDTH / 2 - wide / 2;
+		btn.y = 225;
+		this.buttons['lose'] = btn;
+		var btn = this.createButton({name:'push',callback:this.btnHandler,wide:wide});
+		btn.x = Casino._WIDTH / 2 - wide / 2;
+		btn.y = 300;
+		this.buttons['push'] = btn;
+
+		/*
+			general messages
+		*/
+		// create a text box for messages
+		var sprite = Casino.game.thing.add.sprite(0,0);
+		var gfx = Casino.game.thing.add.graphics(0,0);
+		gfx.beginFill(Casino._MESSAGE_BG,1);
+		gfx.drawRect(0,0,500,100);
+		sprite.addChild(gfx);
+		// stat information box
+		var style = { font: '10pt Courier', fill: Casino._MESSAGE_TXT, align: 'center', wordWrap: true, wordWrapWidth: 500 };
+		var txt = 'nifty message box';
+		this.txt_message = Casino.game.thing.add.text(250, 50, txt, style);
+		this.txt_message.anchor.setTo(0.5,0.5);
+		sprite.addChild(this.txt_message);
+		sprite.x = (Casino._WIDTH / 2) - 250;
+		sprite.y = 60;
+		this.box_message = sprite;
+		
+		// group for holding player stuff
+		this.group_player = Casino.game.thing.add.group();
+		// group for holding bank stuff
+		this.group_bank = Casino.game.thing.add.group();
+
+		// update the message box
+		this.messageBox('hide');
+		
+		// update the stat box
+		this.updateText({box:'stat'});
+		
+		this.btnDisplay();
+		this.initMode(Casino.game.mode);
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// get the difference between 2 arrays
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	arrayDiff:function(big,small) {
@@ -135,135 +263,12 @@ Casino.Game.prototype = {
 		}
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// creation
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	create:function() {
-		// holy fuckity fuck!!!
-		Casino.game.thing = this;
-		// create some display groups
-		Casino.game.group_bank = Casino.game.thing.add.group();
-		Casino.game.group_player = Casino.game.thing.add.group();
-		// clock stuff
-		this.clock = 0;
-		this.clockEvent;
-		
-		// buttons
-		this.buttons = {};
-		/*
-			top ui elements
-		*/
-		// button for returning to the menu
-		var btn = this.createButton({name:'menu',callback:this.mainMenu});
-		btn.x = 0;
-		btn.y = 0;
-		// button for starting a game
-		var btn = this.createButton({name:'start',callback:this.btnHandler});
-		btn.x = 890;
-		btn.y = 0;
-		this.buttons['start'] = btn;
-		// create a text box for game related information
-		var sprite = Casino.game.thing.add.sprite(0,0);
-		sprite.x = 120;
-		sprite.y = 0;
-		var gfx = Casino.game.thing.add.graphics(0,0);
-		gfx.beginFill(Casino._INFO_BG,1);
-		gfx.drawRect(0,0,760,25);
-		sprite.addChild(gfx);
-		var style = { font: '12pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: false };
-		var txt = 'mode: '+Casino.game.mode;
-		this.txt_main_info = Casino.game.thing.add.text(5, 5, txt, style);	
-		sprite.addChild(this.txt_main_info);
-
-		/*
-			bottom ui elements
-		*/
-		// button for ruless
-		var btn = this.createButton({name:'rules',callback:this.btnHandler});
-		btn.x = 0;
-		btn.y = 375;
-		this.buttons['rules'] = btn;
-		// button for getting the next hand
-		var btn = this.createButton({name:'next',callback:this.btnHandler});
-		btn.x = 890;
-		btn.y = 375;
-		this.buttons['next'] = btn;
-		// create a text box for stat related information
-		var sprite = Casino.game.thing.add.sprite(0,0);
-		var gfx = Casino.game.thing.add.graphics(0,0);
-		gfx.beginFill(Casino._STAT_BG,1);
-		gfx.drawRect(0,0,760,25);
-		sprite.addChild(gfx);
-		// stat information box
-		var style = { font: '12pt Courier', fill: Casino._STAT_TXT, align: 'left', wordWrap: true, wordWrapWidth: 400 };
-		var txt = '';
-		this.txt_stat_info = Casino.game.thing.add.text(5, 5, txt, style);
-		sprite.addChild(this.txt_stat_info);
-		// clock information box
-		var gfx = Casino.game.thing.add.graphics(0,0);
-//		gfx.beginFill(0xCC0000,1);
-//		gfx.drawRect(630,0,130,25);
-//		sprite.addChild(gfx);
-		var style = { font: '12pt Courier', fill: Casino._INFO_TXT, align: 'right', wordWrap: true, wordWrapWidth: 160 };
-		var txt = 'clock: 00:00:00';
-		this.txt_clock = Casino.game.thing.add.text(610, 5, txt, style);
-		sprite.addChild(this.txt_clock);
-		sprite.x = 120;
-		sprite.y = 375;
-
-		var wide = 60;
-		var btn = this.createButton({name:'win',callback:this.btnHandler,wide:wide});
-		btn.x = Casino._WIDTH / 2 - wide / 2;
-		btn.y = 150;
-		this.buttons['win'] = btn;
-		var btn = this.createButton({name:'lose',callback:this.btnHandler,wide:wide});
-		btn.x = Casino._WIDTH / 2 - wide / 2;
-		btn.y = 225;
-		this.buttons['lose'] = btn;
-		var btn = this.createButton({name:'push',callback:this.btnHandler,wide:wide});
-		btn.x = Casino._WIDTH / 2 - wide / 2;
-		btn.y = 300;
-		this.buttons['push'] = btn;
-
-		/*
-			general messages
-		*/
-		// create a text box for messages
-		var sprite = Casino.game.thing.add.sprite(0,0);
-		var gfx = Casino.game.thing.add.graphics(0,0);
-		gfx.beginFill(Casino._MESSAGE_BG,1);
-		gfx.drawRect(0,0,500,100);
-		sprite.addChild(gfx);
-		// stat information box
-		var style = { font: '10pt Courier', fill: Casino._MESSAGE_TXT, align: 'center', wordWrap: true, wordWrapWidth: 500 };
-		var txt = 'nifty message box';
-		this.txt_message = Casino.game.thing.add.text(250, 50, txt, style);
-		this.txt_message.anchor.setTo(0.5,0.5);
-		sprite.addChild(this.txt_message);
-		sprite.x = (Casino._WIDTH / 2) - 250;
-		sprite.y = 60;
-		this.box_message = sprite;
-		
-		// group for holding player stuff
-		this.group_player = Casino.game.thing.add.group();
-		// group for holding bank stuff
-		this.group_bank = Casino.game.thing.add.group();
-
-		// update the message box
-		this.messageBox('hide');
-		
-		// update the stat box
-		this.updateText({box:'stat'});
-		
-		this.btnDisplay();
-		this.initMode(Casino.game.mode);
-	},
-	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// handle buttons
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	btnHandler: function (btn) {
-		var key = btn.key;
-		this.btnDisplay('-'+key);
-		switch(key) {
+		var name = btn.name;
+		this.btnDisplay('-'+name);
+		switch(name) {
 			case 'next':
 				// attempt to run the game
 				this.gameRun();
@@ -281,39 +286,13 @@ Casino.Game.prototype = {
 			case 'lose':
 			case 'push':
 				this.btnDisplay('next');
-				Casino.game.hands[Casino.game.hand_number].choice = key;
+				Casino.game.hands[Casino.game.hand_number].choice = name;
 				this.gameRun();
 				break;
 			default:
-				console.log('btnHandler broke: ',key);
+				console.log('btnHandler broke: ',name);
 			break;
 		}
-	},
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// create a button
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	createButton:function(option) {
-		var txt = option.name;
-		var callback = option.callback;
-		var arg = option.arg;
-		var wide = (typeof option.wide !== 'undefined') ? option.wide : 113;
-		var sprite = Casino.game.thing.add.sprite(0,0);
-		var gfx = Casino.game.thing.add.graphics(0,0);
-		gfx.beginFill(Casino._BTN_BG,1);
-		gfx.drawRect(0,0,wide,25);
-		gfx.name = 'graphic';
-		sprite.addChild(gfx);
-		var style = { font: '12pt Courier', fill: Casino._BTN_TXT, align: 'center', wordWrap: true, wordWrapWidth: wide };
-		var text = Casino.game.thing.add.text(wide/2, 4, txt, style);	
-		text.anchor.setTo(0.5,0);
-		text.inputEnabled = true;
-		sprite.addChild(text);
-		sprite.inputEnabled = true;
-		sprite.input.useHandCursor = true;
-		sprite.events.onInputDown.add(callback,this,arg);
-		sprite.key = txt;
-		
-		return sprite;
 	},
 	/******************************************************************************************************************************************
 		INIT THE GAME
@@ -389,6 +368,7 @@ Casino.Game.prototype = {
 		}
 		game.stat.total = 0;
 		game.stat.correct = 0;
+		game.skip_houseway = false;
 		switch(game.mode) {
 			case 'timed':
 				this.updateText({box:'main',str:'mode: timed - as many hands in 30 seconds',rewrite:true});
@@ -397,7 +377,6 @@ Casino.Game.prototype = {
 				break;
 			case 'speed':
 				// create a deck
-				game.skip_houseway = false;
 				game.deck = Cards.deckCreate('standard',true,1);
 				// draw out 7 hands into game.hands
 				for (var i=0; i<7; i++) {
@@ -420,6 +399,7 @@ Casino.Game.prototype = {
 	// run a game
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	gameRun:function() {
+		var thing = Casino.game.thing;
 		var game = Casino.game;
 		var str = (game.mode != 'learn') ? Casino.game.practice_mode.sub.split('+') : Casino.game.level.sub.split('+');
 		var chance;
@@ -433,35 +413,35 @@ Casino.Game.prototype = {
 		}
 		switch(game.mode) {
 			case 'learn':
-				this.btnDisplay('rules');
-				this.runModeLearn();
+				thing.btnDisplay('rules');
+				thing.runModeLearn();
 				break;
 			case 'practice':
 				// display broken
-				if (typeof this.debugHand !== 'undefined') {
-					hand = Cards.handCreate(this.debugHand);
+				if (typeof thing.debugHand !== 'undefined') {
+					hand = Cards.handCreate(thing.debugHand);
 				// otherwise just build a hand
 				} else {
 					hand = Cards.handCreate(Poker.create({main:Casino.game.practice_mode.main,joker:chance,sub:str[0]}));
 				}
-				this.gameCreateHand(hand);
-				this.displayHand({type:'normal',hand:hand});
+				thing.gameCreateHand(hand);
+				thing.displayHand({type:'normal',hand:hand});
 				break;
 			case 'compare':
 				console.log('pre',game.step);
 				var index = game.steps.compare.indexOf(game.step);
 				game.step = game.steps.compare[index+1];
 				console.log('post',game.step);
-				this.runModeCompare();
+				thing.runModeCompare();
 				break;
 			case 'speed':
 				console.log('running speed mode...');
-				this.runModeSpeed();
+				thing.runModeSpeed();
 				break;
 			case 'timed':
 				hand = Cards.handCreate(Poker.create({main:'random',joker:50,sub:'random'}));
-				this.gameCreateHand(hand);
-				this.displayHand({type:'normal',hand:hand});
+				thing.gameCreateHand(hand);
+				thing.displayHand({type:'normal',hand:hand});
 				game.hands.push(hand);
 				break;
 		}
@@ -517,6 +497,7 @@ Casino.Game.prototype = {
 	// run the compare mode
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	runModeCompare:function(options) {
+		var thing = Casino.game.thing;
 		console.log('runModeCompare() all hands!!! ',Casino.game.hands);
 
 		var game = Casino.game;
@@ -524,7 +505,7 @@ Casino.Game.prototype = {
 
 		game.deck = Cards.deckCreate('standard',true,1);
 		var deck = game.deck;
-		this.updateText({box:'stat'});
+		thing.updateText({box:'stat'});
 
 		// init some shit
 		console.log('runModeCompare() - step: ',step);
@@ -534,35 +515,35 @@ Casino.Game.prototype = {
 				// debug compare so drop random hands, then jump to the choice step
 				if (typeof Casino.debugCompare !== 'undefined') {
 					var hand = Cards.handCreate(deck.splice(0,7));
-					this.gameCreateHand(hand);
+					thing.gameCreateHand(hand);
 					game.hands.push(hand);
 
 					var hand = Cards.handCreate(deck.splice(0,7));
-					this.gameCreateHand(hand);
+					thing.gameCreateHand(hand);
 					game.hands.push(hand);
 				// debug player and bank set, set both
 				} else if (typeof Casino.debugBank !== 'undefined' && typeof Casino.debugPlayer !== 'undefined') {
 					var hand = Cards.handCreate(Casino.debugBank);
-					this.gameCreateHand(hand);
+					thing.gameCreateHand(hand);
 					game.hands.push(hand);
 
 					var hand = Cards.handCreate(Casino.debugPlayer);
-					this.gameCreateHand(hand);
+					thing.gameCreateHand(hand);
 					game.hands.push(hand);
 				} else {
 					game.hands = [];
 					// bank hand
 					var hand = Cards.handCreate(deck.splice(0,7));
-					this.gameCreateHand(hand);
+					thing.gameCreateHand(hand);
 					game.hands.push(hand);
 					
 					// player hand
 					var hand = Cards.handCreate(deck.splice(0,7));
-					this.gameCreateHand(hand);
+					thing.gameCreateHand(hand);
 					game.hands.push(hand);
 				}
 				Casino.game = game;
-				this.gameRun();
+				thing.gameRun();
 				break;
 			// set the bank hand
 			case 'set-bank':
@@ -574,8 +555,8 @@ Casino.Game.prototype = {
 				game.hand_number = 0;
 				var hand = game.hands[0];
 				game.hand = hand;
-				this.displayHand({type:'normal',hand:hand});
-				this.messageBox('show','set the bank hand');
+				thing.displayHand({type:'normal',hand:hand});
+				thing.messageBox('show','set the bank hand');
 				break;
 			// set the player hand
 			case 'set-player':
@@ -583,24 +564,26 @@ Casino.Game.prototype = {
 				if (game.mode != 'speed') {
 					game.hand_number += 1;
 				}
-				this.btnDisplay('-next');
+				thing.btnDisplay('-next');
 				// display the player hand
 				game.hair_chosen = [];
 				game.stat.count = 0;
 				game.stat.tries = 0;
 				var hand = game.hands[game.hand_number];
 				game.hand = hand;
-				this.displayHand({type:'normal',hand:hand});
-				this.messageBox('show','set the player');
+				thing.displayHand({type:'normal',hand:hand});
+				thing.messageBox('show','set the player');
 				break;
 			// compare the 2 hands
 			case 'compare':
 				console.log('runModeCompare() - compare the hands');
 				// display both hands
-				this.displayHand({type:'houseway',mode:'small',hand:game.hands[game.hand_number]});
-				this.displayHand({type:'bank',reset:'none',hand:game.hands[0]});
+				thing.displayHand({type:'houseway',mode:'small',hand:game.hands[game.hand_number]});
+				thing.displayHand({type:'bank',reset:'none',hand:game.hands[0]});
+//				that.prototype.displayHand({type:'houseway',mode:'small',hand:game.hands[game.hand_number]});
+//				that.prototype.displayHand({type:'bank',reset:'none',hand:game.hands[0]});
 				// display choice buttons
-				this.btnDisplay('win,lose,push');
+				thing.btnDisplay('win,lose,push');
 				break;
 			// final result
 			case 'result':
@@ -622,20 +605,20 @@ Casino.Game.prototype = {
 					game.hand.actual = result;
 					game.hand.correct = correct;
 					game.stat.total++;
-					this.updateText({box:'stat'})
+					thing.updateText({box:'stat'})
 					// normal compare mode show stuff
 					if (game.mode != 'speed') {
-						this.btnDisplay('next');
-						this.displayHand({type:'houseway',mode:'toast',hand:game.hands[game.hand_number]});
-						this.displayHand({type:'bank',mode:'toast',reset:'none',hand:game.hands[0]});
+						thing.btnDisplay('next');
+						thing.displayHand({type:'houseway',mode:'toast',hand:game.hands[game.hand_number]});
+						thing.displayHand({type:'bank',mode:'toast',reset:'none',hand:game.hands[0]});
 						console.log('comparison result...',result);
-						this.messageBox('show',str);
+						thing.messageBox('show',str);
 					// speed mode just go to next hand
 					} else {
 						console.log('just go to next hand...');
-						this.displayReset();
-						this.btnDisplay();
-						this.runModeCompare();
+						thing.displayReset();
+						thing.btnDisplay();
+						thing.runModeCompare();
 					}
 					// since the game always increases the step prior to running, restart with boot (so init gets going)
 					game.step = 'boot';
@@ -652,6 +635,7 @@ Casino.Game.prototype = {
 	// run the speed mode
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	runModeSpeed:function() {
+		var thing = Casino.game.thing;
 		var game = Casino.game;
 		console.log('\n\nrunning speed mode...');
 		/*
@@ -660,7 +644,7 @@ Casino.Game.prototype = {
 		game.step = game.steps.compare[index+1];
 		console.log('post',game.step);
 		*/
-		this.updateText({box:'stat'});
+		thing.updateText({box:'stat'});
 //		console.log('speed mode options: ',options);
 		
 		// bank hand not set
@@ -707,7 +691,7 @@ Casino.Game.prototype = {
 							game.hand.actual = result;
 							game.hand.correct = correct;
 							game.stat.total++;
-							this.updateText({box:'stat'})
+							thing.updateText({box:'stat'})
 						}
 					}
 				}
@@ -717,11 +701,11 @@ Casino.Game.prototype = {
 		var last = game.hands[game.hands.length-2];
 		console.log(last);
 		if (last.set && last.choice ) {
-			this.gameEnd();
+			thing.gameEnd();
 			return;
 		}
 		Casino.game = game;
-		this.runModeCompare();
+		thing.runModeCompare();
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// create a hand of cards
@@ -791,7 +775,7 @@ Casino.Game.prototype = {
 
 			// skip houseway (timed / speed modes)
 			if (!game.skip_houseway) {
-				console.log('show houseway');
+				console.log('showing houseway');
 				// display the hand
 				game.thing.displayHand({type:'houseway',hand:hand,chosen:chosen});
 				// show the 'next' button
@@ -871,66 +855,11 @@ Casino.Game.prototype = {
 	// end a game
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	gameEnd:function() {
-		var game = Casino.game;
-		var str = 'Game Over!!!\n';
-		switch(game.mode) {
-			case 'learn':
-				str += 'You have mastered the game of pai-gow, go try some practice hands now!!!';
-				Casino.game.mastery = true;
-				this.updateText({box:'main',str:'Congrats!!!',rewrite:true});
-				this.btnDisplay();
-				break;
-			case 'speed':
-				var total = 0;
-				for (var i=0; i<game.hands.length; i++) {
-					if (game.hands[i].correct) {
-						total++;
-					}
-				}
-				str += 'You got '+total+' correct out of 6 in '+this.clock;
-				this.btnDisplay('start');
-				break;
-			default:
-				str += 'You got '+Casino.game.stat.count+' hands correct';
-				this.btnDisplay('start');
-				break;
-		}
-		this.messageBox('show',str);
-		this.displayReset();
+		this.game.state.start('Review');
 	},
 	/******************************************************************************************************************************************
 		DISPLAY FUNCTIONS
 	******************************************************************************************************************************************/
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// create a card for display
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	createCard:function(key,disabled) {
-		var card = Casino.game.thing.add.sprite();
-
-		var shadow = Casino.game.thing.add.sprite(-2, -2,'cards',key);
-		shadow.scale.setTo(1.025);
-		shadow.tint = 0x000000;
-		shadow.alpha = 0.8;
-		card.addChild(shadow);
-		var actual = Casino.game.thing.add.sprite(0,0,'cards',key);
-		card.addChild(actual);
-
-		var outline = Casino.game.thing.add.sprite(-3.5, -3.5,'cards',key);
-		outline.scale.setTo(1.05);
-		outline.tint = 0x2F4F2F;
-		outline.alpha = 0.15;
-		outline.visible = false;
-		card.addChild(outline);
-		card.outline = outline;
-
-		if (!disabled) {
-			card.key = key;
-			card.inputEnabled = true;
-			card.input.useHandCursor = true;
-			card.events.onInputDown.add(this.gameSelectHair,card);
-		}
-		return card;
-	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to reset the display
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -989,7 +918,7 @@ Casino.Game.prototype = {
 
 				for (var i=0;i<hand.shuffled.length;i++) {
 					var key = hand.shuffled[i];
-					var card = this.createCard(key,display[key].disabled);
+					var card = this.createCard({key:key,disabled:true});
 					card.key = key;
 					card.scale.setTo(display[key].scale);
 					card.x = display[key].x;
@@ -1024,7 +953,7 @@ Casino.Game.prototype = {
 
 				for (var i=0;i<hand.shuffled.length;i++) {
 					var key = hand.shuffled[i];
-					var card = this.createCard(key,display[key].disabled);
+					var card = this.createCard({key:key,disabled:true});
 					card.key = key;
 					card.scale.setTo(display[key].scale);
 					card.x = display[key].x;
@@ -1040,7 +969,7 @@ Casino.Game.prototype = {
 				var display = Display.normal(options);
 				for (var i=0;i<hand.shuffled.length;i++) {
 					var key = hand.shuffled[i];
-					var card = this.createCard(key,display[key].disabled);
+					var card = this.createCard({key:key,disabled:display[key].disabled,callback:this.gameSelectHair});
 					card.key = key;
 					card.x = display[key].x;
 					card.y = display[key].y;

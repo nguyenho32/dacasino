@@ -1,6 +1,11 @@
 Casino.LevelMenu = function(game) {};
 Casino.LevelMenu.prototype = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// common stuff
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	createButton:Casino.createButton,
+	createCard:Casino.createCard,
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// creation
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	create: function() {
@@ -171,8 +176,7 @@ Casino.LevelMenu.prototype = {
 		var display = Display.normal({hand:hand,mode:'small'});
 		for (var i=0;i<hand.shuffled.length;i++) {
 			var key = hand.shuffled[i];
-			var card = this.createCard(key);
-			card.key = key;
+			var card = this.createCard({key:key,disabled:true});
 			this.cards.add(card);
 			card.x = display[key].x;
 			card.y = display[key].y;
@@ -185,97 +189,9 @@ Casino.LevelMenu.prototype = {
 		// display the hand
 		console.log('created hand for learn display...',hand);
 	},
-	createCard:function(key) {
-		var card = this.add.sprite();
-
-		var shadow = this.add.sprite(-2, -2,'cards',key);
-		shadow.scale.setTo(1.025);
-		shadow.tint = 0x000000;
-		shadow.alpha = 0.8;
-		card.addChild(shadow);
-
-		var actual = this.add.sprite(0,0,'cards',key);
-		card.addChild(actual);
-
-		var outline = this.add.sprite(-3, -3,'cards',key);
-		outline.scale.setTo(1.05);
-		outline.tint = 0x2F4F2F;
-		outline.alpha = 0.15;
-		outline.visible = false;
-		card.addChild(outline);
-		card.outline = outline;
-
-		return card;
-	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// create a button
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	createButton: function(opts) {
-		var btn_width = (opts.size != 'large') ? 113 : 130;
-		var font_size = (opts.size != 'large') ? '12pt ' : '10pt ';
-
-		var sprite = this.add.sprite(0,0);
-		
-		if (opts.levels) {
-			// inactive state
-			var gfx = this.add.graphics(0,0);
-			gfx.beginFill(this.btn_color_inactive,1);
-			gfx.drawRect(-2,-2,btn_width+4,29);
-			gfx.visible = false;
-			sprite.addChild(gfx);
-			sprite.inactive = gfx;
-
-			// active state
-			var gfx = this.add.graphics(0,0);
-			gfx.beginFill(this.btn_color_active,1);
-			gfx.drawRect(-2,-2,btn_width+4,29);
-			gfx.visible = false;
-			sprite.addChild(gfx);
-			sprite.active = gfx;
-
-			// available state
-			var gfx = this.add.graphics(0,0);
-			gfx.beginFill(this.btn_color_available,1);
-			gfx.drawRect(-2,-2,btn_width+4,29);
-			gfx.visible = false;
-			sprite.addChild(gfx);
-			sprite.available = gfx;
-		}
-		var gfx = this.add.graphics(0,0);
-		gfx.beginFill(Casino._BTN_BG,0.5);
-		gfx.drawRect(0,0,btn_width,25);
-		sprite.addChild(gfx);
-
-		var style = { font: font_size+'Courier', fill: Casino._BTN_TXT, align: 'center', wordWrap: true, wordWrapWidth: btn_width };
-		var text = this.add.text(btn_width / 2, 4, opts.name, style);	
-		text.anchor.setTo(0.5,0);
-		if (!opts.disabled) {
-			sprite.addChild(text);
-			sprite.inputEnabled = true;
-			sprite.input.useHandCursor = true;
-			sprite.events.onInputDown.add(opts.callback,this);
-		}
-		// activate the correct backdrop
-		sprite.activate = function(back) {
-			sprite.active.visible = false;
-			sprite.inactive.visible = false;
-			sprite.available.visible = false;
-			switch(back) {
-				case 'available':
-					sprite.available.visible = true;
-					break;
-				case 'active':
-					sprite.active.visible = true;
-					break;
-				default:
-					sprite.inactive.visible = true;
-					break;
-			}
-		}
-		sprite.name = (opts.levels) ? 'levels' : opts.name;
-		
-		return sprite;
-	},
 	
 	showGroup:function(key) {
 		var main = Casino.game.level.main;
@@ -298,14 +214,15 @@ Casino.LevelMenu.prototype = {
 		n = 0;
 		for (var i=0; i<this.levels.children.length; i++) {
 			var btn = this.levels.children[i];
+			// main buttons
 			if (btn.type == 'main') {
 				if (super_keys.indexOf(btn.key) <= super_keys.indexOf(main)) {
 					btn.activate('available');
+					if (btn.key == this.current.main) {
+						btn.activate('active');
+					}
 				} else {
 					btn.activate('inactive');
-				}
-				if (btn.key == this.current.main) {
-					btn.activate('active');
 				}
 			} else {
 				// if the current main is below the game main then show everything for this level
@@ -316,25 +233,25 @@ Casino.LevelMenu.prototype = {
 						btn.y = 65;
 						n++;
 						btn.activate('available');
+						if (btn.key == this.current.sub) {
+							btn.activate('active');
+						}
 					} else {
 						btn.visible = false;
 					}
-				// if the current main is below the game main then show everything for this level
+				// if the current main is equal to the game main then show everything for this level
 				} else if (super_keys.indexOf(this.current.main) == super_keys.indexOf(main)) {
-					console.log('levels match');
-					console.log('sub level: ',sub);
 					if (keys.indexOf(btn.key) != -1) {
 						btn.visible = true;
 						btn.x = Casino._WIDTH / 2 - (keys.length * 140 / 2 )+ 140 *n;
 						btn.y = 65;
 						n++;
-						if (keys.indexOf(btn.key) < keys.indexOf(sub)) {
+						if (keys.indexOf(btn.key) <= keys.indexOf(sub)) {
 							btn.activate('available');
 						}
 						if (keys.indexOf(btn.key) > keys.indexOf(sub)) {
 							btn.activate('inactive');
 						}
-						console.log('sub...',this.current.sub);
 						if (btn.key == this.current.sub) {
 							btn.activate('active');
 						}
@@ -415,6 +332,50 @@ Casino.LevelMenu.prototype = {
 		},this);
 	},
 	*/
+	checkLevel(options) {
+		if (options.main) {
+			var super_keys = Object.keys(Paigow.rules);
+			var current_level = Casino.game.level.main
+			var current_index = super_keys.indexOf(current_level);
+			var main_index = super_keys.indexOf(options.main);
+			var str = '';
+			if (main_index <= current_index) {
+				console.log('main good');
+				return true;
+			} else {
+				console.log('main not available');
+				return false;
+			}
+		}
+		if (options.sub) {
+			var super_keys = Object.keys(Paigow.rules);
+			var current_level = Casino.game.level.main
+			var current_index = super_keys.indexOf(current_level);
+			var main_index = super_keys.indexOf(options.main);
+			var str = '';
+			if (main_index <= current_index) {
+				console.log('sub check - main good');
+				return true;
+			} else {
+				// check the sub level
+				var sub_keys = Object.keys(Paigow.rules[current_level]);
+				console.log(sub_keys);
+				var game_sub_level = Casino.game.level.sub;
+				console.log(game_sub_level);
+				var game_sub_index = sub_keys.indexOf(game_sub_level);
+				console.log(game_sub_index);
+				var sub_index = sub_keys.indexOf(options.sub);
+				console.log(sub_index);
+				if (sub_index <= game_sub_index) {
+					console.log('sub good');
+					return true;
+				} else {
+					console.log('sub not available');
+					return false;
+				}
+			}
+		}
+	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// return to main menu or start a game state
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -427,8 +388,16 @@ Casino.LevelMenu.prototype = {
 				console.log(btn.key);
 				if (btn.type != 'sub') {
 					this.current.main = btn.key;
+					this.current.sub = '';
+					if (this.checkLevel({main:btn.key})) {
+						str = 'select a category from above';
+					} else {
+						str = 'You have not yet attained this level';
+					}
+					this.messageBox(str);
 				} else {
 					this.current.sub = btn.key;
+					console.log(this.checkLevel({main:Casino.game.level.main,sub:btn.key}));
 				}
 				this.showGroup(btn.key);
 			/*

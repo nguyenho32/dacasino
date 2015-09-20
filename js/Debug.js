@@ -1,12 +1,20 @@
 Casino.Debug = function(game) {};
 Casino.Debug.prototype = {
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// common stuff
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	createButton:Casino.createButton,
+	createCard:Casino.createCard,
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// creation
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	create: function() {
 		console.log('debug mode');
 		/*
 			top ui elements
 		*/
 		// button for returning to the menu
-		var btn = this.createButton('menu',this.mainMenu);
+		var btn = this.createButton({name:'menu',callback:this.mainMenu});
 		btn.key = 'menu';
 		btn.x = 0;
 		btn.y = 0;
@@ -37,26 +45,6 @@ Casino.Debug.prototype = {
 		btn.y = 0;
 		*/
 	},
-	createCard:function(key) {
-		var card = this.add.sprite();
-		/*
-		var shadow = this.add.sprite(-1, -2,'cards',key);
-		shadow.scale.setTo(1.025);
-		shadow.tint = 0x000000;
-		shadow.alpha = 0.8;
-		card.addChild(shadow);
-		var outline = this.add.sprite(-2, -3,'cards',key);
-		outline.scale.setTo(1.05);
-		outline.tint = 0xFF0000;
-		outline.alpha = 0.8;
-		outline.visible = false;
-		card.addChild(outline);
-		card.outline = outline;
-		*/
-		var actual = this.add.sprite(0,0,'cards',key);
-		card.addChild(actual);
-		return card;
-	},	
 	/******************************************************************************************************************************************
 		DEBUG FUNCTIONS
 	******************************************************************************************************************************************/
@@ -318,27 +306,6 @@ Casino.Debug.prototype = {
 			}
 		},this);
 */
-	},
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// create a button
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	createButton: function(txt,callback,arg) {
-		var sprite = this.add.sprite(0,0);
-		var gfx = this.add.graphics(0,0);
-		gfx.beginFill(Casino._BTN_BG,1);
-		gfx.drawRect(0,0,113,25);
-		gfx.name = 'graphic';
-		sprite.addChild(gfx);
-		var style = { font: '12pt Courier', fill: Casino._BTN_TXT, align: 'center', wordWrap: true, wordWrapWidth: 100 };
-		var text = this.add.text(50, 4, txt, style);	
-		text.anchor.setTo(0.5,0);
-		text.inputEnabled = true;
-		sprite.addChild(text);
-		sprite.inputEnabled = true;
-		sprite.input.useHandCursor = true;
-		sprite.events.onInputDown.add(callback,this,arg);
-		
-		return sprite;
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// return to main menu

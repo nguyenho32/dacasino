@@ -1,13 +1,10 @@
 Casino.MainMenu = function(game) {};
 Casino.MainMenu.prototype = {
-	updateTimer:function() {
-		this.clock -= 1;
-
-		if (this.clock === 0) {
-			this.clock = Math.round(Math.random()*(5 - 2) + 2);
-			this.createHand();
-		}
-	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// common stuff
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	createButton:Casino.createButton,
+	createCard:Casino.createCard,
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// creation
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -20,8 +17,7 @@ Casino.MainMenu.prototype = {
 		var sprite = this.add.sprite(0,0);
 		var width;
 		for (var i=0; i<menu.length; i++) {
-			var btn = this.createButton(menu[i],this.btnHandler);
-			btn.key = menu[i];
+			var btn = this.createButton({name:menu[i],callback:this.btnHandler});
 			btn.x = 750;
 			btn.y = 30+i*40;
 			sprite.addChild(btn);
@@ -69,29 +65,35 @@ Casino.MainMenu.prototype = {
 		this.clock = 3;
 		this.clockEvent = this.time.events.loop(Phaser.Timer.SECOND,this.updateTimer,this);
 	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// button handler
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	btnHandler: function(pointer) {
+		Casino.game.mode = pointer.name;
+		switch(Casino.game.mode) {
+			case 'debug': this.game.state.start('Debug');
+			break;
+			case 'reload':
+				this.createHand();
+				this.clock = 3;
+				this.game.state.start('Review');
+			break;
+			case 'learn': this.game.state.start('LevelMenu');
+			break;
+			default: this.game.state.start('Game');
+			break;
+		}
+	},
 	debugMode:function() {
 		this.btn_debug.visible = (this.btn_debug.visible) ? false : true;
 	},
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// create a button
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	createButton: function(txt,callback,arg) {
-		var sprite = this.add.sprite(0,0);
-		var gfx = this.add.graphics(0,0);
-		gfx.beginFill(Casino._BTN_BG,1);
-		gfx.drawRect(0,0,113,25);
-		gfx.name = 'graphic';
-		sprite.addChild(gfx);
-		var style = { font: '12pt Courier', fill: Casino._BTN_TXT, align: 'center', wordWrap: true, wordWrapWidth: 100 };
-		var text = this.add.text(113/2, 4, txt, style);	
-		text.anchor.setTo(0.5,0);
-		text.inputEnabled = true;
-		sprite.addChild(text);
-		sprite.inputEnabled = true;
-		sprite.input.useHandCursor = true;
-		sprite.events.onInputDown.add(callback,this,arg);
-		
-		return sprite;
+	updateTimer:function() {
+		this.clock -= 1;
+
+		if (this.clock === 0) {
+			this.clock = Math.round(Math.random()*(5 - 2) + 2);
+			this.createHand();
+		}
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// create a hand
@@ -109,8 +111,7 @@ Casino.MainMenu.prototype = {
 		for (var i=0;i<hand.shuffled.length;i++) {
 			var key = hand.shuffled[i];
 			if (typeof display[key] !== 'undefined') {
-				var card = this.createCard(key);
-				card.key = key;
+				var card = this.createCard({key:key,disabled:true});
 				card.x = display[key].x;
 				card.y = display[key].y;
 				this.cards.add(card);
@@ -120,43 +121,6 @@ Casino.MainMenu.prototype = {
 				break;
 			}
 			
-		}
-	},
-	createCard:function(key) {
-		var card = this.add.sprite();
-		var shadow = this.add.sprite(-1, -2,'cards',key);
-		shadow.scale.setTo(1.025);
-		shadow.tint = 0x000000;
-		shadow.alpha = 0.8;
-		card.addChild(shadow);
-		var outline = this.add.sprite(-2, -3,'cards',key);
-		outline.scale.setTo(1.05);
-		outline.tint = 0xFF0000;
-		outline.alpha = 0.8;
-		outline.visible = false;
-		card.addChild(outline);
-		card.outline = outline;
-		var actual = this.add.sprite(0,0,'cards',key);
-		card.addChild(actual);
-		return card;
-	},
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// button handler
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	btnHandler: function(pointer) {
-		Casino.game.mode = pointer.key;
-		switch(Casino.game.mode) {
-			case 'debug': this.game.state.start('Debug');
-			break;
-			case 'reload':
-				this.createHand();
-				this.clock = 3;
-				
-			break;
-			case 'learn': this.game.state.start('LevelMenu');
-			break;
-			default: this.game.state.start('Game');
-			break;
 		}
 	}
 };

@@ -12,10 +12,31 @@ var Display = {
 		return diff;
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// silly function to disply the hand as an icon
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	iconify:function(options){
+		var hand = options.hand;
+
+		var scale = 0.3;
+		var card_x = 120;
+		var card_y = 260;
+		var spacer_x = 110;
+
+		var display = {};
+		for (var i=0;i<hand.shuffled.length;i++) {
+			var key = hand.shuffled[i];
+			if (hand.paigow.hair.indexOf(key) != -1) {
+				display[key] = {x:card_x+i*spacer_x,y:card_y-20,scale:scale,outline:true};
+			} else {
+				display[key] = {x:card_x+i*spacer_x,y:card_y-20,scale:scale};
+			}
+		}
+		return display;
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// silly function to disply the hand normally
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	normal:function(options){
-		console.log('display normal: ',options);
 		var hand = options.hand;
 
 		if (typeof options.mode !== 'undefined') {
@@ -49,7 +70,6 @@ var Display = {
 	// silly function to display the hand set correctly
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	houseway:function(options) {
-		console.log('display houseway: ',options);
 		var hand = options.hand;
 
 		var hair = (!options.chosen) ? this.arrayDiff(hand.sorted,hand.paigow.back) : options.chosen;
@@ -95,8 +115,6 @@ var Display = {
 			}
 		}
 		var showtxt = true;
-		// cant think of any situation to allow clickable bank hand...only normal mode
-		var disabled = true;
 		switch(options.mode) {
 			case 'small':
 				var scale = 0.7;
@@ -126,25 +144,25 @@ var Display = {
 		for (var i=0;i<hand.sorted.length;i++) {
 			var key = hand.sorted[i]
 			if (key == hair[0]) {
-				display[key] = {x:hand_x,y:hand_y,scale:scale,disabled:disabled};
+				display[key] = {x:hand_x,y:hand_y,scale:scale};
 			}
 			if (key == hair[1]) {
-				display[key] = {x:hand_x+space_x*1,y:hand_y,scale:scale,disabled:disabled};
+				display[key] = {x:hand_x+space_x*1,y:hand_y,scale:scale};
 			}
 			if (key == back[0]) {
-				display[key] = {x:hand_x,y:hand_y+space_y,scale:scale,disabled:disabled};
+				display[key] = {x:hand_x,y:hand_y+space_y,scale:scale};
 			}
 			if (key == back[1]) {
-				display[key] = {x:hand_x+space_x*1,y:hand_y+space_y,scale:scale,disabled:disabled};
+				display[key] = {x:hand_x+space_x*1,y:hand_y+space_y,scale:scale};
 			}
 			if (key == back[2]) {
-				display[key] = {x:hand_x+space_x*2,y:hand_y+space_y,scale:scale,disabled:disabled};
+				display[key] = {x:hand_x+space_x*2,y:hand_y+space_y,scale:scale};
 			}
 			if (key == back[3]) {
-				display[key] = {x:hand_x+space_x*3,y:hand_y+space_y,scale:scale,disabled:disabled};
+				display[key] = {x:hand_x+space_x*3,y:hand_y+space_y,scale:scale};
 			}
 			if (key == back[4]) {
-				display[key] = {x:hand_x+space_x*4,y:hand_y+space_y,scale:scale,disabled:disabled};
+				display[key] = {x:hand_x+space_x*4,y:hand_y+space_y,scale:scale};
 			}
 		}
 		if (showtxt) {
@@ -156,11 +174,8 @@ var Display = {
 	// silly function to display the bank hand
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	bank:function(options) {
-		console.log('display bank: ',options);
 		var hand = options.hand;
 		var showtxt = true;
-		// cant think of any situation to allow clickable bank hand...only normal mode
-		var disabled = true;
 		switch(options.mode) {
 			case 'toast':
 				var scale = 0.575;
@@ -186,25 +201,25 @@ var Display = {
 		for (var i=0;i<hand.sorted.length;i++) {
 			var key = hand.sorted[i]
 			if (key == hair[0]) {
-				display[key] = {x:hand_x,y:hand_y,scale:scale,disabled:disabled};
+				display[key] = {x:hand_x,y:hand_y,scale:scale};
 			}
 			if (key == hair[1]) {
-				display[key] = {x:hand_x+space_x*1,y:hand_y,scale:scale,disabled:disabled};
+				display[key] = {x:hand_x+space_x*1,y:hand_y,scale:scale};
 			}
 			if (key == back[0]) {
-				display[key] = {x:hand_x,y:hand_y+space_y,scale:scale,disabled:disabled};
+				display[key] = {x:hand_x,y:hand_y+space_y,scale:scale};
 			}
 			if (key == back[1]) {
-				display[key] = {x:hand_x+space_x*1,y:hand_y+space_y,scale:scale,disabled:disabled};
+				display[key] = {x:hand_x+space_x*1,y:hand_y+space_y,scale:scale};
 			}
 			if (key == back[2]) {
-				display[key] = {x:hand_x+space_x*2,y:hand_y+space_y,scale:scale,disabled:disabled};
+				display[key] = {x:hand_x+space_x*2,y:hand_y+space_y,scale:scale};
 			}
 			if (key == back[3]) {
-				display[key] = {x:hand_x+space_x*3,y:hand_y+space_y,scale:scale,disabled:disabled};
+				display[key] = {x:hand_x+space_x*3,y:hand_y+space_y,scale:scale};
 			}
 			if (key == back[4]) {
-				display[key] = {x:hand_x+space_x*4,y:hand_y+space_y,scale:scale,disabled:disabled};
+				display[key] = {x:hand_x+space_x*4,y:hand_y+space_y,scale:scale};
 			}
 		}
 		if (showtxt) {
@@ -217,7 +232,6 @@ var Display = {
 	// silly function to display a hand
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	master:function(options) {
-		console.log('display master: ',options);
 		var hand = options.hand;
 
 		var BANK_Y = 30;
