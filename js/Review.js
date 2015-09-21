@@ -4,11 +4,17 @@ Casino.Review.prototype = {
 	// common stuff
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	createButton:Casino.createButton,
+	createCard:Casino.createCard,
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// creation
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	create: function() {
+		Casino.game.thing = this;
 		console.log('debug mode');
+		
+		// the cards
+		this.cards = this.add.group();
+		
 		/*
 			top ui elements
 		*/
@@ -21,27 +27,87 @@ Casino.Review.prototype = {
 		btn.x = 890;
 		btn.y = 0;
 		// button for showing the default view for this state
-		var btn = this.createButton({name:'back',callback:this.btnHandler});
-		btn.x = 0;
-		btn.y = 375;
+		this.btn_back = this.createButton({name:'back',callback:this.btnHandler});
+		this.btn_back.x = 0;
+		this.btn_back.y = 375;
+		this.btn_back.visible = false;
 
 		
 		// create a text box for menu related information
 		var sprite = this.add.sprite(0,0);
 		var gfx = this.add.graphics(0,0);
 		gfx.beginFill(Casino._INFO_BG,1);
-		gfx.drawRect(0,0,375,175);
+		gfx.drawRect(0,0,500,70);
 		sprite.addChild(gfx);
-		var style = { font: '11pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: true, wordWrapWidth: 370 };
-		var txt = 'Welcome to Da Casino (beta 2.0)\n\n';
-		txt += '*** this is a work in progress ***\n';
-		txt += 'some of the rules might not make sense they will be rewritten soon\n\n';
-		txt += 'select an option from the menu to your right';
-		main_info_box = this.add.text(4, 4, txt, style);	
+		var style = { font: '11pt Courier', fill: Casino._INFO_TXT, align: 'center', wordWrap: true, wordWrapWidth: 500 };
+		var txt = 'Welcome to review mode\n';
+		if (Casino.game.mode == 'speed') {
+			txt += 'You got '+Casino.game.stat.correct+' out of 6 correct';
+		} else {
+			txt += 'You got '+Casino.game.stat.correct+' out of '+Casino.game.hands.length+' correct';
+		}
+		console.log('stats: ',Casino.game.stat);
+		main_info_box = this.add.text(250, 4, txt, style);	
+		main_info_box.anchor.setTo(0.5,0);
 		sprite.addChild(main_info_box);
-		sprite.x = Casino._WIDTH / 2 - 375 / 2;
-		sprite.y = 40;
+		sprite.x = Casino._WIDTH / 2 - 500 / 2;
 		
+		this.viewDefault();
+	},
+	viewDefault:function() {
+		var game = Casino.game;
+		
+		console.log('hands to review: ',game.hands);
+		var hands = [];
+		for (var i=0; i<game.hands.length; i++) {
+			if (game.hands[i].set) {
+				hands.push(game.hands[i]);
+			}
+		}
+		console.log('hands: ',hands);
+		
+		var display = Display.iconify({hands:hands});
+		console.log('display: ',display);
+		
+		for (var i=0; i<hands.length; i++) {
+			var hand = hands[i];
+			var key = hand.shuffled[0];
+			var card = this.createCard({key:key,callback:this.viewHand});
+			if (hand.hair_correct) {
+				card.activate('right');
+			} else {
+				card.activate('wrong');
+			}
+			card.uid = i;
+			card.scale.setTo(display[i].scale);
+			card.x = display[i].x;
+			card.y = display[i].y;
+		}
+
+		Casino.game = game;
+	},
+	viewHand:function() {
+		var thing = Casino.game.thing;
+		thing.btn_back.visible = true;
+		thing.cards.destroy();
+		thing.cards = thing.add.group();
+		var game = Casino.game;
+		console.log('viewing hand...',game.hands[this.uid]);
+		var hand = game.hands[this.uid];
+
+		var display = Display.houseway({hand:hand,mode:'review',chosen:hand.hair_chosen});
+		console.log(display);
+		for (var i=0;i<hand.shuffled.length;i++) {
+			var key = hand.shuffled[i];
+			var card = thing.createCard({key:key,disabled:true});
+			card.scale.setTo(display[key].scale);
+			card.x = display[key].x;
+			card.y = display[key].y;
+			thing.cards.add(card);
+		}
+
+		
+		Casino.game = game;
 	},
 	btnHandler:function(btn) {
 		switch(btn.name) {
@@ -49,7 +115,8 @@ Casino.Review.prototype = {
 				console.log('return to the game');
 				break;
 			case 'back':
-				console.log('show the default view for this state');
+				btn.visible = false;
+				this.viewDefault();
 				break;
 			default: this.state.start('MainMenu');
 				break;

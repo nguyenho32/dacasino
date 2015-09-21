@@ -371,6 +371,7 @@ Casino.Game.prototype = {
 		game.skip_houseway = false;
 		switch(game.mode) {
 			case 'timed':
+				game.skip_houseway = true;
 				this.updateText({box:'main',str:'mode: timed - as many hands in 30 seconds',rewrite:true});
 				this.clock = Casino.settings.timer_amount;
 				this.clockEvent = this.time.events.loop(Phaser.Timer.SECOND,this.updateClock,this,'down');
@@ -443,6 +444,7 @@ Casino.Game.prototype = {
 				thing.gameCreateHand(hand);
 				thing.displayHand({type:'normal',hand:hand});
 				game.hands.push(hand);
+				game.hand_number = game.hands.length-1;
 				break;
 		}
 		Casino.game = game;
@@ -468,9 +470,12 @@ Casino.Game.prototype = {
 			// main keys + index
 			var main_keys = Object.keys(Paigow.rules);
 			var main_index = main_keys.indexOf(Casino.game.level.main);
+			console.log('main index: ',main_index);
 			// sub keys + index
 			var sub_keys = Object.keys(Paigow.rules[Casino.game.level.main]);
+			console.log('sub keys: ',sub_keys);
 			var sub_index = sub_keys.indexOf(Casino.game.level.sub);
+			console.log('sub index: ',sub_index);
 			
 			// first increase sub_index by 1
 			sub_index += 1;
@@ -486,11 +491,13 @@ Casino.Game.prototype = {
 			}
 			// set new level stuff
 			Casino.game.level.main = main_keys[main_index];
+			console.log('game level main: ',Casino.game.level.main);
 			var sub_keys = Object.keys(Paigow.rules[Casino.game.level.main]);
 			Casino.game.level.sub = sub_keys[sub_index];
+			console.log('game level sub: ',Casino.game.level.sub);
 
 			Casino.game.toast = true;
-			Casino.game.thing.game.state.start('LearnMenu');
+			Casino.game.thing.game.state.start('LevelMenu');
 		}
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -699,7 +706,6 @@ Casino.Game.prototype = {
 		}
 		// check the last hand for 'set' & 'choice'
 		var last = game.hands[game.hands.length-2];
-		console.log(last);
 		if (last.set && last.choice ) {
 			thing.gameEnd();
 			return;
@@ -770,6 +776,15 @@ Casino.Game.prototype = {
 		}
 		if (required && (hair.indexOf(chosen[0]) != -1 && hair.indexOf(chosen[1]) != -1)) {
 			console.log('hair is correct so do neato stuff!!');
+			if (game.hands.length != 0) {
+				console.log('checkHair() - hand number: ',game.hand_number);
+				console.log('checkHair() - all hands: ',game.hands);
+				game.hands[game.hand_number].hair_chosen = chosen;
+				game.hands[game.hand_number].hair_correct = true;
+				if (game.mode == 'timed') {
+					game.stat.correct++;
+				}
+			}
 			// complete the hand
 			this.handComplete();
 
@@ -789,26 +804,37 @@ Casino.Game.prototype = {
 				this.gameRun();
 			}
 		} else {
-			var txt;
-			var main = game.level.main;
-			var sub = game.level.sub;
-			if (game.stat.tries > Casino.settings.min_hint_count && game.stat.tries <= Casino.settings.max_hint_count) {
-				txt = Paigow.rules[main][sub];
-			} else if (game.stat.tries > Casino.settings.max_hint_count) {
-				game.hint = true;
-				if (game.mode != 'learn') {
-					txt = 'slow down and maybe try the ones that are highlighted';
-				} else {
+			// all modes must be set correctly (except timed can continue with wrong hair)
+			if (!game.mode == 'timed') {
+				var txt;
+				var main = game.level.main;
+				var sub = game.level.sub;
+				if (game.stat.tries > Casino.settings.min_hint_count && game.stat.tries <= Casino.settings.max_hint_count) {
 					txt = Paigow.rules[main][sub];
+				} else if (game.stat.tries > Casino.settings.max_hint_count) {
+					game.hint = true;
+					if (game.mode != 'learn') {
+						txt = 'slow down and maybe try the ones that are highlighted';
+					} else {
+						txt = Paigow.rules[main][sub];
+					}
+					game.group_player.forEach(function(btn) {
+						if(hair.indexOf(btn.key) != -1)
+							btn.outline.visible = true;
+					},this);
+				} else {
+					txt = 'Hair incorrect, try again :(';
 				}
-				game.group_player.forEach(function(btn) {
-					if(hair.indexOf(btn.key) != -1)
-						btn.outline.visible = true;
-				},this);
+				this.messageBox('show',txt);
+			// timed mode continue with wrong hair
 			} else {
-				txt = 'Hair incorrect, try again :(';
+				if (game.hands.length != 0) {
+					console.log('checkHair() - hand number: ',game.hand_number);
+					console.log('checkHair() - all hands: ',game.hands);
+					game.hands[game.hand_number].hair_chosen = chosen;
+					game.hands[game.hand_number].hair_correct = false;
+				}
 			}
-			this.messageBox('show',txt);
 			// reset the chosen hair cards
 			game.hair_chosen[0].y += 15;
 			game.hair_chosen.splice(0,1); 
@@ -848,6 +874,9 @@ Casino.Game.prototype = {
 			game.stat.tries += 1;
 			this.updateText({box:'stat',str:'default'});
 			
+		}
+		if (game.mode == 'timed') {
+			this.gameRun();
 		}
 		Casino.game = game;
 	},
@@ -919,7 +948,6 @@ Casino.Game.prototype = {
 				for (var i=0;i<hand.shuffled.length;i++) {
 					var key = hand.shuffled[i];
 					var card = this.createCard({key:key,disabled:true});
-					card.key = key;
 					card.scale.setTo(display[key].scale);
 					card.x = display[key].x;
 					card.y = display[key].y;
@@ -954,7 +982,6 @@ Casino.Game.prototype = {
 				for (var i=0;i<hand.shuffled.length;i++) {
 					var key = hand.shuffled[i];
 					var card = this.createCard({key:key,disabled:true});
-					card.key = key;
 					card.scale.setTo(display[key].scale);
 					card.x = display[key].x;
 					card.y = display[key].y;
@@ -970,7 +997,6 @@ Casino.Game.prototype = {
 				for (var i=0;i<hand.shuffled.length;i++) {
 					var key = hand.shuffled[i];
 					var card = this.createCard({key:key,disabled:display[key].disabled,callback:this.gameSelectHair});
-					card.key = key;
 					card.x = display[key].x;
 					card.y = display[key].y;
 					Casino.game.group_player.add(card);

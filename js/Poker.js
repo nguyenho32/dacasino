@@ -245,7 +245,7 @@ Poker = {
 		var names = Cards.names.slice();
 		// do a random insert
 		if (sub == 'random') {
-			var opts = ['0-pair','1-pair','trips'];
+			var opts = ['0-pair','1-pair']//,'trips'];
 			sub = opts[Math.round(Math.random()*(opts.length-1))];
 		}
 		// insert a joker
@@ -285,15 +285,19 @@ Poker = {
 			}
 			// insert trips
 			if (sub == 'trips') {
-				if (hand.length != 4) {
+				if (hand.length > len) {
 					name = Cards.getName(hand[hand.length-1]);
 				}
 			}
 			var card = name+'_'+suit;
 			// if this card is not in the hand already then add it
+			// not sure why this is throwing us into an endless loop
 			if (hand.indexOf(card) < 0) {
 				hand.push(card);
 				match.push(name);
+			} else {
+				console.log('attempted to insert: ',card,' into ',hand);
+				console.log('options: ',options,' - sub: ',sub);
 			}
 		} while (hand.length < 7)
 		// return the completed hand

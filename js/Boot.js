@@ -28,9 +28,12 @@ var Casino = {
 //	debugCompare:true,
 //	debugHand:["queen_spade","queen_club","jack_club","ten_club","nine_club","eight_club","joker_one"],
 //	debugHand:["ten_diamond","nine_spade","nine_club","eight_spade","seven_club","six_spade","two_club"],
+
+//what happened here? 9c,8s,7c,4d,3c,2d,joker turns into 9c,8s - four high straight (4d,3c,2d,joker,joker)
+//why 2 jokers?
 	settings:{
-		hands_per_level:2,
-		timer_amount:5,
+		hands_per_level:10,
+		timer_amount:30,
 		min_hint_count:2,
 		max_hint_count:5,
 	},
@@ -56,7 +59,7 @@ var Casino = {
 			correct:0,
 			total:0
 		},
-		level:{main:'trips',sub:'2-pair'},
+		level:{main:'pai-gow',sub:'nothing'},
 		practice_mode:{main:'random',sub:'random+random'},
 		steps:{
 			compare:["boot","init","set-bank","set-player","compare","result"],
@@ -73,46 +76,43 @@ var Casino = {
 		var font_size = (options.size != 'large') ? '12pt ' : '10pt ';
 		var sprite = this.add.sprite(0,0);
 
-		if (options.levels) {
-			// inactive state
-			var gfx = this.add.graphics(0,0);
-			gfx.beginFill(this.btn_color_inactive,1);
-			gfx.drawRect(-2,-2,btn_width+4,29);
-			gfx.visible = false;
-			sprite.addChild(gfx);
-			sprite.inactive = gfx;
+		// inactive state
+		var gfx = this.add.graphics(0,0);
+		gfx.beginFill(this.btn_color_inactive,1);
+		gfx.drawRect(-2,-2,btn_width+4,29);
+		sprite.addChild(gfx);
+		sprite.inactive = gfx;
+		sprite.inactive.visible = false;
 
-			// active state
-			var gfx = this.add.graphics(0,0);
-			gfx.beginFill(this.btn_color_active,1);
-			gfx.drawRect(-2,-2,btn_width+4,29);
-			gfx.visible = false;
-			sprite.addChild(gfx);
-			sprite.active = gfx;
+		// active state
+		var gfx = this.add.graphics(0,0);
+		gfx.beginFill(this.btn_color_active,1);
+		gfx.drawRect(-2,-2,btn_width+4,29);
+		gfx.visible = false;
+		sprite.addChild(gfx);
+		sprite.active = gfx;
 
-			// available state
-			var gfx = this.add.graphics(0,0);
-			gfx.beginFill(this.btn_color_available,1);
-			gfx.drawRect(-2,-2,btn_width+4,29);
-			gfx.visible = false;
-			sprite.addChild(gfx);
-			sprite.available = gfx;
-		}
+		// available state
+		var gfx = this.add.graphics(0,0);
+		gfx.beginFill(this.btn_color_available,1);
+		gfx.drawRect(-2,-2,btn_width+4,29);
+		gfx.visible = false;
+		sprite.addChild(gfx);
+		sprite.available = gfx;
 
 		var gfx = this.add.graphics(0,0);
-		gfx.beginFill(Casino._BTN_BG,0.8);
+		gfx.beginFill(Casino._BTN_BG,0.9);
 		gfx.drawRect(0,0,btn_width,25);
 		sprite.addChild(gfx);
 
 		var style = { font: font_size+'Courier', fill: Casino._BTN_TXT, align: 'center', wordWrap: true, wordWrapWidth: btn_width };
 		var text = this.add.text(btn_width / 2, 4, options.name, style);	
 		text.anchor.setTo(0.5,0);
-		if (!options.disabled) {
-			sprite.addChild(text);
-			sprite.inputEnabled = true;
-			sprite.input.useHandCursor = true;
-			sprite.events.onInputDown.add(options.callback,this);
-		}
+		sprite.addChild(text);
+
+		sprite.inputEnabled = true;
+		sprite.input.useHandCursor = true;
+		sprite.events.onInputDown.add(options.callback,this);
 		// activate the correct backdrop
 		sprite.activate = function(back) {
 			sprite.active.visible = false;
@@ -121,12 +121,17 @@ var Casino = {
 			switch(back) {
 				case 'available':
 					sprite.available.visible = true;
+					sprite.inputEnabled = true;
+					sprite.input.useHandCursor = true;
 					break;
 				case 'active':
 					sprite.active.visible = true;
 					break;
 				default:
 					sprite.inactive.visible = true;
+					console.log(sprite.inactive.visible);
+					sprite.inputEnabled = false;
+					sprite.input.useHandCursor = false;
 					break;
 			}
 		}
@@ -160,6 +165,39 @@ var Casino = {
 		card.addChild(outline);
 		card.outline = outline;
 
+		var right = this.add.sprite(-3.5, -3.5,'cards',key);
+		right.scale.setTo(1.05);
+		right.tint = 0x00FF00;
+		right.alpha = 0.15;
+		right.visible = false;
+		card.addChild(right);
+		card.right = right;
+
+		var wrong = this.add.sprite(-3.5, -3.5,'cards',key);
+		wrong.scale.setTo(1.05);
+		wrong.tint = 0xFF0000;
+		wrong.alpha = 0.15;
+		wrong.visible = false;
+		card.addChild(wrong);
+		card.wrong = wrong;
+		
+		card.activate = function(tint) {
+			card.outline.visible = false;
+			card.right.visible = false;
+			card.wrong.visible = false;
+			switch(tint) {
+				case 'outline':
+					card.outline.visible = true;
+					break;
+				case 'right':
+					card.right.visible = true;
+					break;
+				case 'wrong':
+					card.wrong.visible = true;
+					break;
+			}
+		}
+		
 		if (!disabled) {
 			card.key = key;
 			card.inputEnabled = true;

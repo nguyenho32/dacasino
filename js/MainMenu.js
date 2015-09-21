@@ -9,6 +9,13 @@ Casino.MainMenu.prototype = {
 	// creation
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	create: function() {
+		// active button color
+		this.btn_color_active = 0x0000FF;
+		// inactive button color
+		this.btn_color_inactive = 0xFF0000;
+		// available button color
+		this.btn_color_available = 0x00FF00;
+
 		this.clock;
 		this.clockEvent;
 		this.cards = this.add.group();
@@ -21,9 +28,14 @@ Casino.MainMenu.prototype = {
 			btn.x = 750;
 			btn.y = 30+i*40;
 			sprite.addChild(btn);
-			if (menu[i] == 'debug') {
+			// disable 'speed' mode for now
+			if (menu[i] == 'speed') {
+				btn.activate('disabled');
+			} else if (menu[i] == 'debug') {
 				this.btn_debug = btn;
 				btn.visible = false;
+			} else {
+				btn.activate('available');
 			}
 		}
 
@@ -34,7 +46,7 @@ Casino.MainMenu.prototype = {
 		gfx.drawRect(0,0,375,175);
 		sprite.addChild(gfx);
 		var style = { font: '11pt Courier', fill: Casino._INFO_TXT, align: 'left', wordWrap: true, wordWrapWidth: 370 };
-		var txt = 'Welcome to Da Casino (beta 2.0)\n\n';
+		var txt = 'Welcome to Da Casino (beta 2.7)\n\n';
 		txt += '*** this is a work in progress ***\n';
 		txt += 'some of the rules might not make sense they will be rewritten soon\n\n';
 		txt += 'select an option from the menu to your right';
@@ -76,7 +88,7 @@ Casino.MainMenu.prototype = {
 			case 'reload':
 				this.createHand();
 				this.clock = 3;
-				this.game.state.start('Review');
+//				this.game.state.start('Review');
 			break;
 			case 'learn': this.game.state.start('LevelMenu');
 			break;

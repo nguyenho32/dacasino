@@ -15,21 +15,17 @@ var Display = {
 	// silly function to disply the hand as an icon
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	iconify:function(options){
-		var hand = options.hand;
+		console.log(options);
+		var hands = options.hands;
 
 		var scale = 0.3;
 		var card_x = 120;
-		var card_y = 260;
-		var spacer_x = 110;
+		var card_y = 100;
+		var spacer_x = 45;
 
-		var display = {};
-		for (var i=0;i<hand.shuffled.length;i++) {
-			var key = hand.shuffled[i];
-			if (hand.paigow.hair.indexOf(key) != -1) {
-				display[key] = {x:card_x+i*spacer_x,y:card_y-20,scale:scale,outline:true};
-			} else {
-				display[key] = {x:card_x+i*spacer_x,y:card_y-20,scale:scale};
-			}
+		var display = [];
+		for (var i=0;i<hands.length;i++) {
+			display.push({x:card_x+i*spacer_x,y:card_y-20,scale:scale});
 		}
 		return display;
 	},
@@ -70,6 +66,7 @@ var Display = {
 	// silly function to display the hand set correctly
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	houseway:function(options) {
+		console.log('options: ',options);
 		var hand = options.hand;
 
 		var hair = (!options.chosen) ? this.arrayDiff(hand.sorted,hand.paigow.back) : options.chosen;
@@ -116,6 +113,15 @@ var Display = {
 		}
 		var showtxt = true;
 		switch(options.mode) {
+			case 'review':
+				var scale = 0.6;
+				var hand_x = 50;
+				var hand_y = 150;
+				var space_x = 80;
+				var space_y = 110;
+				hair = options.chosen;
+				back = this.arrayDiff(hand.sorted,hair);
+				break;
 			case 'small':
 				var scale = 0.7;
 				var hand_x = 5;
