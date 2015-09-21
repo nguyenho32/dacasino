@@ -1,3 +1,9 @@
+/* Copyright (C) 2015 Zachary Richley - All Rights Reserved
+ * You may not use, distribute or modify this code without
+ * the express permission of the author.
+ *
+ * Zachary Richley overmind@juxtaflows.com
+ */
 var Casino = {
 	_WIDTH: 1000,
 	_HEIGHT: 400,
@@ -32,8 +38,8 @@ var Casino = {
 //what happened here? 9c,8s,7c,4d,3c,2d,joker turns into 9c,8s - four high straight (4d,3c,2d,joker,joker)
 //why 2 jokers?
 	settings:{
-		hands_per_level:1,
-		timer_amount:3,
+		hands_per_level:10,
+		timer_amount:30,
 		min_hint_count:2,
 		max_hint_count:5,
 	},
@@ -60,6 +66,15 @@ var Casino = {
 			total:0
 		},
 		level:{main:'pai-gow',sub:'nothing'},
+		/*
+			highest level attained so far
+				- high_main
+				- high_sub
+			current level to display
+				- now_main
+				- now_sub
+		*/
+		levels:{high_main:'pai-gow',high_sub:'nothing',now_main:'pai-gow',now_sub:'nothing'},
 		practice_mode:{main:'random',sub:'random+random'},
 		steps:{
 			compare:["boot","init","set-bank","set-player","compare","result"],
@@ -129,7 +144,6 @@ var Casino = {
 					break;
 				default:
 					sprite.inactive.visible = true;
-					console.log(sprite.inactive.visible);
 					sprite.inputEnabled = false;
 					sprite.input.useHandCursor = false;
 					break;

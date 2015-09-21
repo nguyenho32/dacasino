@@ -1,3 +1,9 @@
+/* Copyright (C) 2015 Zachary Richley - All Rights Reserved
+ * You may not use, distribute or modify this code without
+ * the express permission of the author.
+ *
+ * Zachary Richley overmind@juxtaflows.com
+ */
 Paigow = {
 	/******************************************************************************************************************************************
 		PAI-GOW RULES

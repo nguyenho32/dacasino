@@ -1,3 +1,9 @@
+/* Copyright (C) 2015 Zachary Richley - All Rights Reserved
+ * You may not use, distribute or modify this code without
+ * the express permission of the author.
+ *
+ * Zachary Richley overmind@juxtaflows.com
+ */
 Casino.Game = function(game) {};
 Casino.Game.prototype = {
 	debugHand:Casino.debugHand,
@@ -319,7 +325,7 @@ Casino.Game.prototype = {
 		switch(game.mode) {
 			case 'learn':
 				if (!game.mastery) {
-					this.updateText({box:'main',str:'- learning '+game.level.main+' - '+game.level.sub});
+					this.updateText({box:'main',str:'- learning '+game.levels.now_main+' - '+game.levels.now_sub});
 					this.btnDisplay('start');
 					this.gameStart();
 				} else {
@@ -402,16 +408,6 @@ Casino.Game.prototype = {
 	gameRun:function() {
 		var thing = Casino.game.thing;
 		var game = Casino.game;
-		var str = (game.mode != 'learn') ? Casino.game.practice_mode.sub.split('+') : Casino.game.level.sub.split('+');
-		var chance;
-		if (str[1] == 'joker') {
-			chance = 100;
-		} else {
-			chance = 0;
-		}
-		if (str[1] == 'random') {
-			chance = Math.random()*100;
-		}
 		switch(game.mode) {
 			case 'learn':
 				thing.btnDisplay('rules');
@@ -423,7 +419,17 @@ Casino.Game.prototype = {
 					hand = Cards.handCreate(thing.debugHand);
 				// otherwise just build a hand
 				} else {
-					hand = Cards.handCreate(Poker.create({main:Casino.game.practice_mode.main,joker:chance,sub:str[0]}));
+				var str = game.practice_mode.sub.split('+');
+				var chance;
+				if (str[1] == 'joker') {
+					chance = 100;
+				} else {
+					chance = 0;
+				}
+				if (str[1] == 'random') {
+					chance = Math.random()*100;
+				}
+					hand = Cards.handCreate(Poker.create({main:game.practice_mode.main,joker:chance,sub:str[0]}));
 				}
 				thing.gameCreateHand(hand);
 				thing.displayHand({type:'normal',hand:hand});
@@ -453,15 +459,17 @@ Casino.Game.prototype = {
 	// run the learn mode
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	runModeLearn:function() {
-		if (Casino.game.stat.count < Casino.settings.hands_per_level) {
-			var str = Casino.game.level.sub.split('+');
+		var game = Casino.game;
+		if (game.stat.count < Casino.settings.hands_per_level) {
+			console.log('game levels: ',game.levels);
+			var str = game.levels.now_sub.split('+');
 			var chance;
 			if (str[1] == 'joker') {
 				chance = 100;
 			} else {
 				chance = 0;
 			}
-			var hand = Cards.handCreate(Poker.create({main:Casino.game.level.main,joker:chance,sub:str[0]}));
+			var hand = Cards.handCreate(Poker.create({main:game.levels.now_main,joker:chance,sub:str[0]}));
 			this.gameCreateHand(hand);
 			this.displayHand({type:'normal',hand:hand});
 
@@ -469,14 +477,21 @@ Casino.Game.prototype = {
 			
 			// main keys + index
 			var main_keys = Object.keys(Paigow.rules);
-			var main_index = main_keys.indexOf(Casino.game.level.main);
-			console.log('main index: ',main_index);
+			var main_index = main_keys.indexOf(game.levels.now_main);
 			// sub keys + index
-			var sub_keys = Object.keys(Paigow.rules[Casino.game.level.main]);
-			console.log('sub keys: ',sub_keys);
-			var sub_index = sub_keys.indexOf(Casino.game.level.sub);
-			console.log('sub index: ',sub_index);
+			var sub_keys = Object.keys(Paigow.rules[game.levels.now_main]);
+			var sub_index = sub_keys.indexOf(game.levels.now_sub);
 			
+			if (main_keys.indexOf(game.levels.now_main) < main_keys.indexOf(game.levels.high_main)) {
+				this.game.state.start('LevelMenu');
+				return;
+			}
+			if (main_keys.indexOf(game.levels.now_main) == main_keys.indexOf(game.levels.high_main)) {
+				if (sub_keys.indexOf(game.levels.now_sub) < sub_keys.indexOf(game.levels.high_sub)) {
+					this.game.state.start('LevelMenu');
+					return;
+				}
+			}
 			// first increase sub_index by 1
 			sub_index += 1;
 			// sub_index over sub_key length, then increase main_index and reset sub index
@@ -490,14 +505,14 @@ Casino.Game.prototype = {
 				return;
 			}
 			// set new level stuff
-			Casino.game.level.main = main_keys[main_index];
-			console.log('game level main: ',Casino.game.level.main);
-			var sub_keys = Object.keys(Paigow.rules[Casino.game.level.main]);
-			Casino.game.level.sub = sub_keys[sub_index];
-			console.log('game level sub: ',Casino.game.level.sub);
+			game.levels.high_main = main_keys[main_index];
+			game.levels.now_main = main_keys[main_index];
+			var sub_keys = Object.keys(Paigow.rules[game.levels.high_main]);
+			game.levels.high_sub = sub_keys[sub_index];
+			game.levels.now_sub = sub_keys[sub_index];
 
-			Casino.game.toast = true;
-			Casino.game.thing.game.state.start('LevelMenu');
+			game.toast = true;
+			this.game.state.start('LevelMenu');
 		}
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -806,10 +821,9 @@ Casino.Game.prototype = {
 		} else {
 			// all modes must be set correctly (except timed can continue with wrong hair)
 			if (!game.mode != 'timed') {
-				console.log('WRONG HAIR');
 				var txt;
-				var main = game.level.main;
-				var sub = game.level.sub;
+				var main = game.levels.now_main;
+				var sub = game.levels.now_sub;
 				if (game.stat.tries > Casino.settings.min_hint_count && game.stat.tries <= Casino.settings.max_hint_count) {
 					txt = Paigow.rules[main][sub];
 				} else if (game.stat.tries > Casino.settings.max_hint_count) {
