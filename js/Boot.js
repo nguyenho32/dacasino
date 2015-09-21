@@ -32,8 +32,8 @@ var Casino = {
 //what happened here? 9c,8s,7c,4d,3c,2d,joker turns into 9c,8s - four high straight (4d,3c,2d,joker,joker)
 //why 2 jokers?
 	settings:{
-		hands_per_level:10,
-		timer_amount:30,
+		hands_per_level:1,
+		timer_amount:3,
 		min_hint_count:2,
 		max_hint_count:5,
 	},

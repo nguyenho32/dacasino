@@ -19,8 +19,8 @@ Casino.MainMenu.prototype = {
 		this.clock;
 		this.clockEvent;
 		this.cards = this.add.group();
-		// create buttons for the main menu
 		var menu = ["reload","learn","practice","compare","speed","timed","debug"];
+		// create buttons for the main menu
 		var sprite = this.add.sprite(0,0);
 		var width;
 		for (var i=0; i<menu.length; i++) {

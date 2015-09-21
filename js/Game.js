@@ -805,7 +805,8 @@ Casino.Game.prototype = {
 			}
 		} else {
 			// all modes must be set correctly (except timed can continue with wrong hair)
-			if (!game.mode == 'timed') {
+			if (!game.mode != 'timed') {
+				console.log('WRONG HAIR');
 				var txt;
 				var main = game.level.main;
 				var sub = game.level.sub;
