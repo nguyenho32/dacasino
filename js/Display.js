@@ -21,7 +21,7 @@ var Display = {
 	// silly function to disply the hand as an icon
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	iconify:function(options){
-		console.log(options);
+		console.log('iconify options: ',options);
 		var hands = options.hands;
 
 		var scale = 0.3;
@@ -72,7 +72,7 @@ var Display = {
 	// silly function to display the hand set correctly
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	houseway:function(options) {
-		console.log('options: ',options);
+		console.log('houseway options: ',options);
 		var hand = options.hand;
 
 		var hair = (!options.chosen) ? this.arrayDiff(hand.sorted,hand.paigow.back) : options.chosen;

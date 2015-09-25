@@ -391,7 +391,8 @@ Casino.Game.prototype = {
 					this.gameCreateHand(hand);
 					game.hands.push(hand);
 				}
-				game.hands.push(game.deck);
+				// not sure why this was here?
+				// game.hands.push(game.deck);
 				break;
 			case 'compare':
 				game.step = 'boot';
@@ -406,6 +407,7 @@ Casino.Game.prototype = {
 	// run a game
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	gameRun:function() {
+		console.log('\n\n*** RUNNING GAME LOOP ***\n\n');
 		var thing = Casino.game.thing;
 		var game = Casino.game;
 		switch(game.mode) {
@@ -449,6 +451,7 @@ Casino.Game.prototype = {
 				hand = Cards.handCreate(Poker.create({main:'random',joker:50,sub:'random'}));
 				thing.gameCreateHand(hand);
 				thing.displayHand({type:'normal',hand:hand});
+				game.hair_chosen = [];
 				game.hands.push(hand);
 				game.hand_number = game.hands.length-1;
 				break;
@@ -759,6 +762,7 @@ Casino.Game.prototype = {
 		}
 		// selected 2 cards, check hair for correctness
 		if (hair_chosen.length == 2) {
+			console.log('checking hair...',hair_chosen);
 			that.prototype.gameCheckHair(hair_chosen);
 		}
 		// if hair not correct we are here so unselect the first in line
@@ -815,12 +819,13 @@ Casino.Game.prototype = {
 					game.thing.btnDisplay('rules,next');
 				}
 			} else {
+				console.log('hair chosen, skipping houseway? ',chosen);
 				console.log('skipping houseway');
 				this.gameRun();
 			}
 		} else {
 			// all modes must be set correctly (except timed can continue with wrong hair)
-			if (!game.mode != 'timed') {
+			if (game.mode != 'timed') {
 				var txt;
 				var main = game.levels.now_main;
 				var sub = game.levels.now_sub;

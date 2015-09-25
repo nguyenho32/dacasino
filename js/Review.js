@@ -16,8 +16,6 @@ Casino.Review.prototype = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	create: function() {
 		Casino.game.thing = this;
-		console.log('debug mode');
-		
 		// the cards
 		this.cards = this.add.group();
 		
@@ -32,11 +30,6 @@ Casino.Review.prototype = {
 		var btn = this.createButton({name:'return',callback:this.btnHandler});
 		btn.x = 890;
 		btn.y = 0;
-		// button for showing the default view for this state
-		this.btn_back = this.createButton({name:'back',callback:this.btnHandler});
-		this.btn_back.x = 0;
-		this.btn_back.y = 375;
-		this.btn_back.visible = false;
 
 		
 		// create a text box for menu related information
@@ -70,11 +63,8 @@ Casino.Review.prototype = {
 				hands.push(game.hands[i]);
 			}
 		}
-		console.log('hands: ',hands);
-		
 		var display = Display.iconify({hands:hands});
 		console.log('display: ',display);
-		
 		for (var i=0; i<hands.length; i++) {
 			var hand = hands[i];
 			var key = hand.shuffled[0];
@@ -94,7 +84,6 @@ Casino.Review.prototype = {
 	},
 	viewHand:function() {
 		var thing = Casino.game.thing;
-		thing.btn_back.visible = true;
 		thing.cards.destroy();
 		thing.cards = thing.add.group();
 		var game = Casino.game;
@@ -119,10 +108,6 @@ Casino.Review.prototype = {
 		switch(btn.name) {
 			case 'return':
 				console.log('return to the game');
-				break;
-			case 'back':
-				btn.visible = false;
-				this.viewDefault();
 				break;
 			default: this.state.start('MainMenu');
 				break;

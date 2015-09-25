@@ -39,7 +39,7 @@ var Casino = {
 //why 2 jokers?
 	settings:{
 		hands_per_level:10,
-		timer_amount:30,
+		timer_amount:5,
 		min_hint_count:2,
 		max_hint_count:5,
 	},
