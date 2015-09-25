@@ -128,6 +128,15 @@ var Display = {
 				hair = options.chosen;
 				back = this.arrayDiff(hand.sorted,hair);
 				break;
+			case 'review-full':
+				var scale = 0.6;
+				var hand_x = 550;
+				var hand_y = 150;
+				var space_x = 80;
+				var space_y = 110;
+				hair = options.chosen;
+				back = this.arrayDiff(hand.sorted,hair);
+				break;
 			case 'small':
 				var scale = 0.7;
 				var hand_x = 5;
@@ -196,6 +205,13 @@ var Display = {
 				var space_x = 75;
 				var space_y = 105;
 				showtxt = false;
+			break;
+			case 'review':
+				var scale = 0.6;
+				var hand_x = 50;
+				var hand_y = 150;
+				var space_x = 80;
+				var space_y = 110;
 			break;
 			default:
 				var scale = 0.7;

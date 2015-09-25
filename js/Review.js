@@ -57,18 +57,19 @@ Casino.Review.prototype = {
 		var game = Casino.game;
 		
 		console.log('hands to review: ',game.hands);
-		var hands = [];
-		for (var i=0; i<game.hands.length; i++) {
-			if (game.hands[i].set) {
-				hands.push(game.hands[i]);
-			}
-		}
+		var hands = game.hands;
+
 		var display = Display.iconify({hands:hands});
 		console.log('display: ',display);
 		for (var i=0; i<hands.length; i++) {
 			var hand = hands[i];
 			var key = hand.shuffled[0];
-			var card = this.createCard({key:key,callback:this.viewHand});
+			var card;
+			if (game.mode == 'speed' && i == 0) {
+				card = this.createCard({key:key,disabled:true});
+			} else {
+				card = this.createCard({key:key,callback:this.viewHand});
+			}
 			if (hand.hair_correct) {
 				card.activate('right');
 			} else {
@@ -76,8 +77,29 @@ Casino.Review.prototype = {
 			}
 			card.uid = i;
 			card.scale.setTo(display[i].scale);
-			card.x = display[i].x;
+			if (game.mode == 'speed' && i > 0) {
+				spacer = 400;
+			} else {
+				spacer = 0;
+			}
+			card.x = display[i].x+spacer;
 			card.y = display[i].y;
+		}
+		
+		// if speed mode then show the bank hand under the icon
+		if (game.mode == 'speed') {
+			console.log('speed mode display bank hand');
+			var hand = hands[0];
+			var display = Display.bank({mode:'review',hand:hand});
+			console.log('- hand: ',hand);
+			console.log('- display: ',display);
+			for (var i=0; i<hand.sorted.length; i++) {
+				var key = hand.sorted[i];
+				var card = this.createCard({key:key,disabled:true});
+				card.scale.setTo(display[key].scale);
+				card.x = display[key].x;
+				card.y = display[key].y;
+			}
 		}
 
 		Casino.game = game;
@@ -90,8 +112,12 @@ Casino.Review.prototype = {
 		console.log('viewing hand...',game.hands[this.uid]);
 		var hand = game.hands[this.uid];
 
-		var display = Display.houseway({hand:hand,mode:'review',chosen:hand.hair_chosen});
-		console.log(display);
+		var display;
+		if (Casino.game.mode != 'speed') {
+			display = Display.houseway({hand:hand,mode:'review',chosen:hand.hair_chosen});
+		} else { 
+			display = Display.houseway({hand:hand,mode:'review-full',chosen:hand.hair_chosen});
+		}
 		for (var i=0;i<hand.shuffled.length;i++) {
 			var key = hand.shuffled[i];
 			var card = thing.createCard({key:key,disabled:true});

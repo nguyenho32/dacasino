@@ -704,7 +704,27 @@ Poker = {
 		return straight_flush;
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	//	find straights
+	//	find straights (work in progress)
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	findStrizaights:function(cards) {
+		// grab the first card (highest rank)
+		
+		// grab an array of the next 4 from
+		// Cards.names
+		// straight_names = [arry of crd nmes]
+		
+		// attempt to match array you just creted
+		// to the list of cards
+		// diff = array.diff(straigh,cards)
+		// if the diff is 0, means cards contains straight
+		
+		// then return the list of names instead of full keys
+		
+		// then in paigow just do the same thing to find things like
+		// pairs etc for multiple hair choice
+	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	//	find straights (original)
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	findStraights:function(cards) {
 		var straights = [];

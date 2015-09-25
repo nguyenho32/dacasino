@@ -39,7 +39,7 @@ var Casino = {
 //why 2 jokers?
 	settings:{
 		hands_per_level:10,
-		timer_amount:5,
+		timer_amount:30,
 		min_hint_count:2,
 		max_hint_count:5,
 	},
@@ -194,7 +194,7 @@ var Casino = {
 		wrong.visible = false;
 		card.addChild(wrong);
 		card.wrong = wrong;
-		
+
 		card.activate = function(tint) {
 			card.outline.visible = false;
 			card.right.visible = false;
@@ -211,7 +211,6 @@ var Casino = {
 					break;
 			}
 		}
-		
 		if (!disabled) {
 			card.key = key;
 			card.inputEnabled = true;
@@ -229,6 +228,7 @@ Casino.Boot.prototype = {
 //			this.load.image('preloaderBar', 'img/loading-bar.png');
 		},
 		create: function() {
+			this.game.stage.disableVisibilityChange = true;
 			this.game.scale.scaleMode = Phaser.ScaleManager.AUTO;
 			this.game.scale.pageAlignHorizontally = true;
 			this.game.scale.pageAlignVertically = true;

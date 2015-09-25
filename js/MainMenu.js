@@ -34,8 +34,8 @@ Casino.MainMenu.prototype = {
 			btn.x = 750;
 			btn.y = 30+i*40;
 			sprite.addChild(btn);
-			// disable 'speed' mode for now
-			if (menu[i] == 'speed') {
+			// replace 'nothing' to disable a mode
+			if (menu[i] == 'nothing') {
 				btn.activate('disabled');
 			} else if (menu[i] == 'debug') {
 				this.btn_debug = btn;
@@ -89,8 +89,18 @@ Casino.MainMenu.prototype = {
 	btnHandler: function(pointer) {
 		Casino.game.mode = pointer.name;
 		switch(Casino.game.mode) {
-			case 'debug': this.game.state.start('Debug');
-			break;
+			case 'debug':
+				var settings = {
+					hands_per_level:1,
+					timer_amount:10,
+					min_hint_count:2,
+					max_hint_count:5,
+				}
+				Casino.settings = settings;
+				console.log('new settings: ',Casino.settings);
+				
+				// this.game.state.start('Debug');
+				break;
 			case 'reload':
 				this.createHand();
 				this.clock = 3;

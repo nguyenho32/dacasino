@@ -246,24 +246,41 @@ Casino.Game.prototype = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// clock stuff
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	updateClock:function(dir) {
+	updateClock:function(type) {
 		var finish;
 		var reset;
 		var clock = this.clock;
-		if (dir == 'down') {
-			this.clock -= 1;
-			finish = 0;
-			reset = Casino.settings.timer_amount;
-		} else {
-			this.clock += 1;
-			finish = 300;
-			reset = 0;
+		switch(type) {
+			case 'down':
+				this.clock -= 1;
+				finish = 0;
+				reset = Casino.settings.timer_amount;
+				break;
+			case 'pause':
+				this.clock += 1;
+				finish = 4;
+				reset = 0;
+				break;
+			default:
+				this.clock += 1;
+				finish = 300;
+				reset = 0;
+				break;
 		}
 		if (this.clock === finish) {
 			this.time.events.remove(this.clockEvent);
-			this.txt_clock.text = "clock: done"
-			this.gameEnd();
-			this.clock = reset;
+			this.txt_clock.text = "clock: done";
+			switch(type) {
+				case 'down':
+					this.clock = 0;
+					this.txt_message.text = 'Time is up...';
+					this.clockEvent = this.time.events.loop(Phaser.Timer.SECOND,this.updateClock,this,'pause');
+					break;
+				default:
+					this.clock = reset;
+					this.gameEnd();
+					break;
+			}
 		} else {
 			this.txt_clock.text = 'clock:' + this.clock;
 		}
@@ -410,6 +427,7 @@ Casino.Game.prototype = {
 		console.log('\n\n*** RUNNING GAME LOOP ***\n\n');
 		var thing = Casino.game.thing;
 		var game = Casino.game;
+		game.hair_chosen = [];
 		switch(game.mode) {
 			case 'learn':
 				thing.btnDisplay('rules');
@@ -451,7 +469,6 @@ Casino.Game.prototype = {
 				hand = Cards.handCreate(Poker.create({main:'random',joker:50,sub:'random'}));
 				thing.gameCreateHand(hand);
 				thing.displayHand({type:'normal',hand:hand});
-				game.hair_chosen = [];
 				game.hands.push(hand);
 				game.hand_number = game.hands.length-1;
 				break;
@@ -688,7 +705,7 @@ Casino.Game.prototype = {
 			// skip the houseway display in checkHair
 			game.skip_houseway = true;
 			for (var i=1;i<game.hands.length;i++) {
-				console.log('processing hand...',i,game.hands[i]);
+				console.log('\nprocessing hand...',i,game.hands[i]);
 				game.hand_number = i;
 				// hand is not set
 				if (game.hands[i].set != true) {
@@ -723,7 +740,7 @@ Casino.Game.prototype = {
 			}
 		}
 		// check the last hand for 'set' & 'choice'
-		var last = game.hands[game.hands.length-2];
+		var last = game.hands[game.hands.length-1];
 		if (last.set && last.choice ) {
 			thing.gameEnd();
 			return;
@@ -820,7 +837,6 @@ Casino.Game.prototype = {
 				}
 			} else {
 				console.log('hair chosen, skipping houseway? ',chosen);
-				console.log('skipping houseway');
 				this.gameRun();
 			}
 		} else {
@@ -862,6 +878,10 @@ Casino.Game.prototype = {
 			game.hair_chosen.splice(0,1);
 			// complete the hand
 			this.handComplete('fail');
+
+			if (game.mode == 'timed') {
+				this.gameRun();
+			}
 		}
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -895,9 +915,11 @@ Casino.Game.prototype = {
 			this.updateText({box:'stat',str:'default'});
 			
 		}
+		/*
 		if (game.mode == 'timed') {
 			this.gameRun();
 		}
+		*/
 		Casino.game = game;
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////
