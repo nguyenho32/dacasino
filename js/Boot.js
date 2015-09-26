@@ -35,8 +35,10 @@ var Casino = {
 //	debugHand:["queen_spade","queen_club","jack_club","ten_club","nine_club","eight_club","joker_one"],
 //	debugHand:["ten_diamond","nine_spade","nine_club","eight_spade","seven_club","six_spade","two_club"],
 
+//	debugHand:["ace_diamond","five_spade","five_club","four_spade","three_club","seven_heart","joker_one"],
 //what happened here? 9c,8s,7c,4d,3c,2d,joker turns into 9c,8s - four high straight (4d,3c,2d,joker,joker)
 //why 2 jokers?
+//	debugHand:["nine_club","eight_spade","seven_club","four_diamond","three_club","two_diamond","joker_one"],
 	settings:{
 		hands_per_level:10,
 		timer_amount:30,
@@ -75,7 +77,7 @@ var Casino = {
 				- now_sub
 		*/
 		levels:{high_main:'pai-gow',high_sub:'nothing',now_main:'pai-gow',now_sub:'nothing'},
-		practice_mode:{main:'random',sub:'random+random'},
+		practice_mode:{main:'straight',sub:'random+random'},
 		steps:{
 			compare:["boot","init","set-bank","set-player","compare","result"],
 			speed:["set-bank","set-other","compare","review"]

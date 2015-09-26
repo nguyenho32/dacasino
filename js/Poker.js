@@ -43,6 +43,18 @@ Poker = {
 		}
 		return sorted;
 	},
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// get the difference between 2 arrays
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	arrayDiff:function(big,small) {
+		var diff = [];
+		big.forEach(function(key) {
+			if (-1 === small.indexOf(key)) {
+				diff.push(key);
+			}
+		},this);
+		return diff;
+	},
 	/******************************************************************************************************************************************
 		CREATE FUNCTIONS
 	******************************************************************************************************************************************/
@@ -706,151 +718,71 @@ Poker = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	//	find straights (work in progress)
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	findStrizaights:function(cards) {
-		// grab the first card (highest rank)
+	/*
+		4 card match throw the joker at the top (unless the top is an ace)
+		4,3,2,A...joker on top to make wheel
 		
-		// grab an array of the next 4 from
-		// Cards.names
-		// straight_names = [arry of crd nmes]
-		
-		// attempt to match array you just creted
-		// to the list of cards
-		// diff = array.diff(straigh,cards)
-		// if the diff is 0, means cards contains straight
-		
-		// then return the list of names instead of full keys
-		
-		// then in paigow just do the same thing to find things like
-		// pairs etc for multiple hair choice
-	},
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	//	find straights (original)
-	///////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	*/
 	findStraights:function(cards) {
+		console.log('\ndebug: finding strizaights');
+		console.log('cards: ',cards);
+		
 		var straights = [];
 		
-		// joker will always be in the last position if present
-		var joker_present = (cards.indexOf('joker_one') != -1) ? true : false;
+		// does the hand contain a joker
+		if (cards.indexOf('joker_one') != -1) {
+			var joker = true;
+		}
 
-		// go 4 deep in case of joker based wheel straights
-		for (var i=0; i<4; i++) {
-			// joker is available
-			var joker_available = (joker_present) ? true : false;
-			// add this item to the straight
-			var straight = [cards[i]];
-			// now loop the rest of the cards
-			for (var k=i+1; k<cards.length; k++) {
-				// this card
-				var card = cards[k];
-				var this_rank = Cards.getRank(card);
-				// last item in straight
-				var last = straight[straight.length-1];
-				var last_rank = Cards.getRank(last);
+		var card_names = Cards.getNames(cards);
+		console.log('card_names: ',card_names);
 
-				// this rank is one less than last rank
-				if (this_rank == last_rank-1) {
-					straight.push(card);
-					// 5 card straight with available joker and natural pair at the bottom
-					if (straight.length == 5 && joker_available && Cards.getName(card) == Cards.getName(cards[k+1])) {
-						// otherwise put in the front
-						var new_straight = straight.slice();
-						new_straight.unshift('joker_one');
-						new_straight.splice(-1,1);
-						straights.push(new_straight);
-					}
-				} else if (this_rank == last_rank) {
-					// otherwise do nothing
-				} else {
-					// joker present and available
-					if (joker_present && joker_available) {
-						// straight length less than 4
-						if (straight.length < 4) {
-;							// handle potential wheel straights from 2 cards
-							if (straight.length == 2 && Cards.getName(straight[0]) == 'five' && Cards.getName(straight[1]) == 'four' 
-								&& Cards.getName(cards[cards.length-2]) == 'two' && Cards.getName(cards[0]) == 'ace') {
-								joker_available = false;
-								straight.push('joker_one');
-								straight.push(cards[cards.length-2]);
-								straight.push(cards[0]);
-							// first card in straight is 5, this card is a 3 and we have ace + joker make a wheel
-							} else if (straight.length == 3 && Cards.getName(straight[0]) == 'five' && Cards.getName(straight[2]) == 'three' && Cards.getName(cards[0]) == 'ace') {
-								joker_available = false;
-								straight.push('joker_one');
-								straight.push(cards[0]);
-							// first card in straight is 4, this card is a 2 and we have ace + joker make a wheel
-							} else if (straight.length == 3 && Cards.getName(straight[0]) == 'four' && Cards.getName(straight[2]) == 'two' && Cards.getName(cards[0]) == 'ace') {
-								joker_available = false;
-								straight.unshift('joker_one');
-								straight.push(cards[0]);
-							// this card is 2 less than last in straight
-							} else if (this_rank != 2 && this_rank == last_rank-2) {
-								joker_available = false;
-								straight.push('joker_one');
-								straight.push(card);
-							} else {
-								// with joker, no straight possible so start next master loop
-								break;
-							}
-						}
-					} else {
-						// not a straight to start the next master loop
-						break;
-					}
-				}
-				// straight is 4 cards long, top card in straight is 5, last card is a 2 and ace present so make a wheel
-				if (straight.length == 4 && Cards.getName(straight[0]) == 'five' && Cards.getName(card) == 'two' && Cards.getName(cards[0]) == 'ace') {
-					straight.push(cards[0]);
-				}
-				// straight more than 5 for some reason, so cut the end off 
-				if (straight.length > 5) {
-					straight.splice(-1,1);
-				}
-				// straight is 5 cards long, then push it
-				if (straight.length == 5) {
-					straights.push(straight);
-					break;
-				}
+		// names from ace, king...three, two
+		var names = Cards.names.slice().reverse();
+		// grab the first card (highest rank)
+		for (var i=0; i<card_names.length-3; i++) {
+			// card to operate on
+			var card = card_names[i];
+			console.log('\ncard ',card);
+			// index of the card so we know where to slice from
+			var card_index = names.indexOf(Cards.getName(card));
+			console.log('card_index ',card_index);
+			// slice an array of possibilities
+			var straight_names = names.slice(card_index,card_index+5);
+			// wheel straights
+			if (card == 'five') {
+				straight_names.push('ace');
 			}
-			// straight is 4 long and joker present and available add to straight
-			if (straight.length == 4 && joker_present && joker_available) {
-				joker_available = false;
-				// if top card is an ace, then put in the back
-				if (Cards.getName(straight[0]) == 'ace') {
-					straight.push('joker_one');
-				} else {
-					// otherwise put in the front
-					straight.unshift('joker_one');
+			console.log('straight_names ',straight_names);
+			// difference between the 2 arrays
+			var diff = this.arrayDiff(straight_names,card_names);
+			console.log('difference: ',diff);
+			
+			// difference length of 0 means we have a natural straight
+			if (diff.length == 0) {
+				var straight = [];
+				for (var k=0; k<5; k++) {
+					straight.push(Cards.getFullName(cards,straight_names[k]));
 				}
 				straights.push(straight);
 			}
-		}
-
-		// multiple straights with the same start card...are the same straight
-		if (straights.length > 1) {
-			for (var i=straights.length-1; i>0; i--) {
-				var this_straight = straights[i];
-				var next_straight = straights[i-1];
-				// if the 1st cards match then get rid of it
-				if (Cards.getName(this_straight[0]) == Cards.getName(next_straight[0])) {
-					straights.splice(i-1,1);
-					continue;
-				}
-				// first card is joker, then match up the 2nd cards
-				if (Cards.isJoker(this_straight[0]) && Cards.getName(this_straight[1]) == Cards.getName(next_straight[1])) {
-					straights.splice(i,1);
+			// missing 1 card lets use the joker
+			if (diff.length == 1) {
+				console.log('missing one...');
+				if (joker) {
+					var diff_index = straight_names.indexOf(diff[0]);
+					straight_names[diff_index] = 'joker';
+					console.log('joker inserted...',straight_names);
+					var straight = [];
+					for (var k=0; k<5; k++) {
+						straight.push(Cards.getFullName(cards,straight_names[k]));
+					}
+					straights.push(straight);
 				}
 			}
 		}
-		// straight has duplicates then kill it
-		for (var i=straights.length-1; i>0;i--) {
-			var straight = straights[i];
-			for (var n=0; n<straight.length; n++) {
-				var item = straight[n];
-				if (straight.indexOf(item) != n) {
-					straights.splice(i,1);
-				}
-			}
-		}
+		
 		return straights;
 	},
 	///////////////////////////////////////////////////////////////////////////////////////////////////

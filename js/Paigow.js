@@ -894,7 +894,7 @@ Paigow = {
 	solveStraight:function(poker) {
 		var straights = poker.straights;
 		var cards = poker.cards;
-//		console.log('Poker.solveStraight: ',cards);
+		console.log('\n\nPoker.solveStraight: ',cards);
 		var joker = poker.joker;
 		var hair = [];
 		var back = [];
@@ -903,15 +903,16 @@ Paigow = {
 		// whatever
 		var result;
 
-//		console.log('\n\n\ncards in hand: ',cards);
-//		console.log('number of straights: ',straights.length);
-//		console.table(straights);
+		console.log('\n\n\ncards in hand: ',cards);
+		console.log('number of straights: ',straights.length);
+		// rebuild the straight
+		console.table(straights);
 		switch(straights.length) {
 			// three straights means 7 card straight so use the lowest straight
 			case 3:
 				var straight = straights[2];
 				var extras = this.arrayDiff(cards,straight);
-//				console.log('straight extras: ',extras);
+				console.log('straight extras: ',extras);
 				hair = extras;
 				back = straight;
 				break;
@@ -922,13 +923,13 @@ Paigow = {
 				// get the extras from each straight
 				var extras1 = this.arrayDiff(cards,straight1);
 				var extras2 = this.arrayDiff(cards,straight2);
-//				console.log('extras1: ',extras1);
-//				console.log('extras2: ',extras2);
+				console.log('extras1: ',extras1);
+				console.log('extras2: ',extras2);
 				// if pairs are present (with 2 straights, only 1 pair possible)
 				if (poker.pairs) {
 					var pair = poker.pairs[0];
 					rule = 'straight:1-pair';
-//					console.log('pairs present: ',pair)
+					console.log('pairs present: ',pair)
 					// joker present
 					if (joker) {
 						rule = 'straight:1-pair+joker';
@@ -944,7 +945,7 @@ Paigow = {
 							}
 						} else {
 							// otherwise joker part of straight along with pair so solve for pairs
-//							console.log('joker in straight with 1 pair, so we go by pair-pair rules');
+							console.log('joker in straight with 1 pair, so we go by pair-pair rules');
 							result = this.solvePairs(poker);
 						}
 					} else {
@@ -995,12 +996,12 @@ Paigow = {
 			// one straight
 			case 1:
 				var straight = straights[0];
-//				console.log('straight: ',straight);
+				console.log('1 straight: ',straight);
 				var extras = this.arrayDiff(cards,straight);
-//				console.log('straight extras: ',extras);
+				console.log('straight extras: ',extras);
 				// trips present
 				if (poker.trips) {
-//					console.log('trips present: ',poker.trips[0]);
+					console.log('trips present: ',poker.trips[0]);
 					hair = poker.trips[0];
 					back = straight;
 					rule = 'straight:trips';
@@ -1009,30 +1010,30 @@ Paigow = {
 					if (poker.pairs) {
 						rule = 'straight:1-pair';
 						// one pair present
-//						console.log('pairs present: ',poker.pairs.length);
+						console.log('pairs present: ',poker.pairs.length);
 						if (poker.pairs.length == 1) {
 							var pair = poker.pairs[0];
-//							console.log('pair: ',pair);
+							console.log('pair: ',pair);
 							// pair inside straight
-							if (straight.indexOf(pair[0]) != -1 || straight.indexOf(pair[1]) != -1) {
-//								console.log('pair within the straight');
+							if (straight.indexOf(pair[0]) !== -1 || straight.indexOf(pair[1]) !== -1) {
+								console.log('pair within the straight');
 								extras = this.arrayDiff(extras,pair);
-//								console.log('revised extras: ',extras);
+								console.log('revised extras: ',extras);
 								if (joker) {
-//									console.log('joker present');
+									console.log('joker present');
 									// joker not part of straight
 									if (extras.indexOf('joker_one') != -1) {
-//										console.log('joker not in straight, add to hair choice');
+										console.log('joker not in straight, add to hair choice');
 										hair = [pair[0],pair[1],'joker_one'];
 										back = straight;
 										rule = 'straight:1-pair+joker';
 									} else {
-//										console.log('joker in straight with 1 pair, so we go by pair-pair rules');
+										console.log('joker in straight with 1 pair, so we go by pair-pair rules');
 										result = this.solvePairs(poker);
 									}									
 								} else {
-//									console.log('no joker - straight with 1 pair, just play the straight');
-//									console.log(extras,pair);
+									console.log('no joker - straight with 1 pair, just play the straight');
+									console.log(extras,pair);
 									hair = [extras[0],pair[0],pair[1]];
 									back = straight;
 								}
@@ -1042,7 +1043,7 @@ Paigow = {
 								back = straight;
 							}
 						} else {
-//							console.log('2 pairs so we go by pair-pair rules');
+							console.log('2 pairs so we go by pair-pair rules');
 							result = this.solvePairs(poker);
 						}
 					} else {
@@ -1052,21 +1053,21 @@ Paigow = {
 				}
 				break;
 			default:
-//				console.log('default behaviour');
+				console.log('default behaviour');
 				hair = [cards[0],cards[2]];
 				back = [cards[1],cards[3],cards[4],cards[5],cards[6]];
 				break;
 		}
 		// result present means the hand was set from another function
 		if (typeof result !== 'undefined') {
-//			console.log('set hand from from outside function');
+			console.log('set hand from from outside function');
 			hair = result.hair;
 			back = result.back;
 			rule = result.rule;
 			brief = result.brief;
 		}
-//		console.log('final hair: ',hair);
-//		console.log('final back: ',back,'\n\n');
+		console.log('final hair: ',hair);
+		console.log('final back: ',back,'\n\n');
 	
 		return {hair,back,rule,brief};
 	},
