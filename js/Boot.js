@@ -165,12 +165,15 @@ var Casino = {
 
 		var card = this.add.sprite();
 
-		var shadow = this.add.sprite(-2, -2,'cards',key);
-		shadow.scale.setTo(1.025);
+		var shadow = this.add.sprite(-1, -1,'cards',key);
+//		shadow.scale.setTo(1.025);
+		shadow.scale.setTo(0.344);
 		shadow.tint = 0x000000;
 		shadow.alpha = 0.8;
 		card.addChild(shadow);
+
 		var actual = this.add.sprite(0,0,'cards',key);
+		actual.scale.setTo(0.34);
 		card.addChild(actual);
 
 		var outline = this.add.sprite(-3.5, -3.5,'cards',key);

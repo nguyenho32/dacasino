@@ -99,7 +99,7 @@ Casino.MainMenu.prototype = {
 				Casino.settings = settings;
 				console.log('new settings: ',Casino.settings);
 				
-				// this.game.state.start('Debug');
+				this.game.state.start('Debug');
 				break;
 			case 'reload':
 				this.createHand();

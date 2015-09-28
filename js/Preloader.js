@@ -11,7 +11,7 @@ Casino.Preloader.prototype = {
 //		this.preloadBar = this.add.sprite((Casino._WIDTH-158)*0.5, (Casino._HEIGHT-50)*0.5, 'preloaderBar');
 //		this.load.setPreloadSprite(this.preloadBar);
 
-		this.load.atlas('cards', 'assets/full-deck-with-joker.png','assets/full-deck-with-joker.json');
+		this.load.atlas('cards', 'assets/bi-full-deck-with-joker-and-back.png','assets/bi-deck.json');
 	},
 	create: function() {
 		this.game.state.start('MainMenu');

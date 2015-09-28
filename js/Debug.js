@@ -18,16 +18,16 @@ Casino.Debug.prototype = {
 		console.log('debug mode');
 		/*
 			top ui elements
-		*/
 		// button for returning to the menu
 		var btn = this.createButton({name:'menu',callback:this.mainMenu});
 		btn.key = 'menu';
 		btn.x = 0;
 		btn.y = 0;
+		*/
 		
 		for (var i=0; i<Cards.names.length; i++) {
-			var key = Cards.names[i]+'_diamond';
-			var card = this.createCard(key);
+			var key = Cards.names[i]+'_heart';
+			var card = this.createCard({key:key,disabled:true});
 			if (i < Cards.names.length / 2) {
 				card.x = 10+(i*140);
 				card.y = 30;
@@ -317,6 +317,7 @@ Casino.Debug.prototype = {
 	// return to main menu
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	mainMenu: function(pointer) {
+		console.log('main menu');
 		this.game.state.start('MainMenu');
 	}
 };
