@@ -2,19 +2,19 @@
 
 {
 	"filename": "reload_over",
-	"frame": {"x":320,"y":0,"w":315,"h":95},
+	"frame": {"x":320,"y":0,"w":310,"h":90},
 	"rotated": false,
 	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
-	"sourceSize": {"w":315,"h":95}
+	"spriteSourceSize": {"x":0,"y":0,"w":310,"h":90},
+	"sourceSize": {"w":310,"h":90}
 },
 {
 	"filename": "reload_out",
-	"frame": {"x":0,"y":0,"w":315,"h":95},
+	"frame": {"x":0,"y":0,"w":313,"h":88},
 	"rotated": false,
 	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
-	"sourceSize": {"w":315,"h":95}
+	"spriteSourceSize": {"x":0,"y":0,"w":313,"h":88},
+	"sourceSize": {"w":313,"h":88}
 },
 {
 	"filename": "reload_down",

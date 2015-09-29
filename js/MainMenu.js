@@ -15,6 +15,7 @@ Casino.MainMenu.prototype = {
 	// creation
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	create: function() {
+		var background = this.add.tileSprite(0,0,1000,500,'bg');
 		// active button color
 		this.btn_color_active = 0x0000FF;
 		// inactive button color
