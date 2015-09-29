@@ -32,6 +32,7 @@ Casino.MainMenu.prototype = {
 		for (var i=0; i<menu.length; i++) {
 //			var btn = this.createButton({name:menu[i],callback:this.btnHandler});
 			var btn = this.add.button(750,30+i*40,'buttons',this.btnHandler,this,menu[i]+'_over',menu[i]+'_out',menu[i]+'_down');
+			btn.name = menu[i];
 			btn.scale.setTo(0.34);
 			/*
 			btn.x = 750;
@@ -91,6 +92,7 @@ Casino.MainMenu.prototype = {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	btnHandler: function(pointer) {
 		Casino.game.mode = pointer.name;
+		console.log(pointer);
 		switch(Casino.game.mode) {
 			case 'debug':
 				var settings = {
