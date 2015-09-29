@@ -25,15 +25,16 @@ Casino.MainMenu.prototype = {
 		this.clock;
 		this.clockEvent;
 		this.cards = this.add.group();
-		var menu = ["reload","learn","practice","compare","speed","timed","debug"];
+		var menu = ["reload","learn","practice","compare","speed","timed"];
 		// create buttons for the main menu
-		var sprite = this.add.sprite(0,0);
 		var width;
 		for (var i=0; i<menu.length; i++) {
-			var btn = this.createButton({name:menu[i],callback:this.btnHandler});
+//			var btn = this.createButton({name:menu[i],callback:this.btnHandler});
+			var btn = this.add.button(750,30+i*40,'buttons',this.btnHandler,this,menu[i]+'_over',menu[i]+'_out',menu[i]+'_down');
+			btn.scale.setTo(0.34);
+			/*
 			btn.x = 750;
 			btn.y = 30+i*40;
-			sprite.addChild(btn);
 			// replace 'nothing' to disable a mode
 			if (menu[i] == 'nothing') {
 				btn.activate('disabled');
@@ -43,6 +44,7 @@ Casino.MainMenu.prototype = {
 			} else {
 				btn.activate('available');
 			}
+			*/
 		}
 
 		// create a text box for menu related information

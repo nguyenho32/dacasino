@@ -1,0 +1,165 @@
+{"frames": [
+
+{
+	"filename": "reload_over",
+	"frame": {"x":320,"y":0,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+{
+	"filename": "reload_out",
+	"frame": {"x":0,"y":0,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+{
+	"filename": "reload_down",
+	"frame": {"x":640,"y":0,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+
+{
+	"filename": "learn_over",
+	"frame": {"x":320,"y":100,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+{
+	"filename": "learn_out",
+	"frame": {"x":0,"y":100,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+{
+	"filename": "learn_down",
+	"frame": {"x":640,"y":100,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+
+{
+	"filename": "practice_over",
+	"frame": {"x":320,"y":200,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+{
+	"filename": "practice_out",
+	"frame": {"x":0,"y":200,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+{
+	"filename": "practice_down",
+	"frame": {"x":640,"y":200,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+
+{
+	"filename": "speed_over",
+	"frame": {"x":320,"y":300,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+{
+	"filename": "speed_out",
+	"frame": {"x":0,"y":300,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+{
+	"filename": "speed_down",
+	"frame": {"x":640,"y":300,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+
+{
+	"filename": "compare_over",
+	"frame": {"x":320,"y":400,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+{
+	"filename": "compare_out",
+	"frame": {"x":0,"y":400,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+{
+	"filename": "compare_down",
+	"frame": {"x":640,"y":400,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+
+{
+	"filename": "timed_over",
+	"frame": {"x":320,"y":490,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+{
+	"filename": "timed_out",
+	"frame": {"x":0,"y":490,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+},
+{
+	"filename": "timed_down",
+	"frame": {"x":640,"y":490,"w":315,"h":95},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":315,"h":95},
+	"sourceSize": {"w":315,"h":95}
+}
+
+
+
+],
+"meta": {
+	"app": "dacasino by hand",
+	"version": "1.0",
+	"image": "bi-full-deck-with-joker-and-back.png",
+	"format": "RGBA8888",
+	"size": {"w":5623,"h":2400},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:94d0bd0bf114e85ce29f39eef77459af:7ed3943dbcec732eab104eb0433900e7:6c7eda618254ba1d05e8c442033201235$"
+}
+}
