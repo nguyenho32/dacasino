@@ -15,6 +15,6 @@ Casino.Preloader.prototype = {
 		this.load.atlas('buttons', 'assets/buttons-main-menu.png','assets/buttons.json');
 	},
 	create: function() {
-		this.game.state.start('MainMenu');
+//		this.game.state.start('MainMenu');
 	}
 };

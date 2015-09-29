@@ -229,8 +229,8 @@ var Casino = {
 Casino.Boot = function(game) {};
 Casino.Boot.prototype = {
 	preload: function() {
-//			this.load.image('preloaderBg', 'img/loading-bg.png');
-//			this.load.image('preloaderBar', 'img/loading-bar.png');
+			this.load.image('preloaderBg', 'assets/logo-small.png');
+			this.load.image('preloaderBar', 'assets/loading-bar.png');
 		},
 		create: function() {
 			this.game.stage.disableVisibilityChange = true;
