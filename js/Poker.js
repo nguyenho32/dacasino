@@ -765,6 +765,12 @@ Poker = {
 				for (var k=0; k<5; k++) {
 					straight.push(Cards.getFullName(cards,straight_names[k]));
 				}
+				if (joker) {
+					var j_straight = straight.slice();
+					j_straight.unshift('joker_one');
+					j_straight.pop();
+					straights.push(j_straight);
+				}
 				straights.push(straight);
 			}
 			// missing 1 card lets use the joker
@@ -772,13 +778,40 @@ Poker = {
 				console.log('missing one...');
 				if (joker) {
 					var diff_index = straight_names.indexOf(diff[0]);
-					straight_names[diff_index] = 'joker';
+					// last card missing so put the joker on top
+					if (diff_index == straight_names.length-1) {
+							console.log('last card');
+							if (straight_names != 'ace') {
+								straight_names.unshift('joker');
+							} else {
+								straight_names[diff_index] = 'joker';
+							}
+					} else {
+						console.log('middle insert');
+						straight_names[diff_index] = 'joker';
+					}
 					console.log('joker inserted...',straight_names);
+					// check for duplicate straights
 					var straight = [];
 					for (var k=0; k<5; k++) {
 						straight.push(Cards.getFullName(cards,straight_names[k]));
 					}
 					straights.push(straight);
+				}
+			}
+		}
+		// clean any duplicates (usually due to joker)
+		if (straights.length > 1) {
+			for (var i=0; i<straights.length-1; i++) {
+				console.log('checking straight: ',i);
+				var this_straight = straights[i];
+				var next_straight = straights[i+1];
+				for (var n=0; n<this_straight.length; n++) {
+					if (this_straight[n] == next_straight[n]) {
+						console.log('matched!!! ',this_straight[n]);
+						straights.splice(i+1,1);
+						break;
+					}
 				}
 			}
 		}

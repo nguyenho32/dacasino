@@ -13,8 +13,8 @@
 	"frame": {"x":0,"y":0,"w":313,"h":88},
 	"rotated": false,
 	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":313,"h":88},
-	"sourceSize": {"w":313,"h":88}
+	"sourceSize": {"w":313,"h":88},
+	"spriteSourceSize": {"x":0,"y":0,"w":313,"h":88}
 },
 {
 	"filename": "reload_down",

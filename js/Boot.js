@@ -39,6 +39,8 @@ var Casino = {
 //what happened here? 9c,8s,7c,4d,3c,2d,joker turns into 9c,8s - four high straight (4d,3c,2d,joker,joker)
 //why 2 jokers?
 //	debugHand:["nine_club","eight_spade","seven_club","four_diamond","three_club","two_diamond","joker_one"],
+
+	debugHand:["jack_diamond","ten_heart","ten_spade","nine_heart","eight_club","seven_club","joker_one"],
 	settings:{
 		hands_per_level:10,
 		timer_amount:30,
@@ -177,7 +179,7 @@ var Casino = {
 		card.addChild(actual);
 
 		var outline = this.add.sprite(-3.5, -3.5,'cards',key);
-		outline.scale.setTo(1.05);
+		outline.scale.setTo(0.35);
 		outline.tint = 0x2F4F2F;
 		outline.alpha = 0.15;
 		outline.visible = false;
@@ -185,7 +187,7 @@ var Casino = {
 		card.outline = outline;
 
 		var right = this.add.sprite(-3.5, -3.5,'cards',key);
-		right.scale.setTo(1.05);
+		right.scale.setTo(0.35);
 		right.tint = 0x00FF00;
 		right.alpha = 0.15;
 		right.visible = false;
@@ -193,7 +195,7 @@ var Casino = {
 		card.right = right;
 
 		var wrong = this.add.sprite(-3.5, -3.5,'cards',key);
-		wrong.scale.setTo(1.05);
+		wrong.scale.setTo(0.35);
 		wrong.tint = 0xFF0000;
 		wrong.alpha = 0.15;
 		wrong.visible = false;
