@@ -894,7 +894,7 @@ Paigow = {
 	solveStraight:function(poker) {
 		var straights = poker.straights;
 		var cards = poker.cards;
-		console.log('\n\nPoker.solveStraight: ',cards);
+		console.log('\n\nPaigow.solveStraight: ',straights);
 		var joker = poker.joker;
 		var hair = [];
 		var back = [];
@@ -929,18 +929,19 @@ Paigow = {
 				if (poker.pairs) {
 					var pair = poker.pairs[0];
 					rule = 'straight:1-pair';
-					console.log('pairs present: ',pair)
+					console.log('rule',rule);
 					// joker present
 					if (joker) {
 						rule = 'straight:1-pair+joker';
+						console.log('rule',rule);
 						// joker part of either set of extras means natural straight
 						if (extras1.indexOf('joker_one') != -1 || extras2.indexOf('joker_one') != -1) {
-							// if the first set of extras is a pair then use that one
-							if (Cards.getName(extras1[0]) == Cards.getName(extras1[1])) {
-								hair = extras1;
-								back = straight1;
+							console.log('natural straight',straights);
+							if (extras1.indexOf('joker_one') != -1) {
+								console.log('joker somehow in first hair?? ');
 							} else {
-								hair = extras2;
+								console.log('joker in 2nd hair');
+								hair = [pair[0],pair[1],'joker_one'];
 								back = straight2;
 							}
 						} else {
@@ -962,18 +963,16 @@ Paigow = {
 						
 					}
 				} else {
-					// if the joker is in the first set of extras
+					// if the joker is in the first set of extras means pair with natural straight
 					if (extras1.indexOf('joker_one') != -1) {
 						hair = extras1;
 						back = straight1;
-					} else {
-						// otherwise use the lower straight
+					// if the joker is in the second set it also means pair with natural straight
+					} else if (extras2.indexOf('joker_one') != -1){
 						hair = extras2;
 						back = straight2;
-					}
-				
 					// joker is 2nd card in both extras means both are paired up
-					if (Cards.isJoker(extras1[1]) && Cards.isJoker(extras2[1])) {
+					} else if (Cards.isJoker(extras1[1]) && Cards.isJoker(extras2[1])) {
 						// first extras is higher use that one
 						if (Cards.getRank(extras1[0]) > Cards.getRank(extras2[0])) {
 							hair = extras1;
@@ -988,7 +987,10 @@ Paigow = {
 						if (Cards.getRank(extras1[0]) > Cards.getRank(extras2[0])) {
 							hair = extras1;
 							back = straight1;
-							
+						// 2nd hair is bigger than 1st hair
+						} else {
+							hair = extras2;
+							back = straight2;
 						}
 					}
 				}

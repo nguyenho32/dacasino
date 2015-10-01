@@ -10,7 +10,6 @@ Casino.LevelMenu.prototype = {
 	// common stuff
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	createButton:Casino.createButton,
-	createCard:Casino.createCard,
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// creation
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -170,11 +169,9 @@ Casino.LevelMenu.prototype = {
 		var display = Display.normal({hand:hand,mode:'small'});
 		for (var i=0;i<hand.shuffled.length;i++) {
 			var key = hand.shuffled[i];
-			var card = this.createCard({key:key,disabled:true});
+			var card = new Card(this.game,display[key].x,display[key].y,key);
 			this.cards.add(card);
-			card.x = display[key].x;
-			card.y = display[key].y;
-			card.scale.setTo(display[key].scale);
+			card.scale.setTo(0.25);
 			if (display[key].outline) {
 				card.y -=20;
 				card.outline.visible = true;

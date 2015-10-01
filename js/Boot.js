@@ -40,7 +40,7 @@ var Casino = {
 //why 2 jokers?
 //	debugHand:["nine_club","eight_spade","seven_club","four_diamond","three_club","two_diamond","joker_one"],
 
-	debugHand:["jack_diamond","ten_heart","ten_spade","nine_heart","eight_club","seven_club","joker_one"],
+//	debugHand:["king_heart", "queen_club", "jack_heart", "ten_club", "nine_club", "two_heart", "joker_one"],
 	settings:{
 		hands_per_level:10,
 		timer_amount:30,
@@ -156,76 +156,6 @@ var Casino = {
 		sprite.name = (options.levels) ? 'levels' : options.name;
 		
 		return sprite;
-	},
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	// create a card for display
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	createCard:function(options) {
-		var key = options.key;
-		var disabled = options.disabled;
-		var callback = options.callback;
-
-		var card = this.add.sprite();
-
-		var shadow = this.add.sprite(-1, -1,'cards',key);
-//		shadow.scale.setTo(1.025);
-		shadow.scale.setTo(0.344);
-		shadow.tint = 0x000000;
-		shadow.alpha = 0.8;
-		card.addChild(shadow);
-
-		var actual = this.add.sprite(0,0,'cards',key);
-		actual.scale.setTo(0.34);
-		card.addChild(actual);
-
-		var outline = this.add.sprite(-3.5, -3.5,'cards',key);
-		outline.scale.setTo(0.35);
-		outline.tint = 0x2F4F2F;
-		outline.alpha = 0.15;
-		outline.visible = false;
-		card.addChild(outline);
-		card.outline = outline;
-
-		var right = this.add.sprite(-3.5, -3.5,'cards',key);
-		right.scale.setTo(0.35);
-		right.tint = 0x00FF00;
-		right.alpha = 0.15;
-		right.visible = false;
-		card.addChild(right);
-		card.right = right;
-
-		var wrong = this.add.sprite(-3.5, -3.5,'cards',key);
-		wrong.scale.setTo(0.35);
-		wrong.tint = 0xFF0000;
-		wrong.alpha = 0.15;
-		wrong.visible = false;
-		card.addChild(wrong);
-		card.wrong = wrong;
-
-		card.activate = function(tint) {
-			card.outline.visible = false;
-			card.right.visible = false;
-			card.wrong.visible = false;
-			switch(tint) {
-				case 'outline':
-					card.outline.visible = true;
-					break;
-				case 'right':
-					card.right.visible = true;
-					break;
-				case 'wrong':
-					card.wrong.visible = true;
-					break;
-			}
-		}
-		if (!disabled) {
-			card.key = key;
-			card.inputEnabled = true;
-			card.input.useHandCursor = true;
-			card.events.onInputDown.add(callback,card);
-		}
-		card.key = key;
-		return card;
 	},
 };
 Casino.Boot = function(game) {};

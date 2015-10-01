@@ -10,7 +10,6 @@ Casino.Debug.prototype = {
 	// common stuff
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	createButton:Casino.createButton,
-	createCard:Casino.createCard,
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// creation
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,15 +26,18 @@ Casino.Debug.prototype = {
 		
 		for (var i=0; i<Cards.names.length; i++) {
 			var key = Cards.names[i]+'_heart';
-			var card = this.createCard({key:key,disabled:true});
+			var new_x;
+			var new_y;
 			if (i < Cards.names.length / 2) {
-				card.x = 10+(i*140);
-				card.y = 30;
+				new_x = 10+(i*140);
+				new_y = 30;
 			} else {
 				var n = Math.floor(i-Cards.names.length / 2);
-				card.x = 10+(n*140);
-				card.y = 215;
+				new_x = 10+(n*140);
+				new_y = 215;
 			}
+			var card = new Card(this.game,new_x,new_y,key);
+		
 		}
 		
 		/*

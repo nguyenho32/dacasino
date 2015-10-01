@@ -10,7 +10,6 @@ Casino.MainMenu.prototype = {
 	// common stuff
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	createButton:Casino.createButton,
-	createCard:Casino.createCard,
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// creation
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,9 +143,7 @@ Casino.MainMenu.prototype = {
 		for (var i=0;i<hand.shuffled.length;i++) {
 			var key = hand.shuffled[i];
 			if (typeof display[key] !== 'undefined') {
-				var card = this.createCard({key:key,disabled:true});
-				card.x = display[key].x;
-				card.y = display[key].y;
+				var card = new Card(this.game,display[key].x,display[key].y,key);
 				this.cards.add(card);
 			} else {
 				console.log('broken hand: ',hand);

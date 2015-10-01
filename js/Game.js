@@ -13,7 +13,6 @@ Casino.Game.prototype = {
 	// common stuff
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	createButton:Casino.createButton,
-	createCard:Casino.createCard,
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// creation
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -989,10 +988,8 @@ Casino.Game.prototype = {
 
 				for (var i=0;i<hand.shuffled.length;i++) {
 					var key = hand.shuffled[i];
-					var card = this.createCard({key:key,disabled:true});
-					card.scale.setTo(display[key].scale);
-					card.x = display[key].x;
-					card.y = display[key].y;
+					var card = new Card(this.game,display[key].x,display[key].y,key);
+					card.scale.setTo(0.25);
 					Casino.game.group_bank.add(card);
 				}
 				break;
@@ -1023,10 +1020,8 @@ Casino.Game.prototype = {
 
 				for (var i=0;i<hand.shuffled.length;i++) {
 					var key = hand.shuffled[i];
-					var card = this.createCard({key:key,disabled:true});
-					card.scale.setTo(display[key].scale);
-					card.x = display[key].x;
-					card.y = display[key].y;
+					var card = new Card(this.game,display[key].x,display[key].y,key);
+					card.scale.setTo(0.25);
 					Casino.game.group_player.add(card);
 				}
 				break;
@@ -1038,9 +1033,8 @@ Casino.Game.prototype = {
 				var display = Display.normal(options);
 				for (var i=0;i<hand.shuffled.length;i++) {
 					var key = hand.shuffled[i];
-					var card = this.createCard({key:key,disabled:display[key].disabled,callback:this.gameSelectHair});
-					card.x = display[key].x;
-					card.y = display[key].y;
+					var callback = that.prototype.gameSelectHair;
+					var card = new Card(this.game,display[key].x,display[key].y,key,callback);
 					Casino.game.group_player.add(card);
 				}
 				break;

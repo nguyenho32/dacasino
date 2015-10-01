@@ -10,7 +10,6 @@ Casino.Review.prototype = {
 	// common stuff
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	createButton:Casino.createButton,
-	createCard:Casino.createCard,
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// creation
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,8 +66,10 @@ Casino.Review.prototype = {
 			var card;
 			if (game.mode == 'speed' && i == 0) {
 				card = this.createCard({key:key,disabled:true});
+//				var card = new Card(this.game,display[key].x,display[key].y,key);
 			} else {
 				card = this.createCard({key:key,callback:this.viewHand});
+//				var card = new Card(this.game,display[key].x,display[key].y,key);
 			}
 			if (hand.hair_correct) {
 				card.activate('right');
@@ -95,10 +96,9 @@ Casino.Review.prototype = {
 			console.log('- display: ',display);
 			for (var i=0; i<hand.sorted.length; i++) {
 				var key = hand.sorted[i];
-				var card = this.createCard({key:key,disabled:true});
+				var card = new Card(this.game,display[key].x,display[key].y,key);
+
 				card.scale.setTo(display[key].scale);
-				card.x = display[key].x;
-				card.y = display[key].y;
 			}
 		}
 
@@ -120,10 +120,8 @@ Casino.Review.prototype = {
 		}
 		for (var i=0;i<hand.shuffled.length;i++) {
 			var key = hand.shuffled[i];
-			var card = thing.createCard({key:key,disabled:true});
+			var card = new Card(this.game,display[key].x,display[key].y,key);
 			card.scale.setTo(display[key].scale);
-			card.x = display[key].x;
-			card.y = display[key].y;
 			thing.cards.add(card);
 		}
 
